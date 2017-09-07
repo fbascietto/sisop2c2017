@@ -8,7 +8,7 @@
 #ifndef BIBLIOTECAS_SOCKETS_H_
 #define BIBLIOTECAS_SOCKETS_H_
 
-#include <sys/socket.h>
+
 #include <arpa/inet.h>
 #include <string.h>
 #include <stdio.h>
@@ -32,8 +32,8 @@ int recibirInt(int socketDestino, int* i);
 void selectRead(int descriptor, fd_set* bag, struct timeval* timeout);
 void selectWrite(int descriptor, fd_set* bag, struct timeval* timeout);
 void selectException(int descriptor, fd_set* bag, struct timeval* timeout);
-int esperarConexiones(fd_set *master, int socketEscucha);
 int recibirHandShake (int unSocket);
+
 
 
 
