@@ -22,6 +22,8 @@ void main() {
 	fd_set fdSocketsEscucha;
 	FD_ZERO(&fdSocketsEscucha);
 
+
+	socketEscucha= escuchar(4000);
 	FD_SET(socketEscucha, &fdSocketsEscucha);
 
 	pthread_t threadEsperaConexiones;
