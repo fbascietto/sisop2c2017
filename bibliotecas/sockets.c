@@ -5,7 +5,10 @@
  *      Author: utnso
  */
 #include "sockets.h"
+#include <fcntl.h>
+#include <errno.h>
 
+#define TAMBUFFER 1024
 #define MAX_CLIENTES 10
 
 int escuchar(int puerto) {
@@ -23,6 +26,7 @@ int escuchar(int puerto) {
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
 	address.sin_port = htons(puerto);
+
 	if (bind(socketEscucha, (struct sockaddr *) &address, sizeof(address))
 			< 0) {
 		printf("Error al bindear");
@@ -159,10 +163,6 @@ char * esperarMensajeSocket(fd_set *socketsClientes, int socketMaximo) {
 	}
 }
 
-
-
-
-
 int recibirHandShake (int unSocket) {
 	int ret = 0, len;
 	len = recibirInt(unSocket, &ret);
@@ -170,7 +170,77 @@ int recibirHandShake (int unSocket) {
 	return ret;
 }
 
+int envioArchivo(int peer_socket){
 
+
+	socklen_t       sock_len;
+	ssize_t len;
+	struct sockaddr_in      server_addr;
+	struct sockaddr_in      peer_addr;
+	int fd;
+	int sent_bytes = 0;
+	char file_size[256];
+	struct stat file_stat;
+	int offset;
+	int remain_data;
+
+    fd = open("data.bin", O_RDONLY);
+    if (fd == -1)
+    {
+            fprintf(stderr, "Error abriendo archivo --> %s", strerror(errno));
+
+            exit(EXIT_FAILURE);
+    }
+
+    /* Get file stats */
+    if (fstat(fd, &file_stat) < 0)
+    {
+            fprintf(stderr, "Error fstat --> %s", strerror(errno));
+
+            exit(EXIT_FAILURE);
+    }
+
+    fprintf(stdout, "Tamaño: \n%d bytes\n", file_stat.st_size);
+
+    sock_len = sizeof(struct sockaddr_in);
+    /* Accepting incoming peers */
+    /* peer_socket = accept(server_socket, (struct sockaddr *)&peer_addr, &sock_len);*/
+
+    if (peer_socket == -1)
+    {
+            fprintf(stderr, "Error en accept --> %s", strerror(errno));
+
+            exit(EXIT_FAILURE);
+    }
+
+    fprintf(stdout, "Acepto nodo --> %s\n", inet_ntoa(peer_addr.sin_addr));
+
+    sprintf(file_size, "%d", file_stat.st_size);
+
+    /* Sending file size */
+    len = send(peer_socket, file_size, sizeof(file_size), 0);
+    if (len < 0)
+    {
+          fprintf(stderr, "Error enviando datos preliminares --> %s", strerror(errno));
+
+          exit(EXIT_FAILURE);
+    }
+
+    fprintf(stdout, "FS envia %d bytes de tamaño de archivo\n", len);
+
+    offset = 0;
+    remain_data = file_stat.st_size;
+    /* Sending file data */
+    while (((sent_bytes = sendfile(peer_socket, fd, &offset, TAMBUFFER)) > 0) && (remain_data > 0))
+    {
+            fprintf(stdout, "1. FS envio %d bytes de los datos de archivo, el offset es : %d y faltan = %d bytes\n", sent_bytes, offset, remain_data);
+            remain_data -= sent_bytes;
+            fprintf(stdout, "2. FS envio %d bytes de los datos de archivo, el offset es : %d y faltan = %d bytes\n", sent_bytes, offset, remain_data);
+    }
+
+    close(peer_socket);
+
+}
 
 
 

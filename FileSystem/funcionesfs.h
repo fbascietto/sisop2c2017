@@ -21,6 +21,6 @@ typedef struct {
 
 void *escucharConsola();
 void *esperarConexiones(void *args);
-
+void *recibirArchivo(void *args);
 
 #endif /* FUNCIONESFS_H_ */

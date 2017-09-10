@@ -1,11 +1,13 @@
 
 #include "funcionesfs.h"
+#include <commons/log.h>
 #include "../bibliotecas/sockets.h"
 
 
 
 void *esperarConexiones(void *args) {
-
+	t_log_level logL;
+	t_log* logSockets = log_create("log.txt","Yamafs",0,logL);
 	t_esperar_conexion *argumentos = (t_esperar_conexion*) args;
 
 	printf("Esperando conexiones...\n");
@@ -19,10 +21,10 @@ void *esperarConexiones(void *args) {
 				argumentos->socketEscucha);
 
 		if (nuevoSocket != -1) {
+			log_trace(logSockets,"Nuevo Socket!");
 			printf("Nueva Conexion Recibida - Socket N°: %d\n",
 					nuevoSocket);
-
-
+			envioArchivo(nuevoSocket);
 		}
 
 	}
@@ -30,68 +32,87 @@ void *esperarConexiones(void *args) {
 
 
 void *escucharConsola(){
+	t_log_level logL;
+	t_log* logFS = log_create("log.txt","Yamafs",0,logL);
+
 	char * linea;
 
 	  while(1) {
 		linea = readline("yamafs:" );
+
 		if(linea)
 		  add_history(linea);
 
 		if(!strncmp(linea, "exit", 4)) {
+		   log_trace(logFS,"Consola recibe ""exit""");
+		   log_destroy(logFS);
 		   free(linea);
-		   break;
+		   exit(1);
 		} else
 		if(!strncmp(linea, "format", 6)) {
+			log_trace(logFS,"Consola recibe ""format""");
 			printf("Seleccionaste formatear\n");
 
 		}else
 		if(!strncmp(linea, "rm", 2)) {
+			log_trace(logFS,"Consola recibe ""rm""");
 			printf("Seleccionaste remover\n");
 
 		}else
 		if(!strncmp(linea, "rename", 6)) {
+			log_trace(logFS,"Consola recibe ""rename""");
 			printf("Seleccionaste renombrar\n");
 		}
 		else
 		if(!strncmp(linea, "mv", 2)) {
+			log_trace(logFS,"Consola recibe ""mv""");
 			printf("Seleccionaste mover\n");
 
 		}
 		else
 		if(!strncmp(linea, "cat", 3)) {
+			log_trace(logFS,"Consola recibe ""cat""");
 			printf("Seleccionaste concatenar\n");
 		}
 		else
 		if(!strncmp(linea, "mkdir", 5)) {
+			log_trace(logFS,"Consola recibe ""mkdir""");
 			printf("Seleccionaste crear carpeta\n");
 
 		}
 		else
 		if(!strncmp(linea, "cpfrom", 6)) {
+			log_trace(logFS,"Consola recibe ""cpfrom""");
 			printf("Seleccionaste copiar desde\n");
 
 		}else
 		if(!strncmp(linea, "cpto", 4)) {
+			log_trace(logFS,"Consola recibe ""cpto""");
 			printf("Seleccionaste copiar hasta\n");
 
 		}else
 		if(!strncmp(linea, "cpblock", 7)) {
+			log_trace(logFS,"Consola recibe ""cpblock""");
 			printf("Seleccionaste copiar bloque\n");
 
 		}else
 		if(!strncmp(linea, "md5", 3)) {
+			log_trace(logFS,"Consola recibe ""md5""");
 			printf("Seleccionaste obtener md5\n");
 
 		}else
 		if(!strncmp(linea, "ls", 2)) {
+			log_trace(logFS,"Consola recibe ""ls""");
 			printf("Seleccionaste ver directorios y archivos\n");
 
 		}else
 		if(!strncmp(linea, "info", 4)) {
+			log_trace(logFS,"Consola recibe ""info""");
 			printf("Seleccionaste obtener informacion\n");
 
-		}
+		}else
 		if(!strncmp(linea, "help",4)) {
+			log_trace(logFS,"Consola recibe ""help""");
 			  printf("YamaFS Ayuda\n");
 			  printf("Los parámetros se indican con [] \n------\n");
 			  printf("format - Formatear el Filesystem.\n");
@@ -112,7 +133,6 @@ void *escucharConsola(){
 			printf("Para más información utilice el comando ""help"".\n");
 		}
 
-		free(linea);
   }
 }
 
