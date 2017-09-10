@@ -25,14 +25,13 @@ void main(){
 	fd_set fdSocketsEscucha;
 
 	FD_ZERO(&fdSocketsEscucha);
-
 	socketEscucha = escuchar(4000);
 
+	socketEscucha= escuchar(4000);
 	FD_SET(socketEscucha, &fdSocketsEscucha);
 
 	pthread_t threadEsperaConexiones;
 	pthread_t threadEscucharConsola;
-
 	t_esperar_conexion *esperarConexion;
 
 	esperarConexion = malloc(sizeof(t_esperar_conexion));
