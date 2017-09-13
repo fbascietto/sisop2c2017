@@ -7,7 +7,7 @@
 
 #include "funcionesmaster.h"
 
-void mainMaster() {
+void main() {
 	//leer config
 }
 

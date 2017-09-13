@@ -1,6 +1,7 @@
 
 #include "funcionesfs.h"
 #include <commons/log.h>
+#include "../bibliotecas/sockets.c"
 #include "../bibliotecas/sockets.h"
 
 

@@ -33,7 +33,8 @@ void selectRead(int descriptor, fd_set* bag, struct timeval* timeout);
 void selectWrite(int descriptor, fd_set* bag, struct timeval* timeout);
 void selectException(int descriptor, fd_set* bag, struct timeval* timeout);
 int recibirHandShake (int unSocket);
-
+int envioArchivo(int peer_socket);
+int esperarConexionesSocket(fd_set *master, int socketEscucha);
 
 
 

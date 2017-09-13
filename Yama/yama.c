@@ -10,10 +10,11 @@
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
-
+#include "../bibliotecas/sockets.h"
+#include "../bibliotecas/sockets.c"
 #include "funcionesyama.h"
 
-void mainYama() {
+void main() {
 	int socketEscucha;
 	fd_set fdSocketsEscucha;
 	FD_ZERO(&fdSocketsEscucha);

@@ -22,19 +22,19 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: filesys
+all: FileSystem
 
 # Tool invocations
-filesys: $(OBJS) $(USER_OBJS)
+FileSystem: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross GCC Linker'
-	gcc  -o "filesys" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc  -o "FileSystem" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) filesys
+	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) FileSystem
 	-@echo ' '
 
 .PHONY: all clean dependents

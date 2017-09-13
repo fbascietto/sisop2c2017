@@ -27,7 +27,7 @@ void main(){
 	FD_ZERO(&fdSocketsEscucha);
 	socketEscucha = escuchar(4000);
 
-	socketEscucha= escuchar(4000);
+
 	FD_SET(socketEscucha, &fdSocketsEscucha);
 
 	pthread_t threadEsperaConexiones;
