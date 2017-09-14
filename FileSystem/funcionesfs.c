@@ -10,7 +10,7 @@ void *esperarConexiones(void *args) {
 	t_log_level logL;
 	t_log* logSockets = log_create("log.txt","Yamafs",0,logL);
 	t_esperar_conexion *argumentos = (t_esperar_conexion*) args;
-
+	char* mensaje;
 	printf("Esperando conexiones...\n");
 
 	// ---------------ME QUEDO ESPERANDO UNA CONEXION NUEVA--------------
@@ -25,7 +25,8 @@ void *esperarConexiones(void *args) {
 			log_trace(logSockets,"Nuevo Socket!");
 			printf("Nueva Conexion Recibida - Socket N°: %d\n",
 					nuevoSocket);
-			envioArchivo(nuevoSocket);
+			mensaje = recibirMensaje(nuevoSocket);
+			printf("Se conectó el nodo: %s", mensaje);
 		}
 
 	}
