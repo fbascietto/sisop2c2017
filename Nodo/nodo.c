@@ -34,11 +34,10 @@ void main() {
 
 	if(config_has_property(infoConfig,"NOMBRE_NODO")){
 			nombreNodo = config_get_string_value(infoConfig,"NOMBRE_NODO");
+			nombreNodo[strlen(nombreNodo)+1]='\0';
 	}
 
 	socketConn = conectarseA(fsIP, fsPort);
 	enviarMensaje(socketConn, nombreNodo);
-
-
 
 }
