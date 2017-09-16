@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/sendfile.h>
+#include "protocolo.h"
 
 #define TAMBUFFER 1024
 #define MAX_CLIENTES 10
@@ -200,13 +201,14 @@ int envioArchivo(int peer_socket, char * archivo){
 
     /* fprintf(stdout, "Acepto nodo --> %s\n", inet_ntoa(peer_addr.sin_addr));*/
 
-
+    enviarInt(peer_socket, ENVIAR_ARCHIVO_TEXTO);
     /* Envio tamaño archivo */
 
     //len = send(peer_socket, file_size, sizeof(file_size), 0);
     enviarInt(peer_socket, file_stat.st_size);
     /* envio nombre archivo */
     // send(peer_socket, archivo, sizeof(archivo), 0);
+
     enviarMensaje(peer_socket, archivo);
 
     if (len < 0)
@@ -229,6 +231,10 @@ int envioArchivo(int peer_socket, char * archivo){
             fprintf(stdout, "2. FS envio %d bytes de los datos de archivo, el offset es : %d y faltan = %d bytes\n", sent_bytes, offset, remain_data);
     }
 
+    int fileClose = close(fd);
+    if(fileClose == 0){
+    	printf("archivo %s", archivo);
+    }
     close(peer_socket);
     return 0;
 

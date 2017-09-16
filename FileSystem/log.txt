@@ -1,1 +1,9 @@
 [TRACE] 13:02:00:800 Yamafs/(5652:5658): Nuevo Socket!
+[TRACE] 13:30:52:57 Yamafs/(5946:5949): Nuevo Socket!
+[TRACE] 13:31:17:163 Yamafs/(5946:5949): Nuevo Socket!
+[TRACE] 13:35:57:407 Yamafs/(6247:6249): Nuevo Socket!
+[TRACE] 13:58:27:517 Yamafs/(6964:6971): Nuevo Socket!
+[TRACE] 14:00:18:698 Yamafs/(7041:7051): Nuevo Socket!
+[TRACE] 14:04:37:787 Yamafs/(7352:7355): Consola recibe ls
+[TRACE] 14:05:57:441 Yamafs/(7352:7356): Nuevo Socket!
+[TRACE] 14:08:29:885 Yamafs/(7658:7660): Nuevo Socket!

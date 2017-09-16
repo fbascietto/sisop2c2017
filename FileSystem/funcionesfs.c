@@ -3,6 +3,7 @@
 #include "../bibliotecas/sockets.c"
 #include "../bibliotecas/sockets.h"
 #include <stdbool.h>
+#include "../bibliotecas/protocolo.h"
 
 
 t_list* inicializarDirectorios(t_list* folderList){
@@ -102,10 +103,14 @@ void *esperarConexiones(void *args) {
 		if (nuevoSocket != -1) {
 			log_trace(logSockets,"Nuevo Socket!");
 			printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
-			recibirArchivo(nuevoSocket);
-
-
-
+			int protocolo;
+			recibirInt(nuevoSocket,&protocolo);
+			switch(protocolo){
+				case ENVIAR_ARCHIVO_TEXTO:
+					printf("Se recibio instruccion para recibir archivo de texto\n");
+					recibirArchivo(nuevoSocket);
+					break;
+			}
 
 		}
 	}

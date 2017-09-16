@@ -11,6 +11,7 @@
 #include <commons/config.h>
 #include "../bibliotecas/sockets.c"
 #include "../bibliotecas/sockets.h"
+#include "../bibliotecas/protocolo.h"
 
 void main() {
 	//leer config
