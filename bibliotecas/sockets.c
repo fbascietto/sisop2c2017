@@ -1,12 +1,11 @@
-/*
- * sockets.c
- *
+ /*
  *  Created on: 6/9/2017
  *      Author: utnso
  */
 #include "sockets.h"
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/sendfile.h>
 
 #define TAMBUFFER 1024
 #define MAX_CLIENTES 10
@@ -103,12 +102,13 @@ char *recibirMensaje(int socketDestino) {
 	return mensaje;
 }
 
-void enviarInt(int socketDestino, int num) {
+int enviarInt(int socketDestino, int num){
 	int status;
 	void* bufferEnviarInt = malloc(sizeof(int));
 	memcpy(bufferEnviarInt,&num,sizeof(int));
 	status = send(socketDestino,bufferEnviarInt,sizeof(int),0);
 	free(bufferEnviarInt);
+	return status;
 }
 
 int recibirInt(int socketDestino, int* i) {
@@ -170,21 +170,18 @@ int recibirHandShake (int unSocket) {
 	return ret;
 }
 
-int envioArchivo(int peer_socket){
+int envioArchivo(int peer_socket, char * archivo){
 
-
-	socklen_t       sock_len;
 	ssize_t len;
-	struct sockaddr_in      server_addr;
 	struct sockaddr_in      peer_addr;
 	int fd;
 	int sent_bytes = 0;
-	char file_size[256];
+	char file_size[1024];
 	struct stat file_stat;
 	int offset;
 	int remain_data;
 
-    fd = open("data.bin", O_RDONLY);
+    fd = open(archivo, O_RDONLY);
     if (fd == -1)
     {
             fprintf(stderr, "Error abriendo archivo --> %s", strerror(errno));
@@ -192,7 +189,6 @@ int envioArchivo(int peer_socket){
             exit(EXIT_FAILURE);
     }
 
-    /* Get file stats */
     if (fstat(fd, &file_stat) < 0)
     {
             fprintf(stderr, "Error fstat --> %s", strerror(errno));
@@ -202,23 +198,17 @@ int envioArchivo(int peer_socket){
 
     fprintf(stdout, "Tamaño: \n%d bytes\n", file_stat.st_size);
 
-    sock_len = sizeof(struct sockaddr_in);
-    /* Accepting incoming peers */
-    /* peer_socket = accept(server_socket, (struct sockaddr *)&peer_addr, &sock_len);*/
+    /* fprintf(stdout, "Acepto nodo --> %s\n", inet_ntoa(peer_addr.sin_addr));*/
 
-    if (peer_socket == -1)
-    {
-            fprintf(stderr, "Error en accept --> %s", strerror(errno));
 
-            exit(EXIT_FAILURE);
-    }
+    /* Envio tamaño archivo */
 
-    fprintf(stdout, "Acepto nodo --> %s\n", inet_ntoa(peer_addr.sin_addr));
+    //len = send(peer_socket, file_size, sizeof(file_size), 0);
+    enviarInt(peer_socket, file_stat.st_size);
+    /* envio nombre archivo */
+    // send(peer_socket, archivo, sizeof(archivo), 0);
+    enviarMensaje(peer_socket, archivo);
 
-    sprintf(file_size, "%d", file_stat.st_size);
-
-    /* Sending file size */
-    len = send(peer_socket, file_size, sizeof(file_size), 0);
     if (len < 0)
     {
           fprintf(stderr, "Error enviando datos preliminares --> %s", strerror(errno));
@@ -230,6 +220,7 @@ int envioArchivo(int peer_socket){
 
     offset = 0;
     remain_data = file_stat.st_size;
+
     /* Sending file data */
     while (((sent_bytes = sendfile(peer_socket, fd, &offset, TAMBUFFER)) > 0) && (remain_data > 0))
     {
@@ -239,9 +230,79 @@ int envioArchivo(int peer_socket){
     }
 
     close(peer_socket);
+    return 0;
+
+}
+void *recibirArchivo(int client_socket){
+
+			ssize_t len;
+			char * nombre_archivo;
+	        struct sockaddr_in remote_addr;
+	        char buffer[TAMBUFFER];
+	        int file_size;
+	        FILE *received_file;
+
+
+	        //recv(client_socket, buffer, TAMBUFFER, 0);
+	        //file_size = atoi(buffer);
+
+	        recibirInt(client_socket, &file_size);
+	        int remain_data = file_size;
+	        //recv(client_socket, nombre_archivo, TAMBUFFER, 0);
+	        nombre_archivo = recibirMensaje(client_socket);
+
+	        received_file = fopen(nombre_archivo, "w");
+	        if (received_file == NULL)
+			{
+					fprintf(stderr, "Fallo al abrir el archivo %s\n", strerror(errno));
+
+					exit(EXIT_FAILURE);
+			}
+	        while (((len = recv(client_socket, buffer, TAMBUFFER, 0)) > 0) && (remain_data > 0))
+		   {
+				   fwrite(buffer, sizeof(char), len, received_file);
+				   remain_data -= len;
+				   fprintf(stdout, "Recibidos %d bytes y se esperan :- %d bytes\n", len, remain_data);
+		   }
+		   fclose(received_file);
+
+		   close(client_socket);
 
 }
 
+char *replace_str(char *str, char *orig, char *rep)
+{
+  static char buffer[255];
+  char *p;
 
+  if(!(p = strstr(str, orig)))  // Is 'orig' even in 'str'?
+    return str;
 
+  strncpy(buffer, str, p-str); // Copy characters from 'str' start to 'orig' st$
+  buffer[p-str] = '\0';
+
+  sprintf(buffer+(p-str), "%s%s", rep, p+strlen(orig));
+
+  return buffer;
+}
+
+char *ltrim(char *s)
+{
+    while(isspace(*s)) s++;
+    return s;
+}
+
+char *rtrim(char *s)
+{
+    if(isspace(s)){return s;}
+	char* back = s + strlen(s);
+    while(isspace(*--back));
+    *(back+1) = '\0';
+    return s;
+}
+
+char *remueveBlancos(char *s)
+{
+    return rtrim(ltrim(s));
+}
 
