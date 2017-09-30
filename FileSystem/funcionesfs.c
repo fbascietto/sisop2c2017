@@ -6,6 +6,7 @@
 #include "../bibliotecas/protocolo.h"
 
 
+
 t_list* inicializarDirectorios(t_list* folderList){
 		FILE *fptr;
 	    struct stat st = {0};
@@ -103,18 +104,42 @@ void *esperarConexiones(void *args) {
 		if (nuevoSocket != -1) {
 			log_trace(logSockets,"Nuevo Socket!");
 			printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
-			int protocolo;
-			recibirInt(nuevoSocket,&protocolo);
-			switch(protocolo){
-				case ENVIAR_ARCHIVO_TEXTO:
-					printf("Se recibio instruccion para recibir archivo de texto\n");
-					recibirArchivo(nuevoSocket);
+			int cliente;
+			recibirInt(nuevoSocket,&cliente);
+
+			switch(cliente){
+				case PROCESO_NODO:
+					recibirConexionDataNode(nuevoSocket);
 					break;
+				case PROCESO_MASTER:
+					procesarSolicitudMaster(nuevoSocket);
+
 			}
+
 
 		}
 	}
 }
+
+void recibirConexionDataNode(int nuevoSocket){
+	char* nombre_nodo;
+	nombre_nodo = recibirMensaje(nuevoSocket);
+	printf("se conecto el nodo %s", nombre_nodo);
+}
+
+
+
+void procesarSolicitudMaster(nuevoSocket){
+     int protocolo;
+	recibirInt(nuevoSocket,&protocolo);
+	switch(protocolo){
+		case ENVIAR_ARCHIVO_TEXTO:
+			printf("Se recibio instruccion para recibir archivo de texto\n");
+			recibirArchivo(nuevoSocket);
+			break;
+		}
+}
+
 
 
 void *escucharConsola(void *args){

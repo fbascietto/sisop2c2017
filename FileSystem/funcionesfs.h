@@ -13,10 +13,13 @@
 #include <errno.h>
 #include <commons/log.h>
 #include <commons/collections/list.h>
+#include "../bibliotecas/protocolo.h"
 
 
 #ifndef FUNCIONESFS_H_
 #define FUNCIONESFS_H_
+
+
 
 typedef struct {
 	int socketEscucha;
@@ -37,6 +40,8 @@ typedef struct {
 
 void *escucharConsola(void *args);
 void *esperarConexiones(void *args);
+void procesarSolicitudMaster(int nuevoSocket);
+void recibirConexionDataNode(int nuevoSocket);
 
 t_list *inicializarDirectorios(t_list* folderList);
 /* void listarDirectorios(t_list* folderList, int index);*/

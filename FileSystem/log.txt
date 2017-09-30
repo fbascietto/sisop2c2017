@@ -7,3 +7,23 @@
 [TRACE] 14:04:37:787 Yamafs/(7352:7355): Consola recibe ls
 [TRACE] 14:05:57:441 Yamafs/(7352:7356): Nuevo Socket!
 [TRACE] 14:08:29:885 Yamafs/(7658:7660): Nuevo Socket!
+[TRACE] 15:08:05:421 Yamafs/(8523:8525): Nuevo Socket!
+[TRACE] 15:09:26:493 Yamafs/(8523:8525): Nuevo Socket!
+[TRACE] 15:09:55:171 Yamafs/(8523:8525): Nuevo Socket!
+[TRACE] 15:11:06:354 Yamafs/(8622:8624): Nuevo Socket!
+[TRACE] 15:11:33:826 Yamafs/(8678:8680): Nuevo Socket!
+[TRACE] 15:12:28:790 Yamafs/(8955:8959): Nuevo Socket!
+[TRACE] 15:12:47:197 Yamafs/(8955:8959): Nuevo Socket!
+[TRACE] 16:30:36:199 Yamafs/(9498:9501): Nuevo Socket!
+[TRACE] 11:28:57:525 Yamafs/(2473:2481): Nuevo Socket!
+[TRACE] 11:30:06:417 Yamafs/(2473:2481): Nuevo Socket!
+[TRACE] 11:30:59:351 Yamafs/(2606:2611): Nuevo Socket!
+[TRACE] 11:33:09:36 Yamafs/(2752:2754): Nuevo Socket!
+[TRACE] 11:33:35:81 Yamafs/(2791:2799): Nuevo Socket!
+[TRACE] 11:34:19:27 Yamafs/(2791:2799): Nuevo Socket!
+[TRACE] 18:24:55:962 Yamafs/(9696:9699): Nuevo Socket!
+[TRACE] 12:28:49:633 Yamafs/(11423:11425): Nuevo Socket!
+[TRACE] 17:04:11:891 Yamafs/(13415:13420): Nuevo Socket!
+[TRACE] 17:05:45:61 Yamafs/(13486:13493): Nuevo Socket!
+[TRACE] 17:06:30:827 Yamafs/(13486:13493): Nuevo Socket!
+[TRACE] 17:12:51:644 Yamafs/(13652:13655): Nuevo Socket!

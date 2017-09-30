@@ -22,7 +22,7 @@ void main() {
 	int yamaPort;
 	int socketConn;
 
-	infoConfig = config_create("../config.txt");
+	infoConfig = config_create("config.txt");
 
 	if(config_has_property(infoConfig,"YAMA_IP")){
 		yamaIP = config_get_string_value(infoConfig,"YAMA_IP");
@@ -40,8 +40,10 @@ void main() {
 	}
 
 	socketConn = conectarseA(yamaIP, yamaPort);
+	enviarInt(socketConn,PROCESO_MASTER);
 	// enviarMensaje(socketConn, nombreNodo);
 	envioArchivo(socketConn,"sent.txt");
+
 }
 
 

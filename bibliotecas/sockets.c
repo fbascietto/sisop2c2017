@@ -232,8 +232,9 @@ int envioArchivo(int peer_socket, char * archivo){
     }
 
     int fileClose = close(fd);
+
     if(fileClose == 0){
-    	printf("archivo %s", archivo);
+    	printf("Se cerro el archivo archivo %s", archivo);
     }
     close(peer_socket);
     return 0;
@@ -256,23 +257,27 @@ void *recibirArchivo(int client_socket){
 	        int remain_data = file_size;
 	        //recv(client_socket, nombre_archivo, TAMBUFFER, 0);
 	        nombre_archivo = recibirMensaje(client_socket);
+	        if(!strcmp(nombre_archivo,"-1")){
+	        	printf("error al recibir el nombre del archivo");
+	        }else{
+	        	received_file = fopen(nombre_archivo, "w");
 
-	        received_file = fopen(nombre_archivo, "w");
-	        if (received_file == NULL)
-			{
-					fprintf(stderr, "Fallo al abrir el archivo %s\n", strerror(errno));
+				if (received_file == NULL)
+				{
+						fprintf(stderr, "Fallo al abrir el archivo %s\n", strerror(errno));
 
-					exit(EXIT_FAILURE);
-			}
-	        while (((len = recv(client_socket, buffer, TAMBUFFER, 0)) > 0) && (remain_data > 0))
-		   {
-				   fwrite(buffer, sizeof(char), len, received_file);
-				   remain_data -= len;
-				   fprintf(stdout, "Recibidos %d bytes y se esperan :- %d bytes\n", len, remain_data);
-		   }
-		   fclose(received_file);
+						exit(EXIT_FAILURE);
+				}
+				while (((len = recv(client_socket, buffer, TAMBUFFER, 0)) > 0) && (remain_data > 0))
+			   {
+					   fwrite(buffer, sizeof(char), len, received_file);
+					   remain_data -= len;
+					   fprintf(stdout, "Recibidos %d bytes y se esperan :- %d bytes\n", len, remain_data);
+			   }
+			   fclose(received_file);
 
-		   close(client_socket);
+			   close(client_socket);
+	        }
 
 }
 
