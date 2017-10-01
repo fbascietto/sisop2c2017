@@ -23,6 +23,7 @@ void main(){
 	t_log* logFS = log_create("log.txt","YAMAFS",0,LogL);
 	int nuevoSocket;
 
+
 	t_list *carpetas;
 	carpetas = malloc(sizeof(t_list)*100);
 	carpetas = inicializarDirectorios(carpetas);

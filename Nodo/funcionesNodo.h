@@ -15,19 +15,27 @@
 #include <commons/collections/list.h>
 #include "../bibliotecas/protocolo.h"
 #include <commons/config.h>
+#include <sys/mman.h>
+#include <fcntl.h>
 
 #ifndef FUNCIONESNODO_H_
 #define FUNCIONESNODO_H_
+
+typedef struct {
+  char* nombre;
+  char* mapa;
+  int fsize;
+} t_nodo;
 
 t_config* infoConfig;
 char* fsIP;
 int fsPort;
 char* nombreNodo;
+char* rutaNodo;
 int socketConn;
 
-
+t_nodo mapearDataBin(char* rutaBin, char* nombreNodo);
+char* empaquetoNodo(t_nodo nodo);
 void iniciarDataNode();
-
-
 
 #endif /* FUNCIONESNODO_H_ */

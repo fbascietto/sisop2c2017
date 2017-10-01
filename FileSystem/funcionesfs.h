@@ -38,10 +38,11 @@ typedef struct {
   int padre;
 } t_directory;
 
+
 void *escucharConsola(void *args);
 void *esperarConexiones(void *args);
 void procesarSolicitudMaster(int nuevoSocket);
-void recibirConexionDataNode(int nuevoSocket);
+int recibirConexionDataNode(int nuevoSocket);
 
 t_list *inicializarDirectorios(t_list* folderList);
 /* void listarDirectorios(t_list* folderList, int index);*/

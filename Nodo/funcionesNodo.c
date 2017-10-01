@@ -5,8 +5,51 @@
 #include <commons/config.h>
 #include <pthread.h>
 
+
+t_nodo mapearDataBin(char* rutaBin, char* nombreNodo){
+
+		t_nodo nodo;
+		struct stat file_stat;
+		unsigned char* map;
+		int data;
+		data = open(rutaBin,O_RDWR);
+
+		if (data == NULL)
+				{
+					printf("No se pudo abrir el archivo.\n");
+					 exit(EXIT_FAILURE);
+				}
+
+		if (fstat(data, &file_stat) < 0)
+		    {
+		            fprintf(stderr, "Error fstat --> %s", strerror(errno),"\n");
+
+		            exit(EXIT_FAILURE);
+		    }
+
+
+	   // int sz = getpagesize() * 256;
+
+	    map = (char*) mmap(0, file_stat.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, data, 0);
+
+	    if (map == MAP_FAILED)
+	        {
+	            close(data);
+	            perror("Error en el mapeo del data.bin.\n");
+	            exit(EXIT_FAILURE);
+	        }
+
+	    nodo.mapa = map;
+	    nodo.fsize = (int) file_stat.st_size;
+	    nodo.nombre = nombreNodo;
+
+	    return nodo;
+}
+
 void iniciarDataNode(){
 
+	char* buffer;
+	t_nodo nodo;
 	infoConfig = config_create("config.txt");
 
 		if(config_has_property(infoConfig,"IP_FILESYSTEM")){
@@ -24,12 +67,26 @@ void iniciarDataNode(){
 				nombreNodo[strlen(nombreNodo)+1]='\0';
 		}
 
+		if(config_has_property(infoConfig,"NOMBRE_NODO")){
+				rutaNodo = config_get_string_value(infoConfig,"RUTA_DATABIN");
+				rutaNodo[strlen(rutaNodo)+1]='\0';
+		}
+
 		socketConn = conectarseA(fsIP, fsPort);
 		enviarInt(socketConn, PROCESO_NODO);
-		enviarMensaje(socketConn, nombreNodo);
+
+		nodo = mapearDataBin(rutaNodo, nombreNodo);
+
+		enviarMensaje(socketConn, nodo.nombre);
+		enviarInt(socketConn, nodo.fsize);
 
 		while(1){
 
 		}
 
+
+		/*
+		mapearDataBin(rutaNodo);
+		esperarPeticiones(socketConn);
+		 */
 }

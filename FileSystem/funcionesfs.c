@@ -110,6 +110,7 @@ void *esperarConexiones(void *args) {
 			switch(cliente){
 				case PROCESO_NODO:
 					recibirConexionDataNode(nuevoSocket);
+
 					break;
 				case PROCESO_MASTER:
 					procesarSolicitudMaster(nuevoSocket);
@@ -121,16 +122,20 @@ void *esperarConexiones(void *args) {
 	}
 }
 
-void recibirConexionDataNode(int nuevoSocket){
+int recibirConexionDataNode(int nuevoSocket){
 	char* nombre_nodo;
+	int espacio;
 	nombre_nodo = recibirMensaje(nuevoSocket);
-	printf("se conecto el nodo %s", nombre_nodo);
+	recibirInt(nuevoSocket, &espacio);
+	printf("Se conecto el nodo %s\n", nombre_nodo);
+	printf("Cuenta con %d bloques en total.\n", espacio/(getpagesize()*256));
+	return nuevoSocket;
 }
 
 
 
 void procesarSolicitudMaster(nuevoSocket){
-     int protocolo;
+    int protocolo;
 	recibirInt(nuevoSocket,&protocolo);
 	switch(protocolo){
 		case ENVIAR_ARCHIVO_TEXTO:
@@ -215,7 +220,6 @@ void *escucharConsola(void *args){
 		if(!strncmp(linea, "cpfrom", 6)) {
 			log_trace(logFS,"Consola recibe ""cpfrom""");
 			printf("Seleccionaste copiar desde\n");
-
 		}else
 		if(!strncmp(linea, "cpto", 4)) {
 			log_trace(logFS,"Consola recibe ""cpto""");
