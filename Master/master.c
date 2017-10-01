@@ -13,6 +13,8 @@
 #include "../bibliotecas/sockets.h"
 #include "../bibliotecas/protocolo.h"
 
+#define PROCESO_MASTER 4
+
 void main() {
 	//leer config
 

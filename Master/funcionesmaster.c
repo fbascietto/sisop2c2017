@@ -116,15 +116,27 @@ item_transformacion* deserializar_items_transformacion(char* serialized, uint32_
 	for (i = 0; i < items_cantidad; i++) {
 		uint32_t size_item;
 		deserializarDato(&(size_item),serialized,sizeof(uint32_t),&offset);
-		char* serialized_contexto = malloc(sizeof(char)*size_item);
-		//contextos = realloc(contextos,sizeof(contexto)*(i+1));
-		deserializarDato(serialized_contexto,serialized,size_item,&offset);
-		item_transformacion* aux = deserializar_contexto(serialized_contexto);
+		char* serialized_item = malloc(sizeof(char)*size_item);
+		deserializarDato(serialized_item,serialized,size_item,&offset);
+		item_transformacion* aux = deserializar_item_transformacion(serialized_item);
 		item_transformacion[i] = *(aux);
 		free(aux);
-		free(serialized_contexto);
+		free(serialized_item);
 	}
 	return itemsTransformacion;
+}
+
+item_transformacion* deserializar_item_transformacion(char* serialized){
+	item_transformacion* itemTransformacion = malloc(sizeof(item_transformacion));
+	int offset = 0;
+
+	deserializarDato(&(itemTransformacion->nodo_id),serialized,sizeof(uint32_t),&offset);
+	deserializarDato(&(itemTransformacion->ip_puerto_worker),serialized,sizeof(char),&offset);
+	deserializarDato(&(itemTransformacion->bloque),serialized,sizeof(uint32_t),&offset);
+	deserializarDato(&(itemTransformacion->bytes_ocupados),serialized,sizeof(uint32_t),&offset);
+	deserializarDato(&(itemTransformacion->archivo_temporal),serialized,sizeof(char),&offset);
+
+	return itemTransformacion;
 }
 
 

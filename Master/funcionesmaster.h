@@ -34,5 +34,6 @@ uint32_t getLong_one_item_transformacion(item_transformacion* items_transformaci
 
 solicitud_transformacion* deserializar_solicitud_transformacion(char* serialized);
 item_transformacion* deserializar_items_transformacion(char* serialized, uint32_t items_cantidad);
+item_transformacion* deserializar_item_transformacion(char* serialized);
 
 #endif /* MASTER_FUNCIONESMASTER_H_ */
