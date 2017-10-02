@@ -28,6 +28,8 @@ char* serializarSolicitudTransformacion(solicitud_transformacion* solicitudTrans
 	char* serialized_items = serializar_items_transformacion(&(solicitudTransformacion->items_transformacion),solicitudTransformacion->item_cantidad);
 	serializarDato(serializedPackage,serialized_items,sizeof(char)*size_items,&offset);
 	free(serialized_items);
+
+	return serializedPackage;
 }
 
 char* serializar_items_transformacion(item_transformacion** items_transformacion, uint32_t item_cantidad){
