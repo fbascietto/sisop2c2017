@@ -31,8 +31,8 @@ char* serializarSolicitudTransformacion(solicitud_transformacion* solicitudTrans
 }
 
 char* serializar_items_transformacion(item_transformacion** items_transformacion, uint32_t item_cantidad){
-	item_transformacion* aux_items_transformacion = *item_transformacion;
-	uint32_t total_size = getLong_stack(aux_items_transformacion, item_cantidad);
+	item_transformacion* aux_items_transformacion = *items_transformacion;
+	uint32_t total_size = getLong_items_transformacion(aux_items_transformacion, item_cantidad);
 	char *serializedPackage = malloc(sizeof(char)*total_size);
 
 	int offset = 0;
@@ -119,7 +119,7 @@ item_transformacion* deserializar_items_transformacion(char* serialized, uint32_
 		char* serialized_item = malloc(sizeof(char)*size_item);
 		deserializarDato(serialized_item,serialized,size_item,&offset);
 		item_transformacion* aux = deserializar_item_transformacion(serialized_item);
-		item_transformacion[i] = *(aux);
+		itemsTransformacion[i] = *(aux);
 		free(aux);
 		free(serialized_item);
 	}

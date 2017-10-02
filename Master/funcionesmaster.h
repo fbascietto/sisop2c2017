@@ -8,10 +8,7 @@
 #ifndef MASTER_FUNCIONESMASTER_H_
 #define MASTER_FUNCIONESMASTER_H_
 
-typedef struct solicitud_transformacion {
-	item_transformacion* items_transformacion;		//array de item_transformacion
-	uint32_t item_cantidad; //cantidad de items
-} solicitud_transformacion;
+#include <stdint.h>
 
 typedef struct item_transformacion {
 	uint32_t nodo_id;		//nodo
@@ -20,6 +17,11 @@ typedef struct item_transformacion {
 	uint32_t bytes_ocupados;		//Bytes Ocupados
 	char archivo_temporal;		//Archivo temporal
 } item_transformacion;
+
+typedef struct solicitud_transformacion {
+	item_transformacion* items_transformacion;		//array de item_transformacion
+	uint32_t item_cantidad; //cantidad de items
+} solicitud_transformacion;
 
 void serializarDato(char* buffer, void* dato, int size_to_send, int* offset);
 void deserializarDato(void* dato, char* buffer, int size, int* offset);
