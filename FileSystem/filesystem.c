@@ -23,6 +23,8 @@ void main(){
 	t_log* logFS = log_create("log.txt","YAMAFS",0,LogL);
 	int nuevoSocket;
 
+	nodos_file = "nodos.bin";
+	nodos = list_create();
 
 	t_list *carpetas;
 	carpetas = malloc(sizeof(t_list)*100);
@@ -47,6 +49,9 @@ void main(){
 	pthread_t threadEsperaConexiones;
 	pthread_t threadEscucharConsola;
 	t_esperar_conexion *esperarConexion;
+
+
+	levantarNodos(1);
 
 	esperarConexion = malloc(sizeof(t_esperar_conexion));
 	esperarConexion->fdSocketEscucha = fdSocketsEscucha;

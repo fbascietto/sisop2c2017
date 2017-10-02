@@ -6,6 +6,8 @@
 #include <pthread.h>
 
 
+
+
 t_nodo mapearDataBin(char* rutaBin, char* nombreNodo){
 
 		t_nodo nodo;
@@ -79,6 +81,8 @@ void iniciarDataNode(){
 
 		enviarMensaje(socketConn, nodo.nombre);
 		enviarInt(socketConn, nodo.fsize);
+
+
 
 		while(1){
 

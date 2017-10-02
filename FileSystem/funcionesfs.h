@@ -19,7 +19,8 @@
 #ifndef FUNCIONESFS_H_
 #define FUNCIONESFS_H_
 
-
+char* nodos_file;
+t_list * nodos;
 
 typedef struct {
 	int socketEscucha;
@@ -38,11 +39,19 @@ typedef struct {
   int padre;
 } t_directory;
 
+typedef struct {
+  int socket_nodo;
+  char* nombre_nodo[20];
+  int tamanio;
+  int espacioLibre;
+} t_nodo;
+
 
 void *escucharConsola(void *args);
 void *esperarConexiones(void *args);
 void procesarSolicitudMaster(int nuevoSocket);
 int recibirConexionDataNode(int nuevoSocket);
+void actualizarNodosBin();
 
 t_list *inicializarDirectorios(t_list* folderList);
 /* void listarDirectorios(t_list* folderList, int index);*/

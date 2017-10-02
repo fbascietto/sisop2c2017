@@ -6,6 +6,24 @@
 #include "../bibliotecas/protocolo.h"
 
 
+void levantarNodos(int clean){
+
+
+	if(clean>0){
+		FILE* file = fopen(nodos_file, "wb+");
+		fprintf(file,"TAMANIO=0\n");
+		fprintf(file,"LIBRE=0\n");
+		fprintf(file,"NODOS=[]\n");
+		fclose(file);
+	}
+
+	if (nodos_file == NULL){
+		printf("No se pudo abrir el archivo nodos.bin.\n");
+		exit(EXIT_FAILURE);
+	}
+
+
+}
 
 t_list* inicializarDirectorios(t_list* folderList){
 		FILE *fptr;
@@ -123,15 +141,146 @@ void *esperarConexiones(void *args) {
 }
 
 int recibirConexionDataNode(int nuevoSocket){
-	char* nombre_nodo;
+	t_nodo * nodo;
+	nodo = malloc(sizeof(nodo));
+
 	int espacio;
-	nombre_nodo = recibirMensaje(nuevoSocket);
+
+	strcpy(nodo->nombre_nodo,recibirMensaje(nuevoSocket));
 	recibirInt(nuevoSocket, &espacio);
-	printf("Se conecto el nodo %s\n", nombre_nodo);
-	printf("Cuenta con %d bloques en total.\n", espacio/(getpagesize()*256));
+	nodo->tamanio=espacio;
+	nodo->socket_nodo = nuevoSocket;
+
+	list_add(nodos,nodo);
+
+	printf("Se conecto el nodo %s\n", nodo->nombre_nodo);
+	printf("Cuenta con %d bloques en total.\n", nodo->tamanio/(1024*1024));
+
+	actualizarNodosBin();
+
 	return nuevoSocket;
 }
 
+void actualizarNodosBin(){
+
+	FILE* nodosbin = fopen(nodos_file,"wb+");
+	char * descripcion;
+	int size = list_size(nodos);
+	descripcion = malloc(sizeof(char*[21])*size);
+	int tamanio = 0;
+	int libre = 0;
+	int i = 0;
+	t_nodo * nodo;
+	for(;i<size;i++){
+		nodo = list_get(nodos,i);
+		tamanio = tamanio + nodo->tamanio;
+		libre = libre + nodo->espacioLibre;
+		if(i>0){
+			strcat(descripcion,",");
+			strcat(descripcion,nodo->nombre_nodo);
+		}else{
+			strcpy(descripcion,nodo->nombre_nodo);
+		}
+
+	}
+
+	fprintf(nodosbin, "TAMANIO=%d\n", tamanio/(1024*1024));
+	fprintf(nodosbin, "LIBRE=%d\n", libre/(1024*1024));
+	fprintf(nodosbin, "NODOS=[%s]\n",descripcion);
+
+	for(i=0;i<size;i++){
+			nodo = list_get(nodos,i);
+			fprintf(nodosbin, "%sTotal=%d\n", nodo->nombre_nodo, nodo->tamanio/(1024*1024));
+			fprintf(nodosbin, "%sLibre=%d\n", nodo->nombre_nodo, nodo->espacioLibre/(1024*1024));
+
+	}
+
+
+
+	fclose(nodosbin);
+
+/*
+		int tamanio = 0;
+		int libre = 0;
+		char *tam;
+		char *lib;
+		char *nod;
+		char * listanodos;
+		size_t n = 0;
+
+		FILE* nodosbin = fopen(nodos_file, "rb+");
+		fseek(nodosbin,sizeof("TAMANIO"),SEEK_SET);
+
+		tam = malloc(sizeof(char[1024*1024]));
+
+
+		int c;
+
+		while ((c = fgetc(nodosbin)) != '\n')
+		    {
+		        tam[n++] = (char) c;
+		    }
+		sscanf(tam, "%d", &tamanio);
+		//fseek(nodosbin,-(n+1),SEEK_CUR);
+
+		fseek(nodosbin,sizeof("LIBRE"),SEEK_CUR);
+		free(tam);
+
+		lib = malloc(sizeof(char[10]));
+		n = 0;
+		while ((c = fgetc(nodosbin)) != '\n')
+				    {
+				        lib[n++] = (char) c;
+				    }
+		sscanf(lib, "%d", &libre);
+		free(libre);
+		fseek(nodosbin,sizeof("NODOS"),SEEK_CUR);
+
+		lib = malloc(sizeof(char[10]));
+		n=0;
+			while ((c = fgetc(nodosbin)) != '\n')
+					    {
+					        putchar(c);
+					    }
+
+		listanodos = code;
+		printf("%s",listanodos);
+		free(code);
+
+
+
+		printf("The integer is %d\n",libre);
+		fprintf(nodosbin, "%d", tamanio + nodo->tamanio/(1024*1024));
+		fseek(nodosbin,0,SEEK_END);
+		fprintf(nodosbin, "%sTotal=%d\n", nodo->nombre_nodo, nodo->tamanio/(1024*1024));
+		fprintf(nodosbin, "%sLibre=%d\n", nodo->nombre_nodo, nodo->espacioLibre/(1024*1024));
+
+	FILE *output;
+	char buffer[4096];
+	size_t bytesRead;
+
+	memset(buffer, 0, sizeof(buffer));
+
+
+	output = fopen("output.txt", "w+");
+
+	fprintf(output, "my header text\n");
+
+	while(!feof(nodosbin))
+	{
+	  bytesRead = fread(&buffer, 1, sizeof(buffer), nodosbin);
+	  fwrite(&buffer, 1, bytesRead, output);
+	}
+
+
+
+	fclose(nodosbin);
+	fclose(output);
+
+	remove(source);
+	rename("output.txt", "source.txt");
+*/
+}
 
 
 void procesarSolicitudMaster(nuevoSocket){
