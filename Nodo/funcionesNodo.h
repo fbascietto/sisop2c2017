@@ -37,5 +37,6 @@ int socketConn;
 t_nodo mapearDataBin(char* rutaBin, char* nombreNodo);
 char* empaquetoNodo(t_nodo nodo);
 void iniciarDataNode();
+void esperarBloque(int socketConn);
 
 #endif /* FUNCIONESNODO_H_ */

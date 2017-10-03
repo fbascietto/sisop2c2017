@@ -46,6 +46,7 @@ typedef struct {
   int espacioLibre;
 } t_nodo;
 
+pthread_mutex_t mx_nodobin;
 
 void *escucharConsola(void *args);
 void *esperarConexiones(void *args);

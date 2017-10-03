@@ -22,7 +22,6 @@ void levantarNodos(int clean){
 		exit(EXIT_FAILURE);
 	}
 
-
 }
 
 t_list* inicializarDirectorios(t_list* folderList){
@@ -163,7 +162,7 @@ int recibirConexionDataNode(int nuevoSocket){
 
 void actualizarNodosBin(){
 
-	FILE* nodosbin = fopen(nodos_file,"wb+");
+
 	char * descripcion;
 	int size = list_size(nodos);
 	descripcion = malloc(sizeof(char*[21])*size);
@@ -184,6 +183,8 @@ void actualizarNodosBin(){
 
 	}
 
+	pthread_mutex_lock(&mx_nodobin);
+	FILE* nodosbin = fopen(nodos_file,"wb+");
 	fprintf(nodosbin, "TAMANIO=%d\n", tamanio/(1024*1024));
 	fprintf(nodosbin, "LIBRE=%d\n", libre/(1024*1024));
 	fprintf(nodosbin, "NODOS=[%s]\n",descripcion);
@@ -194,10 +195,8 @@ void actualizarNodosBin(){
 			fprintf(nodosbin, "%sLibre=%d\n", nodo->nombre_nodo, nodo->espacioLibre/(1024*1024));
 
 	}
-
-
-
 	fclose(nodosbin);
+	pthread_mutex_unlock(&mx_nodobin);
 
 /*
 		int tamanio = 0;
@@ -435,25 +434,35 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs)
 	memset(buffer, 0, sizeof(buffer));
 
 	FILE* origen = fopen(path_archivo_origen, "rb");
-	FILE* destino = fopen(directorio_yamafs, "wb");
 
 	if (origen == NULL){
 		fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
-	if (destino == NULL){
-			fprintf(stderr, "Fallo al crear archivo %s %s\n",directorio_yamafs, strerror(errno));
-			exit(EXIT_FAILURE);
-		}
+
+
+	int nodopos = 0;
+	int socketnodo;
+	t_nodo* nodo;
+	nodo = malloc(sizeof(t_nodo));
 
 	while(!feof(origen)){
-	  bytesRead = fread(&buffer, 1, sizeof(buffer), origen);
-	  fwrite(&buffer, 1, bytesRead, destino);
+
+	  nodo = list_get(nodos,nodopos);
+	  socketnodo = nodo->socket_nodo;
+	  while(!feof(origen) && bytesRead<=1024*1024){
+		  bytesRead += fread(&buffer, 1, sizeof(buffer), origen);
+		  enviarMensaje(socketnodo,buffer);
+	  }
+	  nodopos++;
+	  if(nodopos >= list_size(nodos)){
+		  nodopos = 0;
+	  }
 	}
 
-	fclose(origen);
-	fclose(destino);
 
+	free(nodo);
+	fclose(origen);
 
 
 }

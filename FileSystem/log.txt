@@ -89,3 +89,23 @@
 [TRACE] 22:09:23:288 Yamafs/(16282:16289): Consola recibe cpfrom
 [TRACE] 22:09:50:453 Yamafs/(16282:16290): Nuevo Socket!
 [TRACE] 22:11:09:626 Yamafs/(16408:16414): Consola recibe cpfrom
+[TRACE] 23:40:47:670 Yamafs/(17011:17019): Nuevo Socket!
+[TRACE] 23:40:55:416 Yamafs/(17011:17019): Nuevo Socket!
+[TRACE] 23:42:51:858 Yamafs/(17011:17019): Nuevo Socket!
+[TRACE] 23:44:45:88 Yamafs/(17011:17019): Nuevo Socket!
+[TRACE] 15:15:31:969 Yamafs/(3289:3291): Nuevo Socket!
+[TRACE] 15:16:14:441 Yamafs/(3289:3290): Consola recibe cpfrom
+[TRACE] 15:22:05:545 Yamafs/(3461:3480): Nuevo Socket!
+[TRACE] 15:22:26:588 Yamafs/(3461:3479): Consola recibe cpfrom
+[TRACE] 15:41:55:154 Yamafs/(3881:3883): Nuevo Socket!
+[TRACE] 15:42:15:914 Yamafs/(3881:3882): Consola recibe cpfrom
+[TRACE] 15:43:11:983 Yamafs/(3966:3977): Nuevo Socket!
+[TRACE] 15:43:53:639 Yamafs/(3966:3976): Consola recibe cpfrom
+[TRACE] 15:46:40:891 Yamafs/(4157:4167): Nuevo Socket!
+[TRACE] 15:46:57:454 Yamafs/(4157:4166): Consola recibe cpfrom
+[TRACE] 15:53:52:925 Yamafs/(4323:4329): Nuevo Socket!
+[TRACE] 15:54:56:421 Yamafs/(4323:4328): Consola recibe cpfrom
+[TRACE] 15:56:13:396 Yamafs/(4409:4411): Nuevo Socket!
+[TRACE] 16:01:48:834 Yamafs/(4550:4552): Nuevo Socket!
+[TRACE] 16:02:45:871 Yamafs/(4550:4551): Consola recibe ls
+[TRACE] 16:02:50:206 Yamafs/(4550:4551): Consola recibe cpfrom

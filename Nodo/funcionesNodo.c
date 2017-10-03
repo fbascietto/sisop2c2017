@@ -85,7 +85,7 @@ void iniciarDataNode(){
 
 
 		while(1){
-
+			esperarBloque(socketConn);
 		}
 
 
@@ -93,4 +93,11 @@ void iniciarDataNode(){
 		mapearDataBin(rutaNodo);
 		esperarPeticiones(socketConn);
 		 */
+}
+
+void esperarBloque(int socketConn){
+	//esperarInstruccion(socketConn);
+	char * bloqueArchivo = recibirMensaje(socketConn);
+	printf("%s", bloqueArchivo);
+
 }

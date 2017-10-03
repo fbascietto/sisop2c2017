@@ -21,10 +21,12 @@
 void main(){
 	t_log_level LogL = LOG_LEVEL_TRACE;
 	t_log* logFS = log_create("log.txt","YAMAFS",0,LogL);
-	int nuevoSocket;
+
 
 	nodos_file = "nodos.bin";
 	nodos = list_create();
+	pthread_mutex_init(&mx_nodobin, NULL);
+
 
 	t_list *carpetas;
 	carpetas = malloc(sizeof(t_list)*100);
