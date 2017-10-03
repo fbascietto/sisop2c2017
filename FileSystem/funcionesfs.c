@@ -369,6 +369,10 @@ void *escucharConsola(void *args){
 		if(!strncmp(linea, "cpfrom", 6)) {
 			log_trace(logFS,"Consola recibe ""cpfrom""");
 			printf("Seleccionaste copiar desde\n");
+			char ** parametros = string_split(linea, " ");
+			guardarArchivoLocalEnFS(parametros[1],parametros[2]);
+
+
 		}else
 		if(!strncmp(linea, "cpto", 4)) {
 			log_trace(logFS,"Consola recibe ""cpto""");
@@ -423,4 +427,33 @@ void *escucharConsola(void *args){
 }
 
 
+void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs){
 
+
+	char* buffer[4096];
+	size_t bytesRead;
+	memset(buffer, 0, sizeof(buffer));
+
+	FILE* origen = fopen(path_archivo_origen, "rb");
+	FILE* destino = fopen(directorio_yamafs, "wb");
+
+	if (origen == NULL){
+		fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	if (destino == NULL){
+			fprintf(stderr, "Fallo al crear archivo %s %s\n",directorio_yamafs, strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+
+	while(!feof(origen)){
+	  bytesRead = fread(&buffer, 1, sizeof(buffer), origen);
+	  fwrite(&buffer, 1, bytesRead, destino);
+	}
+
+	fclose(origen);
+	fclose(destino);
+
+
+
+}
