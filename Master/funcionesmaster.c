@@ -72,8 +72,9 @@ uint32_t getLong_items_transformacion(item_transformacion* items_transformacion,
 
 uint32_t getLong_one_item_transformacion(item_transformacion* items_transformacion){
 	uint32_t longitud = 0;
-	longitud += sizeof(uint32_t)*4; //nodo_id, ip_puerto_worker, bloque, bytes_ocupados
-	longitud += sizeof(char)*2; //ip_puerto_worker, archivo_temporal
+	longitud += sizeof(uint32_t)*3; //nodo_id, bloque, bytes_ocupados
+	longitud += sizeof(char[20]); //ip_puerto_worker,
+	longitud += sizeof(char[50]);//archivo_temporal
 	return longitud;
 }
 
@@ -84,10 +85,10 @@ char* serializar_item_transformacion(item_transformacion* item_transformacion){
 	int offset = 0;
 
 	serializarDato(serializedPackage,&(item_transformacion->nodo_id),sizeof(uint32_t),&offset);
-	serializarDato(serializedPackage,&(item_transformacion->ip_puerto_worker),sizeof(item_transformacion->ip_puerto_worker),&offset);
+	serializarDato(serializedPackage,&(item_transformacion->ip_puerto_worker),sizeof(char[20]),&offset);
 	serializarDato(serializedPackage,&(item_transformacion->bloque),sizeof(uint32_t),&offset);
 	serializarDato(serializedPackage,&(item_transformacion->bytes_ocupados),sizeof(uint32_t),&offset);
-	serializarDato(serializedPackage,&(item_transformacion->archivo_temporal),sizeof(char),&offset);
+	serializarDato(serializedPackage,&(item_transformacion->archivo_temporal),sizeof(char[50]),&offset);
 
 	return serializedPackage;
 }
@@ -133,12 +134,30 @@ item_transformacion* deserializar_item_transformacion(char* serialized){
 	int offset = 0;
 
 	deserializarDato(&(itemTransformacion->nodo_id),serialized,sizeof(uint32_t),&offset);
-	deserializarDato(&(itemTransformacion->ip_puerto_worker),serialized,sizeof(char),&offset);
+	deserializarDato(&(itemTransformacion->ip_puerto_worker),serialized,sizeof(char[20]),&offset);
 	deserializarDato(&(itemTransformacion->bloque),serialized,sizeof(uint32_t),&offset);
 	deserializarDato(&(itemTransformacion->bytes_ocupados),serialized,sizeof(uint32_t),&offset);
-	deserializarDato(&(itemTransformacion->archivo_temporal),serialized,sizeof(char),&offset);
+	deserializarDato(&(itemTransformacion->archivo_temporal),serialized,sizeof(char[50]),&offset);
 
 	return itemTransformacion;
+}
+
+void testSerializarItem(){
+	item_transformacion *item1 = malloc(sizeof(item_transformacion));
+	strcpy(item1->archivo_temporal,"Aasfsaf");
+	item1->bloque = 22;
+	item1->bytes_ocupados = 44;
+	item1->nodo_id = 5;
+	strcpy(item1->ip_puerto_worker,"Bafasf");
+
+	char* itemSerializado = serializar_item_transformacion(item1);
+
+	item_transformacion *itemDeserializado = deserializar_item_transformacion(itemSerializado);
+	printf("archivo_temporal = %s\n", itemDeserializado->archivo_temporal );
+	printf("bloque = %d\n", itemDeserializado->bloque );
+	printf("bytes_ocupados = %d\n", itemDeserializado->bytes_ocupados );
+	printf("nodo_id = %d\n", itemDeserializado->nodo_id );
+	printf("ip_puerto_worker = %s\n", itemDeserializado->ip_puerto_worker );
 }
 
 

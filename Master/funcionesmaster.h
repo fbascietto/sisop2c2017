@@ -12,10 +12,10 @@
 
 typedef struct item_transformacion {
 	uint32_t nodo_id;		//nodo
-	char ip_puerto_worker;		//IP y Puerto del Worker
+	char ip_puerto_worker[20];		//IP y Puerto del Worker
 	uint32_t bloque;		//bloque a aplicar programa de Transformacion
 	uint32_t bytes_ocupados;		//Bytes Ocupados
-	char archivo_temporal;		//Archivo temporal
+	char archivo_temporal[50];		//Archivo temporal
 } item_transformacion;
 
 typedef struct solicitud_transformacion {
@@ -37,5 +37,7 @@ uint32_t getLong_one_item_transformacion(item_transformacion* items_transformaci
 solicitud_transformacion* deserializar_solicitud_transformacion(char* serialized);
 item_transformacion* deserializar_items_transformacion(char* serialized, uint32_t items_cantidad);
 item_transformacion* deserializar_item_transformacion(char* serialized);
+
+void testSerializarItem();
 
 #endif /* MASTER_FUNCIONESMASTER_H_ */
