@@ -34,6 +34,7 @@ int fsPort;
 char* nombreNodo;
 char* rutaNodo;
 int socketConn;
+int puerto;
 
 t_nodo * mapearDataBin(char* rutaBin, char* nombreNodo);
 char* empaquetoNodo(t_nodo nodo);

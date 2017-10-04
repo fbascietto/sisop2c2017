@@ -77,6 +77,10 @@ void iniciarDataNode(){
 				rutaNodo[strlen(rutaNodo)+1]='\0';
 		}
 
+		if(config_has_property(infoConfig, "PUERTO_WORKER")){
+				puerto = config_get_int_value(infoConfig, "PUERTO_WORKER");
+		}
+
 		socketConn = conectarseA(fsIP, fsPort);
 		enviarInt(socketConn, PROCESO_NODO);
 
