@@ -155,8 +155,9 @@ int recibirConexionDataNode(int nuevoSocket){
 	printf("Se conecto el nodo %s\n", nodo->nombre_nodo);
 	printf("Cuenta con %d bloques en total.\n", nodo->tamanio/(1024*1024));
 
-	actualizarNodosBin();
+
 	crearBitmap(nodo->tamanio,nodo->nombre_nodo);
+	actualizarNodosBin();
 
 	return nuevoSocket;
 }
@@ -167,15 +168,21 @@ void crearBitmap(int tamNodo, char* nombreNodo[20]){
 	snprintf(ruta, 256, "%s%s%s", "./metadata/bitmap/", nombreNodo, ".bin");
 
 	/* Declara el array de bits en cero. Este BIT_MAP se asigna a un dominio, en este caso, un nodo.  */
-	 unsigned char* bit_map;
-	 bit_map = malloc(sizeof(tamNodo/(1024*1024)));
-	 memset(bit_map, 0, sizeof(tamNodo/(1024*1024)));
+	int bitmaplen = tamNodo / (1024*1024);
+	int i = 0;
+	unsigned char* bit_map;
+	bit_map = malloc(bitmaplen);
+	for(i;i<bitmaplen;i++){
+		bit_map[i]="0";
+	}
+	//bit_map = malloc(sizeof(tamNodo/(1024*1024)));
+	//memset(bit_map, 0, sizeof(tamNodo/(1024*1024)));
 
 
-	 FILE* bitmap = fopen(ruta ,"wb+");
+	FILE* bitmap = fopen(ruta ,"wb+");
 
-	 fprintf(bitmap,bit_map);
-	 fclose(bitmap);
+	fprintf(bitmap,bit_map);
+	fclose(bitmap);
 
 }
 
