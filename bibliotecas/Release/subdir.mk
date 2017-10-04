@@ -5,14 +5,17 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../main.c \
+../serializacion.c \
 ../sockets.c 
 
 OBJS += \
 ./main.o \
+./serializacion.o \
 ./sockets.o 
 
 C_DEPS += \
 ./main.d \
+./serializacion.d \
 ./sockets.d 
 
 
