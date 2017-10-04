@@ -53,7 +53,9 @@ void *esperarConexiones(void *args);
 void procesarSolicitudMaster(int nuevoSocket);
 int recibirConexionDataNode(int nuevoSocket);
 void actualizarNodosBin();
+void crearBitmap(int tamNodo, char* nombreNodo[20]);
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs);
+
 
 t_list *inicializarDirectorios(t_list* folderList);
 /* void listarDirectorios(t_list* folderList, int index);*/

@@ -12,7 +12,8 @@
 #include <string.h>
 #include "funcionesfs.h"
 #include <pthread.h>
-
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <commons/log.h>
 #include <commons/config.h>
@@ -21,6 +22,11 @@
 void main(){
 	t_log_level LogL = LOG_LEVEL_TRACE;
 	t_log* logFS = log_create("log.txt","YAMAFS",0,LogL);
+
+	/*creo carpeta metadata*/
+	int status = mkdir("metadata", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	/*creo carpeta bitmap*/
+	status = mkdir("metadata/bitmap", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
 
 	nodos_file = "nodos.bin";
