@@ -84,7 +84,7 @@ char* serializar_item_transformacion(item_transformacion* item_transformacion){
 	int offset = 0;
 
 	serializarDato(serializedPackage,&(item_transformacion->nodo_id),sizeof(uint32_t),&offset);
-	serializarDato(serializedPackage,&(item_transformacion->ip_puerto_worker),sizeof(char),&offset);
+	serializarDato(serializedPackage,&(item_transformacion->ip_puerto_worker),sizeof(item_transformacion->ip_puerto_worker),&offset);
 	serializarDato(serializedPackage,&(item_transformacion->bloque),sizeof(uint32_t),&offset);
 	serializarDato(serializedPackage,&(item_transformacion->bytes_ocupados),sizeof(uint32_t),&offset);
 	serializarDato(serializedPackage,&(item_transformacion->archivo_temporal),sizeof(char),&offset);

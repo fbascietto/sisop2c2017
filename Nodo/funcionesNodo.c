@@ -1,6 +1,7 @@
 #include "funcionesNodo.h"
 #include "../bibliotecas/sockets.h"
 #include "../bibliotecas/protocolo.h"
+#include "../bibliotecas/serializacion.c"
 #include <commons/log.h>
 #include <commons/config.h>
 #include <pthread.h>
@@ -8,9 +9,10 @@
 
 
 
-t_nodo mapearDataBin(char* rutaBin, char* nombreNodo){
+t_nodo* mapearDataBin(char* rutaBin, char* nombreNodo){
 
-		t_nodo nodo;
+		t_nodo* nodo;
+		nodo = malloc(sizeof(t_nodo));
 		struct stat file_stat;
 		unsigned char* map;
 		int data;
@@ -41,9 +43,10 @@ t_nodo mapearDataBin(char* rutaBin, char* nombreNodo){
 	            exit(EXIT_FAILURE);
 	        }
 
-	    nodo.mapa = map;
-	    nodo.fsize = (int) file_stat.st_size;
-	    nodo.nombre = nombreNodo;
+	    //nodo.mapa = map;
+	    nodo->espacio_total = (int) file_stat.st_size;
+	    strcpy(nodo->nombre,nombreNodo);
+	    nodo->espacio_libre = 0;
 
 	    return nodo;
 }
@@ -51,7 +54,7 @@ t_nodo mapearDataBin(char* rutaBin, char* nombreNodo){
 void iniciarDataNode(){
 
 	char* buffer;
-	t_nodo nodo;
+	t_nodo *nodo;
 	infoConfig = config_create("config.txt");
 
 		if(config_has_property(infoConfig,"IP_FILESYSTEM")){
@@ -79,14 +82,20 @@ void iniciarDataNode(){
 
 		nodo = mapearDataBin(rutaNodo, nombreNodo);
 
-		enviarMensaje(socketConn, nodo.nombre);
-		enviarInt(socketConn, nodo.fsize);
+		printf("tamanio total %d",nodo->espacio_total);
+
+		void* buff = serializarNodo(nodo);
+		enviarInt(socketConn,(int)(sizeof(t_nodo)));
+		send(socketConn,buff,sizeof(t_nodo),NULL);
+
+		//enviarMensaje(socketConn, (char*)serializarNodo(nodo));
+		//enviarInt(socketConn, nodo.espacio_total);
 
 
 
-		while(1){
+		/*while(1){
 			esperarBloque(socketConn);
-		}
+		}*/
 
 
 		/*
@@ -96,8 +105,18 @@ void iniciarDataNode(){
 }
 
 void esperarBloque(int socketConn){
-	//esperarInstruccion(socketConn);
 	char * bloqueArchivo = recibirMensaje(socketConn);
 	printf("%s", bloqueArchivo);
+
+}
+
+
+void *serializarNodo(t_nodo* nodo){
+	void* serializado = malloc(sizeof(t_nodo));
+	int offset = 0;
+	serializar_desde_int(serializado, nodo->espacio_total, &offset);
+	serializar_desde_int(serializado, nodo->espacio_libre, &offset);
+	serializar_desde_string(serializado, nodo->nombre, sizeof(char[10]),&offset);
+	return serializado;
 
 }

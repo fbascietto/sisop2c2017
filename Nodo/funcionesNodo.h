@@ -14,6 +14,7 @@
 #include <commons/log.h>
 #include <commons/collections/list.h>
 #include "../bibliotecas/protocolo.h"
+#include "../bibliotecas/serializacion.h"
 #include <commons/config.h>
 #include <sys/mman.h>
 #include <fcntl.h>
@@ -22,9 +23,9 @@
 #define FUNCIONESNODO_H_
 
 typedef struct {
-  char* nombre;
-  char* mapa;
-  int fsize;
+  char nombre[10];
+  int espacio_libre;
+  int espacio_total;
 } t_nodo;
 
 t_config* infoConfig;
@@ -34,9 +35,10 @@ char* nombreNodo;
 char* rutaNodo;
 int socketConn;
 
-t_nodo mapearDataBin(char* rutaBin, char* nombreNodo);
+t_nodo * mapearDataBin(char* rutaBin, char* nombreNodo);
 char* empaquetoNodo(t_nodo nodo);
 void iniciarDataNode();
 void esperarBloque(int socketConn);
+void *serializarNodo(t_nodo* nodo);
 
 #endif /* FUNCIONESNODO_H_ */

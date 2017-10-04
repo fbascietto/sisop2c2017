@@ -21,7 +21,6 @@ typedef struct {
 	int socketQueEnvia;
 } t_resultadoEsperarMensaje;
 
-
 int escuchar(int puerto);
 int aceptarConexion(int socketEscucha);
 int conectarseA(char *ip, int puerto);

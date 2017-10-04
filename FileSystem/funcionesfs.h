@@ -41,7 +41,7 @@ typedef struct {
 
 typedef struct {
   int socket_nodo;
-  char* nombre_nodo[20];
+  char nombre_nodo[10];
   int tamanio;
   int espacioLibre;
 } t_nodo;
@@ -55,8 +55,7 @@ int recibirConexionDataNode(int nuevoSocket);
 void actualizarNodosBin();
 void crearBitmap(int tamNodo, char* nombreNodo[20]);
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs);
-
-
+void deserializar_a_nodo(void* serializado, t_nodo *nodo);
 t_list *inicializarDirectorios(t_list* folderList);
 /* void listarDirectorios(t_list* folderList, int index);*/
 

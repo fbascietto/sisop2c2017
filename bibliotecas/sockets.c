@@ -11,6 +11,8 @@
 #define TAMBUFFER 1024
 #define MAX_CLIENTES 10
 
+
+
 int escuchar(int puerto) {
 	int socketEscucha;
 	struct sockaddr_in address;

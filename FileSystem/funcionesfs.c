@@ -4,6 +4,8 @@
 #include "../bibliotecas/sockets.h"
 #include <stdbool.h>
 #include "../bibliotecas/protocolo.h"
+#include "../bibliotecas/serializacion.h"
+#include "../bibliotecas/serializacion.c"
 
 
 void levantarNodos(int clean){
@@ -141,26 +143,34 @@ void *esperarConexiones(void *args) {
 
 int recibirConexionDataNode(int nuevoSocket){
 	t_nodo * nodo;
-	nodo = malloc(sizeof(nodo));
-
-	int espacio;
-
-	strcpy(nodo->nombre_nodo,recibirMensaje(nuevoSocket));
-	recibirInt(nuevoSocket, &espacio);
-	nodo->tamanio=espacio;
+	nodo = malloc(sizeof(t_nodo));
 	nodo->socket_nodo = nuevoSocket;
+	//int espacio;
+	/*recibirInt(nuevoSocket, &espacio);
+		nodo->tamanio=espacio;
+		nodo->socket_nodo = nuevoSocket;*/
+	size_t tam_buffer;
+	recibirInt(nuevoSocket,&tam_buffer);
+	void* buffer;
+	buffer = malloc(tam_buffer);
+	recv(nuevoSocket, buffer, tam_buffer, NULL);
 
-	list_add(nodos,nodo);
 
+	deserializar_a_nodo(buffer, nodo);
+
+	free(buffer);
 	printf("Se conecto el nodo %s\n", nodo->nombre_nodo);
 	printf("Cuenta con %d bloques en total.\n", nodo->tamanio/(1024*1024));
 
 
 	crearBitmap(nodo->tamanio,nodo->nombre_nodo);
+	list_add(nodos,nodo);
+
 	actualizarNodosBin();
 
 	return nuevoSocket;
 }
+
 
 void crearBitmap(int tamNodo, char* nombreNodo[20]){
 
@@ -184,6 +194,16 @@ void crearBitmap(int tamNodo, char* nombreNodo[20]){
 	fprintf(bitmap,bit_map);
 	fclose(bitmap);
 
+
+}
+
+void deserializar_a_nodo(void* serializado, t_nodo *nodo){
+	int offset =0;
+	deserializar_a_int(serializado, &nodo->tamanio,&offset);
+	deserializar_a_int(serializado, &nodo->espacioLibre,&offset);
+	deserializar_a_string(serializado, nodo->nombre_nodo, sizeof(char[10]),&offset);
+
+
 }
 
 void actualizarNodosBin(){
@@ -191,12 +211,14 @@ void actualizarNodosBin(){
 
 	char * descripcion;
 	int size = list_size(nodos);
-	descripcion = malloc(sizeof(char*[21])*size);
+	descripcion = malloc(sizeof(char[21])*size);
 	int tamanio = 0;
 	int libre = 0;
 	int i = 0;
-	t_nodo * nodo;
+
 	for(;i<size;i++){
+		t_nodo * nodo;
+		nodo = malloc(sizeof(t_nodo));
 		nodo = list_get(nodos,i);
 		tamanio = tamanio + nodo->tamanio;
 		libre = libre + nodo->espacioLibre;
@@ -206,7 +228,7 @@ void actualizarNodosBin(){
 		}else{
 			strcpy(descripcion,nodo->nombre_nodo);
 		}
-
+		free(nodo);
 	}
 
 	pthread_mutex_lock(&mx_nodobin);
@@ -216,10 +238,12 @@ void actualizarNodosBin(){
 	fprintf(nodosbin, "NODOS=[%s]\n",descripcion);
 
 	for(i=0;i<size;i++){
-			nodo = list_get(nodos,i);
-			fprintf(nodosbin, "%sTotal=%d\n", nodo->nombre_nodo, nodo->tamanio/(1024*1024));
-			fprintf(nodosbin, "%sLibre=%d\n", nodo->nombre_nodo, nodo->espacioLibre/(1024*1024));
-
+		t_nodo * nodo;
+		nodo = malloc(sizeof(t_nodo));
+		nodo = list_get(nodos,i);
+		fprintf(nodosbin, "%sTotal=%d\n", nodo->nombre_nodo, nodo->tamanio/(1024*1024));
+		fprintf(nodosbin, "%sLibre=%d\n", nodo->nombre_nodo, nodo->espacioLibre/(1024*1024));
+		free(nodo);
 	}
 	fclose(nodosbin);
 	pthread_mutex_unlock(&mx_nodobin);
