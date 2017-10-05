@@ -57,6 +57,7 @@ void crearBitmap(int tamNodo, char* nombreNodo[20]);
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs);
 void deserializar_a_nodo(void* serializado, t_nodo *nodo);
 t_list *inicializarDirectorios(t_list* folderList);
+void escucharConexionNodo(void* socket);
 /* void listarDirectorios(t_list* folderList, int index);*/
 
 #endif /* FUNCIONESFS_H_ */

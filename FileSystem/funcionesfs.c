@@ -142,13 +142,14 @@ void *esperarConexiones(void *args) {
 }
 
 int recibirConexionDataNode(int nuevoSocket){
+	pthread_t threadEscucharConexionNodo;
+
+
 	t_nodo * nodo;
 	nodo = malloc(sizeof(t_nodo));
+
 	nodo->socket_nodo = nuevoSocket;
-	//int espacio;
-	/*recibirInt(nuevoSocket, &espacio);
-		nodo->tamanio=espacio;
-		nodo->socket_nodo = nuevoSocket;*/
+
 	size_t tam_buffer;
 	recibirInt(nuevoSocket,&tam_buffer);
 	void* buffer;
@@ -163,12 +164,40 @@ int recibirConexionDataNode(int nuevoSocket){
 	printf("Cuenta con %d bloques en total.\n", nodo->tamanio/(1024*1024));
 
 
+
 	crearBitmap(nodo->tamanio,nodo->nombre_nodo);
 	list_add(nodos,nodo);
 
 	actualizarNodosBin();
 
+	int er1 = pthread_create(&threadEscucharConexionNodo,NULL,escucharConexionNodo,(void*) nuevoSocket);
+
 	return nuevoSocket;
+}
+
+void escucharConexionNodo(void* socket){
+	int socketNodo = (int) socket;
+	int a = 0;
+	int error = 1;
+	while(1){
+		error = recv(socketNodo, &a, sizeof(int), 0);
+		if(error<=0){
+			int i;
+			int found = 0;
+			t_nodo * nodo;
+			for(i=0;found<1 && i<list_size(nodos);i++){
+				nodo = list_get(nodos,i);
+				if(nodo->socket_nodo == socketNodo){
+					list_remove(nodos,i);
+					free(nodo);
+					found = 1;
+				}
+			}
+			//actualizarNodosBin();
+			printf("Se desconecto nodo del socket %d\n", socketNodo);
+			break;
+		}
+	}
 }
 
 
@@ -217,9 +246,7 @@ void actualizarNodosBin(){
 	int i = 0;
 
 	for(;i<size;i++){
-		t_nodo * nodo;
-		nodo = malloc(sizeof(t_nodo));
-		nodo = list_get(nodos,i);
+		t_nodo * nodo = list_get(nodos,i);
 		tamanio = tamanio + nodo->tamanio;
 		libre = libre + nodo->espacioLibre;
 		if(i>0){
@@ -228,7 +255,7 @@ void actualizarNodosBin(){
 		}else{
 			strcpy(descripcion,nodo->nombre_nodo);
 		}
-		free(nodo);
+
 	}
 
 	pthread_mutex_lock(&mx_nodobin);
@@ -238,97 +265,14 @@ void actualizarNodosBin(){
 	fprintf(nodosbin, "NODOS=[%s]\n",descripcion);
 
 	for(i=0;i<size;i++){
-		t_nodo * nodo;
-		nodo = malloc(sizeof(t_nodo));
-		nodo = list_get(nodos,i);
+		t_nodo * nodo = list_get(nodos,i);
 		fprintf(nodosbin, "%sTotal=%d\n", nodo->nombre_nodo, nodo->tamanio/(1024*1024));
 		fprintf(nodosbin, "%sLibre=%d\n", nodo->nombre_nodo, nodo->espacioLibre/(1024*1024));
-		free(nodo);
+
 	}
 	fclose(nodosbin);
 	pthread_mutex_unlock(&mx_nodobin);
 
-/*
-		int tamanio = 0;
-		int libre = 0;
-		char *tam;
-		char *lib;
-		char *nod;
-		char * listanodos;
-		size_t n = 0;
-
-		FILE* nodosbin = fopen(nodos_file, "rb+");
-		fseek(nodosbin,sizeof("TAMANIO"),SEEK_SET);
-
-		tam = malloc(sizeof(char[1024*1024]));
-
-
-		int c;
-
-		while ((c = fgetc(nodosbin)) != '\n')
-		    {
-		        tam[n++] = (char) c;
-		    }
-		sscanf(tam, "%d", &tamanio);
-		//fseek(nodosbin,-(n+1),SEEK_CUR);
-
-		fseek(nodosbin,sizeof("LIBRE"),SEEK_CUR);
-		free(tam);
-
-		lib = malloc(sizeof(char[10]));
-		n = 0;
-		while ((c = fgetc(nodosbin)) != '\n')
-				    {
-				        lib[n++] = (char) c;
-				    }
-		sscanf(lib, "%d", &libre);
-		free(libre);
-		fseek(nodosbin,sizeof("NODOS"),SEEK_CUR);
-
-		lib = malloc(sizeof(char[10]));
-		n=0;
-			while ((c = fgetc(nodosbin)) != '\n')
-					    {
-					        putchar(c);
-					    }
-
-		listanodos = code;
-		printf("%s",listanodos);
-		free(code);
-
-
-
-		printf("The integer is %d\n",libre);
-		fprintf(nodosbin, "%d", tamanio + nodo->tamanio/(1024*1024));
-		fseek(nodosbin,0,SEEK_END);
-		fprintf(nodosbin, "%sTotal=%d\n", nodo->nombre_nodo, nodo->tamanio/(1024*1024));
-		fprintf(nodosbin, "%sLibre=%d\n", nodo->nombre_nodo, nodo->espacioLibre/(1024*1024));
-
-	FILE *output;
-	char buffer[4096];
-	size_t bytesRead;
-
-	memset(buffer, 0, sizeof(buffer));
-
-
-	output = fopen("output.txt", "w+");
-
-	fprintf(output, "my header text\n");
-
-	while(!feof(nodosbin))
-	{
-	  bytesRead = fread(&buffer, 1, sizeof(buffer), nodosbin);
-	  fwrite(&buffer, 1, bytesRead, output);
-	}
-
-
-
-	fclose(nodosbin);
-	fclose(output);
-
-	remove(source);
-	rename("output.txt", "source.txt");
-*/
 }
 
 
@@ -487,7 +431,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs)
 
 	if (origen == NULL){
 		fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
-		exit(EXIT_FAILURE);
+		//exit(EXIT_FAILURE);
 	}
 
 
@@ -500,9 +444,12 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs)
 
 	  nodo = list_get(nodos,nodopos);
 	  socketnodo = nodo->socket_nodo;
+	  int bytesToSend = 0;
 	  while(!feof(origen) && bytesRead<=1024*1024){
-		  bytesRead += fread(&buffer, 1, sizeof(buffer), origen);
-		  enviarMensaje(socketnodo,buffer);
+		  bytesToSend = fread(&buffer, 1, sizeof(buffer), origen);
+		  bytesRead += bytesToSend;
+		  enviarInt(socketnodo,bytesToSend);
+		  send(socketnodo,buffer,bytesToSend,NULL);
 	  }
 	  nodopos++;
 	  if(nodopos >= list_size(nodos)){
