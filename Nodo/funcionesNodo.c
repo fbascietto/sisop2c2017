@@ -81,7 +81,7 @@ void iniciarDataNode(){
 
 		nodo = inicializoDataBin(rutaNodo, nombreNodo);
 
-		printf("tamanio total %d",nodo->espacio_total);
+		printf("tamanio total %d\n",nodo->espacio_total);
 
 		void* buff = serializarNodo(nodo);
 		enviarInt(socketConn,(int)(sizeof(t_nodo)));
@@ -89,19 +89,24 @@ void iniciarDataNode(){
 
 		//enviarMensaje(socketConn, (char*)serializarNodo(nodo));
 		//enviarInt(socketConn, nodo.espacio_total);
+		free(buff);
 
-
-
+		int errorConexionFS = 0;
 		while(1){
 			esperarBloque(socketConn, nodo, rutaNodo);
-		}
+			if(errorConexionFS<0){
+				printf("Se desconecto el file system\n");
+				break;
+			}
 
+		}
 
 		/*
 		mapearDataBin(rutaNodo);
 		esperarPeticiones(socketConn);
 		 */
 }
+
 
 void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 
@@ -123,6 +128,7 @@ void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 		map[i]=bloqueArchivo[i];
 	}
 	munmap(map,nodo->espacio_total);
+
 
 }
 

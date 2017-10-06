@@ -10,3 +10,10 @@
 [TRACE] 12:07:17:309 Yamafs/(2919:2921): Nuevo Socket!
 [TRACE] 12:08:09:161 Yamafs/(2919:2921): Nuevo Socket!
 [TRACE] 12:08:29:754 Yamafs/(2919:2921): Nuevo Socket!
+[TRACE] 10:41:46:12 Yamafs/(20077:20079): Nuevo Socket!
+[TRACE] 11:02:50:918 Yamafs/(21154:21156): Nuevo Socket!
+[TRACE] 11:12:18:527 Yamafs/(21448:21450): Nuevo Socket!
+[TRACE] 11:13:49:557 Yamafs/(21548:21550): Nuevo Socket!
+[TRACE] 11:28:38:365 Yamafs/(21548:21550): Nuevo Socket!
+[TRACE] 12:00:33:763 Yamafs/(21822:21824): Nuevo Socket!
+[TRACE] 12:11:54:934 Yamafs/(21966:21968): Nuevo Socket!

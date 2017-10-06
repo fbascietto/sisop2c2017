@@ -95,7 +95,7 @@ void crearDirectorio(t_list* folderList, int index, char* nombre){
 		t_directory* current;
 		int padre;
 
-		current = malloc(sizeof(t_directory));
+
 		current = (t_directory*) list_get(folderList,index);
 
 		padre = current->padre;
@@ -114,7 +114,6 @@ void *esperarConexiones(void *args) {
 	t_log_level logL;
 	t_log* logSockets = log_create("log.txt","Yamafs",0,logL);
 	t_esperar_conexion *argumentos = (t_esperar_conexion*) args;
-	char* mensaje;
 	printf("Esperando conexiones...\n");
 
 
@@ -122,7 +121,7 @@ void *esperarConexiones(void *args) {
 	// ---------------ME QUEDO ESPERANDO UNA CONEXION NUEVA--------------
 	while (1) {
 
-		int nuevoSocket;
+		int nuevoSocket = -1;
 
 		nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,argumentos->socketEscucha);
 
@@ -147,9 +146,9 @@ void *esperarConexiones(void *args) {
 	}
 }
 
+
 int recibirConexionDataNode(int nuevoSocket){
 	pthread_t threadEscucharConexionNodo;
-
 
 	t_nodo * nodo;
 	nodo = malloc(sizeof(t_nodo));
@@ -207,17 +206,18 @@ void escucharConexionNodo(void* socket){
 }
 
 
-void crearBitmap(int tamNodo, char* nombreNodo[20]){
+void crearBitmap(int tamNodo, char* nombreNodo[10]){
 
-	char ruta[256];
+	char * ruta;
+	ruta = malloc(sizeof(char)*256);
 	snprintf(ruta, 256, "%s%s%s", "./metadata/bitmap/", nombreNodo, ".bin");
 
 	/* Declara el array de bits en cero. Este BIT_MAP se asigna a un dominio, en este caso, un nodo.  */
 	int bitmaplen = tamNodo / (1024*1024);
 	int i = 0;
 	unsigned char* bit_map;
-	bit_map = malloc(bitmaplen);
-	for(i;i<bitmaplen;i++){
+	bit_map = malloc(sizeof(unsigned char)*bitmaplen);
+	for(;i<bitmaplen;i++){
 		bit_map[i]="0";
 	}
 	//bit_map = malloc(sizeof(tamNodo/(1024*1024)));
@@ -226,9 +226,10 @@ void crearBitmap(int tamNodo, char* nombreNodo[20]){
 
 	FILE* bitmap = fopen(ruta ,"wb+");
 
-	fprintf(bitmap,bit_map);
+	fprintf(bitmap,"%s",bit_map);
 	fclose(bitmap);
-
+	free(bit_map);
+	free(ruta);
 
 }
 
