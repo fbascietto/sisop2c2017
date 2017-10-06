@@ -9,12 +9,11 @@
 
 
 
-t_nodo* mapearDataBin(char* rutaBin, char* nombreNodo){
+t_nodo* inicializoDataBin(char* rutaBin, char* nombreNodo){
 
 		t_nodo* nodo;
 		nodo = malloc(sizeof(t_nodo));
 		struct stat file_stat;
-		unsigned char* map;
 		int data;
 		data = open(rutaBin,O_RDWR);
 
@@ -23,7 +22,6 @@ t_nodo* mapearDataBin(char* rutaBin, char* nombreNodo){
 					printf("No se pudo abrir el archivo.\n");
 					 exit(EXIT_FAILURE);
 				}
-
 		if (fstat(data, &file_stat) < 0)
 		    {
 		            fprintf(stderr, "Error fstat --> %s", strerror(errno),"\n");
@@ -31,19 +29,16 @@ t_nodo* mapearDataBin(char* rutaBin, char* nombreNodo){
 		            exit(EXIT_FAILURE);
 		    }
 
-
-	   // int sz = getpagesize() * 256;
-
-	    map = (char*) mmap(0, file_stat.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, data, 0);
-
+		/*
+		map = (char*) mmap(0, file_stat.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, data, 0);
 	    if (map == MAP_FAILED)
 	        {
 	            close(data);
 	            perror("Error en el mapeo del data.bin.\n");
 	            exit(EXIT_FAILURE);
 	        }
+		*/
 
-	    //nodo.mapa = map;
 	    nodo->espacio_total = (int) file_stat.st_size;
 	    strcpy(nodo->nombre,nombreNodo);
 	    nodo->espacio_libre = 0;
@@ -84,7 +79,7 @@ void iniciarDataNode(){
 		socketConn = conectarseA(fsIP, fsPort);
 		enviarInt(socketConn, PROCESO_NODO);
 
-		nodo = mapearDataBin(rutaNodo, nombreNodo);
+		nodo = inicializoDataBin(rutaNodo, nombreNodo);
 
 		printf("tamanio total %d",nodo->espacio_total);
 
@@ -97,9 +92,9 @@ void iniciarDataNode(){
 
 
 
-		/*while(1){
-			esperarBloque(socketConn);
-		}*/
+		while(1){
+			esperarBloque(socketConn, nodo, rutaNodo);
+		}
 
 
 		/*
@@ -108,9 +103,26 @@ void iniciarDataNode(){
 		 */
 }
 
-void esperarBloque(int socketConn){
+void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
+
+	unsigned char* map;
+	int bloque;
+	recibirInt(socketConn, bloque);
 	char * bloqueArchivo = recibirMensaje(socketConn);
-	printf("%s", bloqueArchivo);
+
+	FILE* data = fopen(rutaNodo,"w+");
+	map = (char*) mmap(0, nodo->espacio_total, PROT_READ | PROT_WRITE, MAP_SHARED, data, bloque*(1024*1024));
+	if (map == MAP_FAILED)
+	   {
+	    close(data);
+	    perror("Error en el mapeo del data.bin.\n");
+	    exit(EXIT_FAILURE);
+	   }
+	int i=0;
+	for (;i<(1024*1024);i++){
+		map[i]=bloqueArchivo[i];
+	}
+	munmap(map,nodo->espacio_total);
 
 }
 

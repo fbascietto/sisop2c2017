@@ -36,10 +36,10 @@ char* rutaNodo;
 int socketConn;
 int puerto;
 
-t_nodo * mapearDataBin(char* rutaBin, char* nombreNodo);
+t_nodo * inicializoDataBin(char* rutaBin, char* nombreNodo);
 char* empaquetoNodo(t_nodo nodo);
 void iniciarDataNode();
-void esperarBloque(int socketConn);
+void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo);
 void *serializarNodo(t_nodo* nodo);
 
 #endif /* FUNCIONESNODO_H_ */

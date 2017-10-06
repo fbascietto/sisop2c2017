@@ -27,42 +27,48 @@ void levantarNodos(int clean){
 }
 
 t_list* inicializarDirectorios(t_list* folderList){
+
 		FILE *fptr;
-	    struct stat st = {0};
 	    t_directory *folders;
+	    int nuevo = 0;
+
+	    fptr = fopen("./metadata/directorios.dat", "r");
+	    if(!fptr) //archivo no existe, crear
+	    {
+	    	fptr = fopen("./metadata/directorios.dat", "wb+");
+	    	nuevo = 1;
+	        if (fptr == NULL)
+	        	printf("Error al abrir directorios.dat\n");
+	        	//exit(1);
+	    }
+
 	    int index = 0;
 	    int father = -1;
-	    folders = malloc(sizeof(t_directory)*2);
+	    folders = malloc(sizeof(t_directory));
 
-	    /*
-	    if (stat("/metadata/", &st) == -1) {
-	        mkdir("/metadata/", 0700);
-	    }
+	    if(nuevo){
 
-	    fptr = fopen("/metadata/directorios.dat", "a+");
-	    if(fptr == NULL) //if file does not exist, create it
-	    {
-	    	fptr = fopen("/metadata/directorios.dat", "w+");
-	        if (fptr == NULL)
-	        	printf("Nisman\n");
-	        	exit(1);
-	    }
-	    */
-
+    	fprintf(fptr,"%s%s%s", "Index|", "Directorio|", "Padre\n");
 	    folderList = list_create();
 	    folders->index = index;
 	    folders->nombre = "root";
 	    folders->padre = father;
+	    fprintf(fptr,"%d%s%s%s%d%s",folders->index,"|",folders->nombre,"|",folders->padre,"\n");
 	    index++;
 	    father++;
 	    list_add(folderList, folders);
+	    } else {
+	    //cargo directorios.dat
+	    }
+	    /*
 	    folders->index = index;
 	    folders->nombre = "user";
 	    folders->padre = father;
 	    list_add(folderList, folders);
+	    */
+	    fclose(fptr);
 	    return folderList;
-}
-/*
+}/*
 void listarDirectorios(t_list* folderList, int index){
 		/*
 		    t_directory* carpeta;
@@ -419,7 +425,6 @@ void *escucharConsola(void *args){
   }
 }
 
-
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs){
 
 
@@ -431,7 +436,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs)
 
 	if (origen == NULL){
 		fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
-		//exit(EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 
 
@@ -439,17 +444,16 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs)
 	int socketnodo;
 	t_nodo* nodo;
 	nodo = malloc(sizeof(t_nodo));
-
+	int bloque;
 	while(!feof(origen)){
 
 	  nodo = list_get(nodos,nodopos);
 	  socketnodo = nodo->socket_nodo;
-	  int bytesToSend = 0;
 	  while(!feof(origen) && bytesRead<=1024*1024){
-		  bytesToSend = fread(&buffer, 1, sizeof(buffer), origen);
-		  bytesRead += bytesToSend;
-		  enviarInt(socketnodo,bytesToSend);
-		  send(socketnodo,buffer,bytesToSend,NULL);
+		  bytesRead += fread(&buffer, 1, sizeof(buffer), origen);
+		  bloque = 0; //TODO: buscoBloque, función que busque el bloque libre en el bitmap de este nodo  (/metadata//bitmap/<nombrenodo>.bin)
+		  enviarInt(socketnodo,bloque);
+		  enviarMensaje(socketnodo,buffer);
 	  }
 	  nodopos++;
 	  if(nodopos >= list_size(nodos)){
@@ -463,4 +467,3 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs)
 
 
 }
-
