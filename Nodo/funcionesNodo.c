@@ -102,7 +102,6 @@ void iniciarDataNode(){
 		}
 
 		/*
-		mapearDataBin(rutaNodo);
 		esperarPeticiones(socketConn);
 		 */
 }
@@ -119,36 +118,39 @@ void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 	bloqueArchivo = malloc((size_t)4096);
 
 
-
 	int data = open(rutaNodo,O_RDWR);
 	struct stat fileStat;
 	if (fstat(data, &fileStat) < 0)
-			    {
-			            fprintf(stderr, "Error fstat --> %s", strerror(errno),"\n");
+	{
+	      fprintf(stderr, "Error fstat --> %s", strerror(errno),"\n");
+          exit(EXIT_FAILURE);
+    }
 
-			            exit(EXIT_FAILURE);
-			    }
 
-
-	map = (unsigned char*) mmap(NULL, fileStat.st_size/(fileStat.st_size/(1024*1024)) , PROT_READ | PROT_WRITE, MAP_SHARED, data, sizeof(unsigned char)*bloque*(1024*1024));
+	map = (unsigned char*) mmap(NULL, fileStat.st_size /*/(fileStat.st_size/(1024*1024))*/ , PROT_READ | PROT_WRITE, MAP_SHARED, data, sizeof(unsigned char)*bloque*(1024*1024));
 	if (map == MAP_FAILED)
 	   {
 	    close(data);
 	    perror("Error en el mapeo del data.bin.\n");
 	    exit(EXIT_FAILURE);
 	   }
+
 	int paquetesRecibidos=0;
 	int bytesRecibidos = 0;
 	int i = 0;
+	int j = 0;
 	while(paquetesRecibidos <= 1024*1024/4096){
 		bytesRecibidos += recv(socketConn,bloqueArchivo,(size_t)4096,NULL);
 		paquetesRecibidos++;
+
 		for (;i<(4096)*paquetesRecibidos;i++){
-			map[i]=bloqueArchivo[i];
+			map[i]=bloqueArchivo[j];
+			j++;
 		}
-	munmap(map,fileStat.st_size);
+		j=0;
 	}
-	free(map);
+	munmap(map,fileStat.st_size);
+	// free(map);
 	close(data);
 }
 

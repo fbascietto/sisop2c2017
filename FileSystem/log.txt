@@ -260,3 +260,14 @@
 [TRACE] 14:48:27:490 Yamafs/(22550:22562): Nuevo Socket!
 [TRACE] 14:53:54:285 Yamafs/(22550:22562): Nuevo Socket!
 [TRACE] 14:56:47:46 Yamafs/(22550:22562): Nuevo Socket!
+[TRACE] 15:12:34:505 Yamafs/(11329:11331): Nuevo Socket!
+[TRACE] 15:13:14:381 Yamafs/(11329:11330): Consola recibe cpfrom
+[TRACE] 15:16:37:707 Yamafs/(11444:11446): Nuevo Socket!
+[TRACE] 15:18:58:806 Yamafs/(11547:11549): Nuevo Socket!
+[TRACE] 15:24:33:433 Yamafs/(11547:11549): Nuevo Socket!
+[TRACE] 15:24:55:266 Yamafs/(11547:11549): Nuevo Socket!
+[TRACE] 15:27:19:104 Yamafs/(11547:11548): Consola recibe cpfrom
+[TRACE] 15:30:54:713 Yamafs/(11852:11854): Nuevo Socket!
+[TRACE] 15:32:07:92 Yamafs/(11852:11853): Consola recibe cpfrom
+[TRACE] 15:36:01:364 Yamafs/(12038:12043): Nuevo Socket!
+[TRACE] 15:36:29:16 Yamafs/(12038:12039): Consola recibe cpfrom

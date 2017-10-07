@@ -445,17 +445,17 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs)
 	int socketnodo;
 	t_nodo* nodo;
 	nodo = malloc(sizeof(t_nodo));
-	int bloque;
+	int bloque=0;
 	while(!feof(origen)){
 
 	  nodo = list_get(nodos,nodopos);
 	  socketnodo = nodo->socket_nodo;
+	  enviarInt(socketnodo,bloque);
 	  while(!feof(origen) && bytesRead<=1024*1024){
-		  bytesRead += fread(&buffer, 1, sizeof(buffer), origen);
-		  bloque = 0; //TODO: buscoBloque, función que busque el bloque libre en el bitmap de este nodo  (/metadata//bitmap/<nombrenodo>.bin)
-		  enviarInt(socketnodo,bloque);
+		  bytesRead += fread(&buffer, 1,(size_t) sizeof(char)*4096, origen);
 		  enviarMensaje(socketnodo,buffer);
 	  }
+	  bloque++; //TODO: buscoBloque, función que busque el bloque libre en el bitmap de este nodo  (/metadata//bitmap/<nombrenodo>.bin)
 	  nodopos++;
 	  if(nodopos >= list_size(nodos)){
 		  nodopos = 0;
