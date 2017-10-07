@@ -247,7 +247,7 @@ void actualizarNodosBin(){
 
 	char * descripcion;
 	int size = list_size(nodos);
-	descripcion = malloc(sizeof(char[21])*size);
+	descripcion = malloc(sizeof(char[11])*size);
 	int tamanio = 0;
 	int libre = 0;
 	int i = 0;
@@ -429,9 +429,9 @@ void *escucharConsola(void *args){
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs){
 
 
-	char* buffer[4096];
-	size_t bytesRead;
-	memset(buffer, 0, sizeof(buffer));
+	void* buffer;
+	size_t bytesRead = 0;
+	buffer = malloc(sizeof(char)*4096);
 
 	FILE* origen = fopen(path_archivo_origen, "rb");
 
@@ -444,16 +444,23 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs)
 	int nodopos = 0;
 	int socketnodo;
 	t_nodo* nodo;
+
 	nodo = malloc(sizeof(t_nodo));
 	int bloque=0;
+
 	while(!feof(origen)){
 
 	  nodo = list_get(nodos,nodopos);
 	  socketnodo = nodo->socket_nodo;
 	  enviarInt(socketnodo,bloque);
 	  while(!feof(origen) && bytesRead<=1024*1024){
-		  bytesRead += fread(&buffer, 1,(size_t) sizeof(char)*4096, origen);
-		  enviarMensaje(socketnodo,buffer);
+		  bytesRead += fread(buffer, 1, sizeof(char)*4096, origen);
+		  bloque = 0; //TODO: buscoBloque, función que busque el bloque libre en el bitmap de este nodo  (/metadata//bitmap/<nombrenodo>.bin)
+		  enviarInt(socketnodo,bloque);
+		  send(socketnodo,buffer,sizeof(char)*4096,NULL);
+
+
+
 	  }
 	  bloque++; //TODO: buscoBloque, función que busque el bloque libre en el bitmap de este nodo  (/metadata//bitmap/<nombrenodo>.bin)
 	  nodopos++;
@@ -462,8 +469,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs)
 	  }
 	}
 
-
-	free(nodo);
+	free(buffer);
 	fclose(origen);
 
 

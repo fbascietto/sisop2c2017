@@ -147,11 +147,14 @@ void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 			map[i]=bloqueArchivo[j];
 			j++;
 		}
+
 		j=0;
 	}
 	munmap(map,fileStat.st_size);
 	// free(map);
 	close(data);
+
+
 }
 
 
