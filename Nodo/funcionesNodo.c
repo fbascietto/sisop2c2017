@@ -111,10 +111,14 @@ void iniciarDataNode(){
 void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 
 	unsigned char* map;
-	// map = malloc(sizeof(unsigned char)*(1024*1024));
+	map = malloc(sizeof(unsigned char)*(1024*1024));
 	int bloque;
 	recibirInt(socketConn, &bloque);
-	char * bloqueArchivo = recibirMensaje(socketConn);
+
+	char * bloqueArchivo;
+	bloqueArchivo = malloc((size_t)4096);
+
+
 
 	int data = open(rutaNodo,O_RDWR);
 	struct stat fileStat;
@@ -133,14 +137,19 @@ void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 	    perror("Error en el mapeo del data.bin.\n");
 	    exit(EXIT_FAILURE);
 	   }
-	int i=0;
-	int len = strlen(bloqueArchivo);
-	for (;i<(1024*1024);i++){
-		map[i]=bloqueArchivo[i];
-	}
+	int paquetesRecibidos=0;
+	int bytesRecibidos = 0;
+	int i = 0;
+	while(paquetesRecibidos <= 1024*1024/4096){
+		bytesRecibidos += recv(socketConn,bloqueArchivo,(size_t)4096,NULL);
+		paquetesRecibidos++;
+		for (;i<(4096)*paquetesRecibidos;i++){
+			map[i]=bloqueArchivo[i];
+		}
 	munmap(map,fileStat.st_size);
-
-
+	}
+	free(map);
+	close(data);
 }
 
 
