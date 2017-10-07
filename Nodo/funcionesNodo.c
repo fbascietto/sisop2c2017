@@ -42,7 +42,7 @@ t_nodo* inicializoDataBin(char* rutaBin, char* nombreNodo){
 	    nodo->espacio_total = (int) file_stat.st_size;
 	    strcpy(nodo->nombre,nombreNodo);
 	    nodo->espacio_libre = 0;
-
+	    close(rutaBin);
 	    return nodo;
 }
 
@@ -111,12 +111,22 @@ void iniciarDataNode(){
 void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 
 	unsigned char* map;
+	// map = malloc(sizeof(unsigned char)*(1024*1024));
 	int bloque;
-	recibirInt(socketConn, bloque);
+	recibirInt(socketConn, &bloque);
 	char * bloqueArchivo = recibirMensaje(socketConn);
 
-	FILE* data = fopen(rutaNodo,"w+");
-	map = (char*) mmap(0, nodo->espacio_total, PROT_READ | PROT_WRITE, MAP_SHARED, data, bloque*(1024*1024));
+	int data = open(rutaNodo,O_RDWR);
+	struct stat fileStat;
+	if (fstat(data, &fileStat) < 0)
+			    {
+			            fprintf(stderr, "Error fstat --> %s", strerror(errno),"\n");
+
+			            exit(EXIT_FAILURE);
+			    }
+
+
+	map = (unsigned char*) mmap(NULL, fileStat.st_size/(fileStat.st_size/(1024*1024)) , PROT_READ | PROT_WRITE, MAP_SHARED, data, sizeof(unsigned char)*bloque*(1024*1024));
 	if (map == MAP_FAILED)
 	   {
 	    close(data);
@@ -124,10 +134,11 @@ void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 	    exit(EXIT_FAILURE);
 	   }
 	int i=0;
+	int len = strlen(bloqueArchivo);
 	for (;i<(1024*1024);i++){
 		map[i]=bloqueArchivo[i];
 	}
-	munmap(map,nodo->espacio_total);
+	munmap(map,fileStat.st_size);
 
 
 }
