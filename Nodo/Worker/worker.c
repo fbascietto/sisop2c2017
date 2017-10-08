@@ -16,11 +16,7 @@
 
 void main() {
 
-	pthread_t threadProcesoDataNode;
-
-	int er1 = pthread_create(&threadProcesoDataNode,NULL,iniciarDataNode,NULL);
-
-	pthread_join(threadProcesoDataNode, NULL);
+	
 
 
 }

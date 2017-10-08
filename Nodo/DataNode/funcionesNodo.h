@@ -13,8 +13,8 @@
 #include <errno.h>
 #include <commons/log.h>
 #include <commons/collections/list.h>
-#include "../bibliotecas/protocolo.h"
-#include "../bibliotecas/serializacion.h"
+#include "../../bibliotecas/protocolo.h"
+#include "../../bibliotecas/serializacion.h"
 #include <commons/config.h>
 #include <sys/mman.h>
 #include <fcntl.h>

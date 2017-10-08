@@ -1,7 +1,7 @@
 #include "funcionesNodo.h"
-#include "../bibliotecas/sockets.h"
-#include "../bibliotecas/protocolo.h"
-#include "../bibliotecas/serializacion.c"
+#include "../../bibliotecas/sockets.h"
+#include "../../bibliotecas/protocolo.h"
+#include "../../bibliotecas/serializacion.c"
 #include <commons/log.h>
 #include <commons/config.h>
 #include <pthread.h>
@@ -17,17 +17,14 @@ t_nodo* inicializoDataBin(char* rutaBin, char* nombreNodo){
 		int data;
 		data = open(rutaBin,O_RDWR);
 
-		if (data == NULL)
-				{
+		if (data == NULL){
 					printf("No se pudo abrir el archivo.\n");
 					 exit(EXIT_FAILURE);
-				}
-		if (fstat(data, &file_stat) < 0)
-		    {
+		}
+		if (fstat(data, &file_stat) < 0){
 		            fprintf(stderr, "Error fstat --> %s", strerror(errno),"\n");
-
 		            exit(EXIT_FAILURE);
-		    }
+		}
 
 		/*
 		map = (char*) mmap(0, file_stat.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, data, 0);
@@ -50,7 +47,7 @@ void iniciarDataNode(){
 
 	char* buffer;
 	t_nodo *nodo;
-	infoConfig = config_create("config.txt");
+	infoConfig = config_create("../config.txt");
 
 		if(config_has_property(infoConfig,"IP_FILESYSTEM")){
 			fsIP = config_get_string_value(infoConfig,"IP_FILESYSTEM");

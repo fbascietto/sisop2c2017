@@ -373,3 +373,5 @@
 [TRACE] 00:12:14:650 Yamafs/(14744:14765): Consola recibe cpfrom
 [TRACE] 00:14:21:949 Yamafs/(15012:15033): Nuevo Socket!
 [TRACE] 00:14:37:204 Yamafs/(15012:15032): Consola recibe cpfrom
+[TRACE] 11:55:42:451 Yamafs/(3685:3687): Nuevo Socket!
+[TRACE] 11:55:48:508 Yamafs/(3685:3686): Consola recibe cpfrom
