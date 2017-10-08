@@ -46,7 +46,7 @@ void main() {
 	socketConn = conectarseA(yamaIP, yamaPort);
 	enviarInt(socketConn,PROCESO_MASTER);
 	// enviarMensaje(socketConn, nombreNodo);
-	envioArchivo(socketConn,"sent.txt");
+	//envioArchivo(socketConn,"sent.txt");
 
 }
 

@@ -6,8 +6,8 @@
  */
 
 #include "funcionesWorker.h"
-#include "../bibliotecas/sockets.h"
-#include "../bibliotecas/protocolo.h"
+#include "../../bibliotecas/sockets.h"
+#include "../../bibliotecas/protocolo.h"
 #include <commons/log.h>
 #include <commons/config.h>
 #include <pthread.h>

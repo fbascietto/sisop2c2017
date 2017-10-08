@@ -4,14 +4,14 @@
 #include <commons/collections/list.h>
 #include <stdbool.h>
 
-void *esperarConexionesYama(void *args) {
+void *esperarConexionMaster(void *args) {
 
 	t_esperar_conexion *argumentos = (t_esperar_conexion*) args;
 
 	printf("Esperando conexiones en Yama...\n");
 
 	// ---------------ME QUEDO ESPERANDO UNA CONEXION NUEVA--------------
-	while (1) {
+
 
 		int nuevoSocket;
 
@@ -19,15 +19,18 @@ void *esperarConexionesYama(void *args) {
 				argumentos->socketEscucha);
 
 		if (nuevoSocket != -1) {
-			printf("Nueva Conexion Recibida - Socket N°: %d\n",
-					nuevoSocket);
-
+			printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
 
 		}
 
-	}
+		while(1){
+			//TODO: Recibir instrucciones master y crear thread por cada una
+		}
+}
 
-	void prePlanificacionClock(int bloques, int dispBase, t_list* listaNodos){
+
+/*
+void prePlanificacionClock(int bloques, int dispBase, t_list* listaNodos){
 		int bloque = 0;
 		int numNodo = 0;
 		int cantBloques = bloques;
@@ -84,6 +87,7 @@ void *esperarConexionesYama(void *args) {
 	}
 }
 
+
 int siguienteWorker(int numNodo, t_list* nodos, t_nodo* nodo) {
 //si no llegue al fin de la lista de nodos
 	if (numNodo != list_size(nodos)) {
@@ -95,7 +99,7 @@ int siguienteWorker(int numNodo, t_list* nodos, t_nodo* nodo) {
 	}
 	return numNodo;
 }
-
+*/
 
 //void agregarWorkerALaPlanificacion(int bloque, t_nodo* worker) {
 //	worker->disponibilidad = worker->disponibilidad - 1;

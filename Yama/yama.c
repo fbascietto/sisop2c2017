@@ -33,11 +33,8 @@ void main() {
 	esperarConexion->socketEscucha = socketEscucha;
 
 	//Espero conexión de procesos master
-	int er1 = pthread_create(&threadEsperaConexiones, NULL,
-			esperarConexionesYama,
-					(void*) esperarConexion);
+	esperarConexionMaster((void*) esperarConexion);
 
-	while(1);
 }
 
 

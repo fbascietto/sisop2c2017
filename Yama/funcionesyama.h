@@ -21,7 +21,7 @@ typedef struct{
 	t_list * bloques;
 }t_nodo;
 
-void *esperarConexionesYama(void *args);
+void *esperarConexionMaster(void *args);
 void prePlanificacionClock(int bloques, int dispBase, t_list* listaWorkers);
 int siguienteWorker(int numNodo, t_list* nodos, t_nodo* nodo);
 void agregarWorkerALaPlanificacion(int bloque, t_nodo* worker);

@@ -13,7 +13,7 @@
 #include <errno.h>
 #include <commons/log.h>
 #include <commons/collections/list.h>
-#include "../bibliotecas/protocolo.h"
+#include "../../bibliotecas/protocolo.h"
 #include <commons/config.h>
 
 #ifndef FUNCIONESWORKER_H_
