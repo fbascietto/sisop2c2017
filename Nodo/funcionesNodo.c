@@ -98,7 +98,6 @@ void iniciarDataNode(){
 				printf("Se desconecto el file system\n");
 				break;
 			}
-
 		}
 
 		/*
@@ -112,49 +111,51 @@ void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 	unsigned char* map;
 	map = malloc(sizeof(unsigned char)*(1024*1024));
 	int bloque;
-	recibirInt(socketConn, &bloque);
+	int err = recibirInt(socketConn, &bloque);
+	if(err>0){
+		printf("se recibio solicitud para escribir el bloque %d \n", bloque);
+		char * bloqueArchivo;
+		bloqueArchivo = malloc((size_t)4096);
 
-	char * bloqueArchivo;
-	bloqueArchivo = malloc((size_t)4096);
-
-
-	int data = open(rutaNodo,O_RDWR);
-	struct stat fileStat;
-	if (fstat(data, &fileStat) < 0)
-	{
-	      fprintf(stderr, "Error fstat --> %s", strerror(errno),"\n");
-          exit(EXIT_FAILURE);
-    }
-
-
-	map = (unsigned char*) mmap(NULL, fileStat.st_size /*/(fileStat.st_size/(1024*1024))*/ , PROT_READ | PROT_WRITE, MAP_SHARED, data, sizeof(unsigned char)*bloque*(1024*1024));
-	if (map == MAP_FAILED)
-	   {
-	    close(data);
-	    perror("Error en el mapeo del data.bin.\n");
-	    exit(EXIT_FAILURE);
-	   }
-
-	int paquetesRecibidos=0;
-	int bytesRecibidos = 0;
-	int i = 0;
-	int j = 0;
-	while(paquetesRecibidos <= 1024*1024/4096){
-		bytesRecibidos += recv(socketConn,bloqueArchivo,(size_t)4096,NULL);
-		paquetesRecibidos++;
-
-		for (;i<(4096)*paquetesRecibidos;i++){
-			map[i]=bloqueArchivo[j];
-			j++;
+		int data = open(rutaNodo,O_RDWR);
+		struct stat fileStat;
+		if (fstat(data, &fileStat) < 0){
+			  fprintf(stderr, "Error fstat --> %s", strerror(errno),"\n");
+			  exit(EXIT_FAILURE);
 		}
 
-		j=0;
+		map = (unsigned char*) mmap(NULL, fileStat.st_size /*/(fileStat.st_size/(1024*1024))*/ , PROT_READ | PROT_WRITE, MAP_SHARED, data, sizeof(unsigned char)*bloque*(1024*1024));
+		if (map == MAP_FAILED){
+			close(data);
+			perror("Error en el mapeo del data.bin.\n");
+			exit(EXIT_FAILURE);
+		   }
+
+		int paquetesRecibidos=0;
+		int bytesRecibidos = 0;
+		int i = 0;
+		int j = 0;
+		while(paquetesRecibidos < 1024*1024/4096){
+			int bytesAleer = 0;
+			recibirInt(socketConn,&bytesAleer);
+			bytesRecibidos += recv(socketConn,bloqueArchivo,(size_t)bytesAleer,NULL);
+			paquetesRecibidos++;
+			for (;i<(4096)*paquetesRecibidos;i++){
+				map[i]=bloqueArchivo[j];
+				j++;
+			}
+			j=0;
+			if(bytesAleer < 4096){
+				break;
+			}
+		}
+
+		printf("se termino de escribir el bloque %d \n", bloque);
+		munmap(map,fileStat.st_size);
+		// free(map);
+		free(bloqueArchivo);
+		close(data);
 	}
-	munmap(map,fileStat.st_size);
-	// free(map);
-	close(data);
-
-
 }
 
 

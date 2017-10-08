@@ -155,7 +155,7 @@ int recibirConexionDataNode(int nuevoSocket){
 
 	nodo->socket_nodo = nuevoSocket;
 
-	size_t tam_buffer;
+	size_t tam_buffer = 0;
 	recibirInt(nuevoSocket,&tam_buffer);
 	void* buffer;
 	buffer = malloc(tam_buffer);
@@ -193,8 +193,7 @@ void escucharConexionNodo(void* socket){
 			for(i=0;found<1 && i<list_size(nodos);i++){
 				nodo = list_get(nodos,i);
 				if(nodo->socket_nodo == socketNodo){
-					list_remove(nodos,i);
-					free(nodo);
+					nodo->socket_nodo = -1;
 					found = 1;
 				}
 			}
@@ -440,6 +439,13 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs)
 		exit(EXIT_FAILURE);
 	}
 
+	t_list * nodos_conectados;
+		bool criterio(void* parametro) {
+				t_nodo* relacion =
+						(t_nodo*) parametro;
+				return (relacion->socket_nodo != -1);
+			}
+	nodos_conectados = list_filter(nodos,criterio);
 
 	int nodopos = 0;
 	int socketnodo;
@@ -450,23 +456,21 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs)
 
 	while(!feof(origen)){
 
-	  nodo = list_get(nodos,nodopos);
+	  nodo = list_get(nodos_conectados,nodopos);
 	  socketnodo = nodo->socket_nodo;
 	  enviarInt(socketnodo,bloque);
 	  while(!feof(origen) && bytesRead<=1024*1024){
-		  bytesRead += fread(buffer, 1, sizeof(char)*4096, origen);
-		  bloque = 0; //TODO: buscoBloque, función que busque el bloque libre en el bitmap de este nodo  (/metadata//bitmap/<nombrenodo>.bin)
-		  enviarInt(socketnodo,bloque);
-		  send(socketnodo,buffer,sizeof(char)*4096,NULL);
-
-
+		  int leido = fread(buffer, 1, sizeof(char)*4096, origen);
+		  bytesRead += leido;
+		  enviarInt(socketnodo,leido);
+		  send(socketnodo,buffer,(size_t)leido,NULL);
 
 	  }
-	  bloque++; //TODO: buscoBloque, función que busque el bloque libre en el bitmap de este nodo  (/metadata//bitmap/<nombrenodo>.bin)
-	  nodopos++;
-	  if(nodopos >= list_size(nodos)){
-		  nodopos = 0;
-	  }
+		  bloque++; //TODO: buscoBloque, función que busque el bloque libre en el bitmap de este nodo  (/metadata//bitmap/<nombrenodo>.bin)
+		  nodopos++;
+		  if(nodopos >= list_size(nodos)){
+			  nodopos = 0;
+		  }
 	}
 
 	free(buffer);

@@ -27,3 +27,5 @@
 [TRACE] 10:28:26:334 Yamafs/(17145:17147): Nuevo Socket!
 [TRACE] 10:28:44:396 Yamafs/(17145:17146): Consola recibe cpfrom
 [TRACE] 11:12:32:550 Yamafs/(17582:17583): Consola recibe exit
+[TRACE] 17:00:32:561 Yamafs/(6805:6807): Nuevo Socket!
+[TRACE] 17:02:59:866 Yamafs/(6863:6865): Nuevo Socket!
