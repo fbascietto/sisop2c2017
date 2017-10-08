@@ -16,7 +16,12 @@
 
 void main() {
 
-	
+	/*pthread_t threadProcesoWorker;
+
+		int er1 = pthread_create(&threadProcesoWorker,NULL,iniciarWorker,NULL);
+		pthread_join(threadProcesoWorker, NULL); */
+
+	iniciarWorker();
 
 
 }

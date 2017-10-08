@@ -19,12 +19,18 @@
 #ifndef FUNCIONESWORKER_H_
 #define FUNCIONESWORKER_H_
 
+typedef struct {
+	int socketEscucha;
+	fd_set fdSocketEscucha;
+} t_esperar_conexion;
+
 t_config* infoConfig;
 char* nombreNodo;
 char* rutaNodo;
 int puerto;
 
 void iniciarWorker();
+void *esperarConexionesMaster(void *args);
 
 #endif /* FUNCIONESWORKER_H_ */
 

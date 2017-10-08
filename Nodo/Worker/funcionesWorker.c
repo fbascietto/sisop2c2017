@@ -14,21 +14,51 @@
 
 void iniciarWorker(){
 
-		infoConfig = config_create("config.txt");
+//--------------WORKER LEE ARCHIVO DE CONFIGURACION--------------------
+
+	infoConfig = config_create("config.txt");
 
 
-			if(config_has_property(infoConfig,"NOMBRE_NODO")){
-					nombreNodo = config_get_string_value(infoConfig,"NOMBRE_NODO");
-					nombreNodo[strlen(nombreNodo)+1]='\0';
-			}
+		if(config_has_property(infoConfig,"NOMBRE_NODO")){
+			nombreNodo = config_get_string_value(infoConfig,"NOMBRE_NODO");
+			nombreNodo[strlen(nombreNodo)+1]='\0';
+		}
 
-			if(config_has_property(infoConfig,"NOMBRE_NODO")){
-					rutaNodo = config_get_string_value(infoConfig,"RUTA_DATABIN");
-					rutaNodo[strlen(rutaNodo)+1]='\0';
-			}
+		if(config_has_property(infoConfig,"NOMBRE_NODO")){
+			rutaNodo = config_get_string_value(infoConfig,"RUTA_DATABIN");
+			rutaNodo[strlen(rutaNodo)+1]='\0';
+		}
 
-			if(config_has_property(infoConfig, "PUERTO_WORKER")){
-					puerto = config_get_int_value(infoConfig, "PUERTO_WORKER");
-			}
+		if(config_has_property(infoConfig, "PUERTO_WORKER")){
+			puerto = config_get_int_value(infoConfig, "PUERTO_WORKER");
+		}
+
+//---------------ESPERA CONEXIONES-------------------------------
+
+		t_esperar_conexion *esperarConexion;
+		esperarConexion = malloc(sizeof(t_esperar_conexion));
+
+		esperarConexionesMaster((void*)esperarConexion);
 
 		}
+
+void *esperarConexionesMaster(void *args){
+	t_esperar_conexion *argumentos = (t_esperar_conexion*) args;
+
+	printf("Esperando conexiones de Master en Worker...\n");
+
+	//Queda esperando conexiones de Master para atajar las solicitudes
+
+	int nuevaConexion;
+
+	while(1){
+		nuevaConexion = esperarConexionesSocket(&argumentos->fdSocketEscucha, argumentos->socketEscucha);
+		if (nuevaConexion != -1) {
+					printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevaConexion);
+
+				}
+	}
+	//fork();
+}
+
+
