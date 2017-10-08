@@ -6,6 +6,7 @@
  */
 
 #include "funcionesmaster.h"
+#include "interface.h"
 #include <stdio.h>
 #include <string.h>
 #include <commons/config.h>
@@ -16,7 +17,8 @@
 #define PROCESO_MASTER 4
 
 void main() {
-	//leer config
+	//testSerializarSolicitudTrasnformacion();
+	//testSerializarItemTransformacion();
 
 	t_config* infoConfig;
 	char* yamaIP;
