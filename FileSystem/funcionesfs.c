@@ -59,6 +59,21 @@ t_list* inicializarDirectorios(t_list* folderList){
 	    list_add(folderList, folders);
 	    } else {
 	    //cargo directorios.dat
+	    	char* linea[256];
+	    	char** col;
+	    	folderList = list_create();
+	    	while(!feof(fptr)){
+	    		fgets(linea,sizeof(linea),fptr);
+	    		col = string_split(linea,"|");
+	    		if(!strcmp(col[0],"Index")){
+	    			//ignoro titulos (para qué los puse?!)
+	    		} else {
+	    		folders->index = strtol(col[0], (char **)NULL, 10);
+	    		folders->nombre = col[1];
+	    		folders->padre = strtol(col[2], (char **)NULL, 10);
+	    	    list_add(folderList, folders);
+	    		}
+	    	}
 	    }
 	    /*
 	    folders->index = index;
@@ -68,33 +83,42 @@ t_list* inicializarDirectorios(t_list* folderList){
 	    */
 	    fclose(fptr);
 	    return folderList;
-}/*
-void listarDirectorios(t_list* folderList, int index){
-		/*
-		    t_directory* carpeta;
-		t_list* listado;
-		int padre;
-		carpeta = malloc(sizeof(t_directory));
-
-		carpeta = (t_directory*) list_get(folderList,index);
-		padre = carpeta->padre;
+}
 
 
-		// debería usar list_filter()? como es el pase de parámetro condicional?
+void listarDirectorios(t_list* folderList, int padre){
 
-		while(carpeta->padre == padre){
-			printf();
+	/*
+		void imprimoCarpetas(void* parametro){
+			t_directory* carpeta = (t_directory*) parametro;
+			printf("%s ", carpeta->nombre);
+		}*/
+
+		bool* carpetasNivelActual(void* parametro) {
+			t_directory* carpeta = (t_directory*) parametro;
+			return carpeta->padre == padre;
 		}
 
+		t_list* listado;
+		listado = list_filter(folderList, carpetasNivelActual);
 
-		printf("\n");
-} */
+		/*
+		t_directory* carpeta;
+		while(carpeta = list_get(listado,i)){
+		}*/
+		t_directory* carpeta;
+		int i = 0;
+		for(;i<list_size(listado);i++){
+			carpeta = list_get(listado,i);
+			printf("%s ", carpeta->nombre);
+		}
+
+}
 
 void crearDirectorio(t_list* folderList, int index, char* nombre){
 		t_directory* carpeta;
 		t_directory* current;
 		int padre;
-
 
 		current = (t_directory*) list_get(folderList,index);
 
@@ -105,8 +129,12 @@ void crearDirectorio(t_list* folderList, int index, char* nombre){
 		carpeta->nombre = nombre;
 		carpeta->padre = padre+1;
 
-		list_add(folderList, carpeta);
 
+		FILE* fptr = fopen("./metadata/directorios.dat", "a+");
+	    fprintf(fptr,"%d%s%s%s%d%s",carpeta->index,"|",carpeta->nombre,"|",carpeta->padre,"\n");
+		list_add(folderList, carpeta);
+		free(carpeta);
+		fclose(fptr);
 }
 
 void *esperarConexiones(void *args) {
@@ -391,7 +419,7 @@ void *escucharConsola(void *args){
 		if(!strncmp(linea, "ls", 2)) {
 			log_trace(logFS,"Consola recibe ""ls""");
 
-		/*	listarDirectorios(directorios, padre); */
+			listarDirectorios(directorios, padre);
 			printf("Seleccionaste ver directorios y archivos\n");
 
 		}else
@@ -464,7 +492,6 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs)
 		  bytesRead += leido;
 		  enviarInt(socketnodo,leido);
 		  send(socketnodo,buffer,(size_t)leido,NULL);
-
 	  }
 		  bloque++; //TODO: buscoBloque, función que busque el bloque libre en el bitmap de este nodo  (/metadata//bitmap/<nombrenodo>.bin)
 		  nodopos++;
@@ -475,6 +502,6 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs)
 
 	free(buffer);
 	fclose(origen);
-
-
 }
+
+
