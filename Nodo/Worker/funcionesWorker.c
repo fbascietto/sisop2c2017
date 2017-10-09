@@ -50,15 +50,21 @@ void *esperarConexionesMaster(void *args){
 	//Queda esperando conexiones de Master para atajar las solicitudes
 
 	int nuevaConexion;
+	int pid;
 
 	while(1){
 		nuevaConexion = esperarConexionesSocket(&argumentos->fdSocketEscucha, argumentos->socketEscucha);
 		if (nuevaConexion != -1) {
-					printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevaConexion);
+				printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevaConexion);
+				pid = fork();
+				if(pid > 0){
+					//Aca va la solicitud que hace el proceso hijo
+					exit(0);
+					//exit porque mata el proceso hijo al terminar la solicitud
+				}
 
 				}
 	}
-	//fork();
 }
 
 
