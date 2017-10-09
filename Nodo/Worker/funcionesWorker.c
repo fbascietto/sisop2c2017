@@ -57,10 +57,14 @@ void *esperarConexionesMaster(void *args){
 		if (nuevaConexion != -1) {
 				printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevaConexion);
 				pid = fork();
-				if(pid > 0){
-					//Aca va la solicitud que hace el proceso hijo
-					exit(0);
-					//exit porque mata el proceso hijo al terminar la solicitud
+				if(pid < 0){
+					printf("No se pudo crear el proceso hijo\n");
+				}else{
+					if(pid == 0){
+						//Aca va la solicitud que hace el proceso hijo
+						exit(0);
+						//exit porque mata el proceso hijo al terminar la solicitud
+					}
 				}
 
 				}
