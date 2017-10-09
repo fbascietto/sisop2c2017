@@ -11,6 +11,7 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <pthread.h>
+#include <sys/types.h>
 
 void iniciarWorker(){
 
@@ -50,7 +51,7 @@ void *esperarConexionesMaster(void *args){
 	//Queda esperando conexiones de Master para atajar las solicitudes
 
 	int nuevaConexion;
-	int pid;
+	pid_t pid;
 
 	while(1){
 		nuevaConexion = esperarConexionesSocket(&argumentos->fdSocketEscucha, argumentos->socketEscucha);
@@ -67,8 +68,8 @@ void *esperarConexionesMaster(void *args){
 					}
 				}
 
-				}
-	}
+			}
+		}
 }
 
 
