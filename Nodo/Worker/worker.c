@@ -16,12 +16,41 @@
 
 void main() {
 
-	/*pthread_t threadProcesoWorker;
-
-		int er1 = pthread_create(&threadProcesoWorker,NULL,iniciarWorker,NULL);
-		pthread_join(threadProcesoWorker, NULL); */
-
-	iniciarWorker();
+	int socketEscucha;
+		fd_set fdSocketsEscucha;
+		FD_ZERO(&fdSocketsEscucha);
 
 
+		socketEscucha= escuchar(4020);
+		FD_SET(socketEscucha, &fdSocketsEscucha);
+
+
+		t_esperar_conexion *esperarConexion;
+
+		esperarConexion = malloc(sizeof(t_esperar_conexion));
+
+		esperarConexion->fdSocketEscucha = fdSocketsEscucha;
+		esperarConexion->socketEscucha = socketEscucha;
+
+	while(1){
+		pid_t pid;
+
+		pid = fork();
+
+		switch(pid)
+		{
+			case -1: // Si pid es -1 quiere decir que ha habido un error
+				perror("No se ha podido crear el proceso hijo\n");
+				break;
+			case 0: // Cuando pid es cero quiere decir que es el proceso hijo
+
+				esperarConexionesMaster((void*) esperarConexion);
+				break;
+			default: // Cuando es distinto de cero es el padre
+				iniciarWorker();
+				printf("worker iniciado");
+				break;
+		}
+
+	}
 }

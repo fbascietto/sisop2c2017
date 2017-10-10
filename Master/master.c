@@ -18,7 +18,7 @@
 
 void main() {
 	//testSerializarSolicitudTrasnformacion();
-	//testSerializarItemTransformacion();
+	testSerializarItemTransformacion();
 
 	t_config* infoConfig;
 	char* yamaIP;
@@ -44,9 +44,15 @@ void main() {
 	}
 
 	socketConn = conectarseA(yamaIP, yamaPort);
+
 	enviarInt(socketConn,PROCESO_MASTER);
+	char* archivoMensage = "sent.txt";
+	int len = strlen(archivoMensage);
+	uint32_t message_long = sizeof(char)*len;
+	enviarMensajeSocketConLongitud(socketConn,ACCION_PROCESAR_ARCHIVO,archivoMensage,len);
 	// enviarMensaje(socketConn, nombreNodo);
 	//envioArchivo(socketConn,"sent.txt");
+
 
 }
 

@@ -189,14 +189,11 @@ int recibirConexionDataNode(int nuevoSocket){
 	buffer = malloc(tam_buffer);
 	recv(nuevoSocket, buffer, tam_buffer, NULL);
 
-
 	deserializar_a_nodo(buffer, nodo);
 
 	free(buffer);
 	printf("Se conecto el nodo %s\n", nodo->nombre_nodo);
 	printf("Cuenta con %d bloques en total.\n", nodo->tamanio/(1024*1024));
-
-
 
 	crearBitmap(nodo->tamanio,nodo->nombre_nodo);
 	list_add(nodos,nodo);
@@ -266,11 +263,9 @@ void deserializar_a_nodo(void* serializado, t_nodo *nodo){
 	deserializar_a_int(serializado, &nodo->espacioLibre,&offset);
 	deserializar_a_string(serializado, nodo->nombre_nodo, sizeof(char[10]),&offset);
 
-
 }
 
 void actualizarNodosBin(){
-
 
 	char * descripcion;
 	int size = list_size(nodos);

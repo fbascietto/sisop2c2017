@@ -30,7 +30,7 @@ char* rutaNodo;
 int puerto;
 
 void iniciarWorker();
-void *esperarConexionesMaster(void *args);
+void *esperarConexionesMaster(void * args);
 
 #endif /* FUNCIONESWORKER_H_ */
 

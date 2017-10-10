@@ -21,6 +21,12 @@ typedef struct {
 	int socketQueEnvia;
 } t_resultadoEsperarMensaje;
 
+typedef struct Package {
+	uint32_t msgCode;
+	uint32_t message_long;
+	char* message;
+} Package;
+
 int escuchar(int puerto);
 int aceptarConexion(int socketEscucha);
 int conectarseA(char *ip, int puerto);
@@ -36,6 +42,20 @@ int envioArchivo(int peer_socket, char* archivo);
 int esperarConexionesSocket(fd_set *master, int socketEscucha);
 void *recibirArchivo(int client_socket);
 
+//usar esta funcion para enviar un buffer.
+int enviarMensajeSocketConLongitud(int socket, uint32_t accion, char* mensaje, uint32_t longitud);
+//usar estas funciones para recibir un buffer, el resultado queda en package.
+Package* createPackage();
+int recieve_and_deserialize(Package *package, int socketCliente);
+
+/*Estas funciones son utilizadas por enviarMensajeSocketConLongitud y recieve_and_deserialize
+No es necesario utilizarlas directamente*/
+Package* fillPackage(uint32_t msgCode, char* message, uint32_t message_long); //crear un Package con datos
+void destroyPackage(Package* package);
+int getLongitudPackage(Package *package);
+int enviarMensajeSocket(int socket, uint32_t accion, char* mensaje);
+int leerSocketClient(int fd, char *datos, int longitud);
+int escribirSocketClient(int fd, char *datos, int longitud);
 
 char *replace_str(char *str, char *orig, char *rep);
 char *remueveBlancos(char *str);
