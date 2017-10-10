@@ -42,8 +42,8 @@ void main(){
 	args = malloc(sizeof(t_arg_consola));
 
 	args->lista = carpetas;
-	args->indice = 1;
-	args->padre = 0;
+	args->indice = 0;
+	args->padre = -1;
 
 
 	int socketEscucha;

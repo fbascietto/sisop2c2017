@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <errno.h>
 #include <commons/log.h>
+#include <commons/string.h>
 #include <commons/collections/list.h>
 #include "../bibliotecas/protocolo.h"
 
