@@ -288,35 +288,15 @@ char *replace_str(char *str, char *orig, char *rep)
   static char buffer[255];
   char *p;
 
-  if(!(p = strstr(str, orig)))  // Is 'orig' even in 'str'?
+  if(!(p = strstr(str, orig)))
     return str;
 
-  strncpy(buffer, str, p-str); // Copy characters from 'str' start to 'orig' st$
+  strncpy(buffer, str, p-str);
   buffer[p-str] = '\0';
 
   sprintf(buffer+(p-str), "%s%s", rep, p+strlen(orig));
 
   return buffer;
-}
-
-char *ltrim(char *s)
-{
-    while(isspace(*s)) s++;
-    return s;
-}
-
-char *rtrim(char *s)
-{
-    if(isspace(s)){return s;}
-	char* back = s + strlen(s);
-    while(isspace(*--back));
-    *(back+1) = '\0';
-    return s;
-}
-
-char *remueveBlancos(char *s)
-{
-    return rtrim(ltrim(s));
 }
 
 /*

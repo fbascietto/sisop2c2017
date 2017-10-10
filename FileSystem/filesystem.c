@@ -34,17 +34,6 @@ void main(){
 	pthread_mutex_init(&mx_nodobin, NULL);
 
 
-	t_list *carpetas;
-	carpetas = malloc(sizeof(t_list)*100);
-	carpetas = inicializarDirectorios(carpetas);
-
-	t_arg_consola *args;
-	args = malloc(sizeof(t_arg_consola));
-
-	args->lista = carpetas;
-	args->indice = 0;
-	args->padre = -1;
-
 
 	int socketEscucha;
 	fd_set fdSocketsEscucha;
@@ -66,7 +55,7 @@ void main(){
 	esperarConexion->socketEscucha = socketEscucha;
 
 
-	int er1 = pthread_create(&threadEscucharConsola,NULL,escucharConsola,(void*) args );
+	int er1 = pthread_create(&threadEscucharConsola,NULL,escucharConsola,NULL);
 	int er2 = pthread_create(&threadEsperaConexiones, NULL,esperarConexiones,(void*) esperarConexion);
 
 	pthread_join(threadEsperaConexiones, NULL);

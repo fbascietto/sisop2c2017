@@ -49,7 +49,7 @@ typedef struct {
 
 pthread_mutex_t mx_nodobin;
 
-void *escucharConsola(void *args);
+void *escucharConsola();
 void *esperarConexiones(void *args);
 void procesarSolicitudMaster(int nuevoSocket);
 int recibirConexionDataNode(int nuevoSocket);
@@ -57,8 +57,11 @@ void actualizarNodosBin();
 void crearBitmap(int tamNodo, char* nombreNodo[20]);
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs);
 void deserializar_a_nodo(void* serializado, t_nodo *nodo);
-t_list *inicializarDirectorios(t_list* folderList);
+t_list* inicializarDirectorios();
+void listarDirectorios(t_list* folderList, t_directory* carpetaActual);
+void crearDirectorio(t_list* folderList, t_directory* carpetaActual, char* nombre);
+int identificaDirectorio(char* directorio_yamafs);
 void escucharConexionNodo(void* socket);
-/* void listarDirectorios(t_list* folderList, int index);*/
+
 
 #endif /* FUNCIONESFS_H_ */

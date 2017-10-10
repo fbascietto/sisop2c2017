@@ -29,7 +29,6 @@ void levantarNodos(int clean){
 t_list* inicializarDirectorios(){
 
 		t_list *folderList;
-		//folderList = malloc(sizeof(t_directory)*100);
 
 		FILE *fptr;
 	    t_directory *folders;
@@ -121,6 +120,19 @@ void crearDirectorio(t_list* folderList, t_directory* carpetaActual, char* nombr
 		list_add(folderList, carpeta);
 		free(carpeta);
 		fclose(fptr);
+}
+
+int identificaDirectorio(char* directorio_yamafs){
+
+	if(string_starts_with(directorio_yamafs,"yamafs:")){
+		return -1;
+		} else {
+		char* ruta;
+		ruta = replace_str(directorio_yamafs,"yamafs:","");
+		char** arrayString = string_split(directorio_yamafs,"/");
+		printf("%s", arrayString[1]);
+		return 0;
+	}
 }
 
 void *esperarConexiones(void *args) {
@@ -309,16 +321,14 @@ void *escucharConsola(){
 	t_log* logFS = log_create("log.txt","Yamafs",0,logL);
 
 	t_list *carpetas;
-	carpetas = malloc(sizeof(t_directory)*100);
-
 	carpetas = inicializarDirectorios();
 
 	t_directory * carpetaActual = list_get(carpetas, 0); // donde 0 siempre DEBERÍA SER root
 	printf("%s\n", carpetaActual->nombre);
-	/*
+
 	carpetaActual = list_get(carpetas, 1);
 	printf("%s\n", carpetaActual->nombre);
-*/
+
 
 	char * linea;
 
@@ -436,6 +446,8 @@ void *escucharConsola(){
 
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs){
 
+
+	identificaDirectorio(directorio_yamafs);
 
 	void* buffer;
 	size_t bytesRead = 0;

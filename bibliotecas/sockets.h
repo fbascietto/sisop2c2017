@@ -58,8 +58,5 @@ int leerSocketClient(int fd, char *datos, int longitud);
 int escribirSocketClient(int fd, char *datos, int longitud);
 
 char *replace_str(char *str, char *orig, char *rep);
-char *remueveBlancos(char *str);
-char *ltrim(char *s);
-char *rtrim(char *s);
 
 #endif /* BIBLIOTECAS_SOCKETS_H_ */
