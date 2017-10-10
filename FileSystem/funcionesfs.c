@@ -26,7 +26,10 @@ void levantarNodos(int clean){
 
 }
 
-t_list* inicializarDirectorios(t_list* folderList){
+t_list* inicializarDirectorios(){
+
+		t_list *folderList;
+		//folderList = malloc(sizeof(t_directory)*100);
 
 		FILE *fptr;
 	    t_directory *folders;
@@ -42,60 +45,52 @@ t_list* inicializarDirectorios(t_list* folderList){
 	        	//exit(1);
 	    }
 
-	    int index = 0;
-	    int father = -1;
 	    folders = malloc(sizeof(t_directory));
 
 	    if(nuevo){
 
     	fprintf(fptr,"%s%s%s", "Index|", "Directorio|", "Padre\n");
 	    folderList = list_create();
-	    folders->index = index;
+	    folders->index = 0;
 	    folders->nombre = "root";
-	    folders->padre = father;
+	    folders->padre = -1;
 	    fprintf(fptr,"%d%s%s%s%d%s",folders->index,"|",folders->nombre,"|",folders->padre,"\n");
-	    index++;
-	    father++;
 	    list_add(folderList, folders);
 	    } else {
 	    //cargo directorios.dat
 	    	char* linea[256];
 	    	char** col;
 	    	folderList = list_create();
+	    	fgets(linea,sizeof(linea),fptr);
 	    	while(!feof(fptr)){
-	    		fgets(linea,sizeof(linea),fptr);
 	    		col = string_split(linea,"|");
 	    		if(!strcmp(col[0],"Index")){
 	    			//ignoro titulos (para qué los puse?!)
 	    		} else {
-	    		folders->index = strtol(col[0], (char **)NULL, 10);
+	    		folders->index = atoi(col[0]);
 	    		folders->nombre = col[1];
-	    		folders->padre = strtol(col[2], (char **)NULL, 10);
+	    		folders->padre = atoi(col[2]);
 	    	    list_add(folderList, folders);
 	    		}
+	    		fgets(linea,sizeof(linea),fptr);
 	    	}
 	    }
-	    /*
-	    folders->index = index;
-	    folders->nombre = "user";
-	    folders->padre = father;
-	    list_add(folderList, folders);
-	    */
+
 	    fclose(fptr);
 	    return folderList;
 }
 
 
-void listarDirectorios(t_list* folderList, int padre){
+void listarDirectorios(t_list* folderList, t_directory* carpetaActual){
 
-		void imprimoCarpetas(void* parametro){
-			t_directory* carpeta = (t_directory*) parametro;
-			printf("%s ", carpeta->nombre);
-		}
+		void* imprimoCarpetas(void* parametro){
+				t_directory* carpeta = (t_directory*) parametro;
+				printf("%s ", carpeta->nombre);
+			}
 
 		bool* carpetasNivelActual(void* parametro) {
-			t_directory* carpeta = (t_directory*) parametro;
-			return carpeta->padre == padre;
+		t_directory* dir = (t_directory*) parametro;
+		return (dir->padre == carpetaActual->index);
 		}
 
 		t_list* listado;
@@ -113,20 +108,13 @@ void listarDirectorios(t_list* folderList, int padre){
 		*/
 }
 
-void crearDirectorio(t_list* folderList, int index, char* nombre){
+void crearDirectorio(t_list* folderList, t_directory* carpetaActual, char* nombre){
 		t_directory* carpeta;
-		t_directory* current;
-		int padre;
-
-		current = (t_directory*) list_get(folderList,index);
-
-		padre = current->padre;
 
 		carpeta = malloc(sizeof(t_directory));
-		carpeta->index = list_size(folderList)+1;
+		carpeta->index = list_size(folderList);
 		carpeta->nombre = nombre;
-		carpeta->padre = padre+1;
-
+		carpeta->padre = carpetaActual->index;
 
 		FILE* fptr = fopen("./metadata/directorios.dat", "a+");
 	    fprintf(fptr,"%d%s%s%s%d%s",carpeta->index,"|",carpeta->nombre,"|",carpeta->padre,"\n");
@@ -240,7 +228,7 @@ void crearBitmap(int tamNodo, char* nombreNodo[10]){
 	unsigned char* bit_map;
 	bit_map = malloc(sizeof(unsigned char)*bitmaplen);
 	for(;i<bitmaplen;i++){
-		bit_map[i]="0";
+		bit_map[i]='0';
 	}
 	//bit_map = malloc(sizeof(tamNodo/(1024*1024)));
 	//memset(bit_map, 0, sizeof(tamNodo/(1024*1024)));
@@ -316,20 +304,22 @@ void procesarSolicitudMaster(nuevoSocket){
 
 
 
-void *escucharConsola(void *args){
+void *escucharConsola(){
 	t_log_level logL;
 	t_log* logFS = log_create("log.txt","Yamafs",0,logL);
-	t_arg_consola *argumentos = (t_arg_consola*) args;
 
-	int index = argumentos->indice;
-	int padre = argumentos->padre;
-	t_list *directorios;
+	t_list *carpetas;
+	carpetas = malloc(sizeof(t_directory)*100);
 
-	directorios = malloc(sizeof(t_list));
-	directorios = argumentos->lista;
+	carpetas = inicializarDirectorios();
 
-	char * variable
-	;
+	t_directory * carpetaActual = list_get(carpetas, 0); // donde 0 siempre DEBERÍA SER root
+	printf("%s\n", carpetaActual->nombre);
+	/*
+	carpetaActual = list_get(carpetas, 1);
+	printf("%s\n", carpetaActual->nombre);
+*/
+
 	char * linea;
 
 	  while(1) {
@@ -373,15 +363,13 @@ void *escucharConsola(void *args){
 		if(!strncmp(linea, "mkdir", 5)) {
 			log_trace(logFS,"Consola recibe ""mkdir""");
 
-			variable = replace_str(linea,"mkdir ","");
+			char ** parametros = string_split(linea, " ");
 			/* variable = ltrim(variable);*/
 
-			if(variable==""){
-				printf("Falta argumento: nombre a designar al directorio.");}
+			if(parametros[1] == NULL){
+				printf("Falta argumento: nombre a designar al directorio.\n");}
 			else {
-				index++;
-				crearDirectorio(directorios, index, variable);
-
+				crearDirectorio(carpetas, carpetaActual, parametros[1]);
 			}
 			// printf("Seleccionaste crear carpeta %s\n", linea);
 		}
@@ -412,7 +400,7 @@ void *escucharConsola(void *args){
 		if(!strncmp(linea, "ls", 2)) {
 			log_trace(logFS,"Consola recibe ""ls""");
 
-			listarDirectorios(directorios, padre);
+			listarDirectorios(carpetas, carpetaActual);
 			printf("Seleccionaste ver directorios y archivos\n");
 
 		}else
