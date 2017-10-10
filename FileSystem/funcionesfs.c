@@ -88,11 +88,10 @@ t_list* inicializarDirectorios(t_list* folderList){
 
 void listarDirectorios(t_list* folderList, int padre){
 
-	/*
 		void imprimoCarpetas(void* parametro){
 			t_directory* carpeta = (t_directory*) parametro;
 			printf("%s ", carpeta->nombre);
-		}*/
+		}
 
 		bool* carpetasNivelActual(void* parametro) {
 			t_directory* carpeta = (t_directory*) parametro;
@@ -102,17 +101,16 @@ void listarDirectorios(t_list* folderList, int padre){
 		t_list* listado;
 		listado = list_filter(folderList, carpetasNivelActual);
 
-		/*
-		t_directory* carpeta;
-		while(carpeta = list_get(listado,i)){
-		}*/
+		list_iterate(listado,imprimoCarpetas);
+
+		/*---FORMA SIN USAR LIST_ITERATE (TAMPOCO FUNCIONA)
 		t_directory* carpeta;
 		int i = 0;
 		for(;i<list_size(listado);i++){
 			carpeta = list_get(listado,i);
 			printf("%s ", carpeta->nombre);
 		}
-
+		*/
 }
 
 void crearDirectorio(t_list* folderList, int index, char* nombre){
