@@ -36,40 +36,28 @@ void iniciarWorker(){
 
 //---------------ESPERA CONEXIONES-------------------------------
 
-		t_esperar_conexion *esperarConexion;
-		esperarConexion = malloc(sizeof(t_esperar_conexion));
 
-		esperarConexionesMaster((void*)esperarConexion);
 
 		}
 
-void *esperarConexionesMaster(void *args){
+void *esperarConexionesMaster(void * args){
+
 	t_esperar_conexion *argumentos = (t_esperar_conexion*) args;
 
-	printf("Esperando conexiones de Master en Worker...\n");
 
-	//Queda esperando conexiones de Master para atajar las solicitudes
+		// ---------------ME QUEDO ESPERANDO UNA CONEXION NUEVA--------------//
+			printf("Esperando conexiones de Master en Worker...\n");
 
-	int nuevaConexion;
-	pid_t pid;
+			int nuevoSocket;
+			nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,
+					argumentos->socketEscucha);
 
-	while(1){
-		nuevaConexion = esperarConexionesSocket(&argumentos->fdSocketEscucha, argumentos->socketEscucha);
-		if (nuevaConexion != -1) {
-				printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevaConexion);
-				pid = fork();
-				if(pid < 0){
-					printf("No se pudo crear el proceso hijo\n");
-				}else{
-					if(pid == 0){
-						//Aca va la solicitud que hace el proceso hijo
-						exit(0);
-						//exit porque mata el proceso hijo al terminar la solicitud
-					}
-				}
+			if (nuevoSocket != -1) {
+				printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
 
 			}
-		}
+
+
 }
 
 

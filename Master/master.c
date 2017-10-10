@@ -44,6 +44,7 @@ void main() {
 	}
 
 	socketConn = conectarseA(yamaIP, yamaPort);
+
 	enviarInt(socketConn,PROCESO_MASTER);
 	char* archivoMensage = "sent.txt";
 	int len = strlen(archivoMensage);
@@ -51,6 +52,7 @@ void main() {
 	enviarMensajeSocketConLongitud(socketConn,ACCION_PROCESAR_ARCHIVO,archivoMensage,len);
 	// enviarMensaje(socketConn, nombreNodo);
 	//envioArchivo(socketConn,"sent.txt");
+
 
 }
 
