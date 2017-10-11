@@ -44,11 +44,11 @@ t_list* inicializarDirectorios(){
 	        	//exit(1);
 	    }
 
-	    folders = malloc(sizeof(t_directory));
 
 	    if(nuevo){
 
     	fprintf(fptr,"%s%s%s", "Index|", "Directorio|", "Padre\n");
+	    folders = malloc(sizeof(t_directory));
 	    folderList = list_create();
 	    folders->index = 0;
 	    folders->nombre = "root";
@@ -66,6 +66,7 @@ t_list* inicializarDirectorios(){
 	    		if(!strcmp(col[0],"Index")){
 	    			//ignoro titulos (para qué los puse?!)
 	    		} else {
+    		    folders = malloc(sizeof(t_directory));
 	    		folders->index = atoi(col[0]);
 	    		folders->nombre = col[1];
 	    		folders->padre = atoi(col[2]);
@@ -97,6 +98,7 @@ void listarDirectorios(t_list* folderList, t_directory* carpetaActual){
 
 		list_iterate(listado,imprimoCarpetas);
 
+		printf("\n");
 		/*---FORMA SIN USAR LIST_ITERATE (TAMPOCO FUNCIONA)
 		t_directory* carpeta;
 		int i = 0;
@@ -130,6 +132,7 @@ int identificaDirectorio(char* directorio_yamafs){
 		char* ruta;
 		ruta = replace_str(directorio_yamafs,"yamafs:","");
 		char** arrayString = string_split(directorio_yamafs,"/");
+		// TODO: encontrar la última carpeta del string y buscarla en la lista para hacer return del indice. El indice sirve para guardarlo en la tabla de archivos y para crear /metadata/archivos/<numero de carpeta>/archivo.bin
 		printf("%s", arrayString[1]);
 		return 0;
 	}
@@ -324,11 +327,6 @@ void *escucharConsola(){
 	carpetas = inicializarDirectorios();
 
 	t_directory * carpetaActual = list_get(carpetas, 0); // donde 0 siempre DEBERÍA SER root
-	printf("%s\n", carpetaActual->nombre);
-
-	carpetaActual = list_get(carpetas, 1);
-	printf("%s\n", carpetaActual->nombre);
-
 
 	char * linea;
 
@@ -411,7 +409,7 @@ void *escucharConsola(){
 			log_trace(logFS,"Consola recibe ""ls""");
 
 			listarDirectorios(carpetas, carpetaActual);
-			printf("Seleccionaste ver directorios y archivos\n");
+			//printf("Seleccionaste ver directorios y archivos\n");
 
 		}else
 		if(!strncmp(linea, "info", 4)) {
