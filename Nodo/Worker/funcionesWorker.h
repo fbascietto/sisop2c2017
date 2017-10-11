@@ -28,6 +28,7 @@ t_config* infoConfig;
 char* nombreNodo;
 char* rutaNodo;
 int puerto;
+int contador;
 
 void iniciarWorker();
 void *esperarConexionesMaster(void * args);

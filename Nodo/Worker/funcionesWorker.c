@@ -17,7 +17,7 @@ void iniciarWorker(){
 
 //--------------WORKER LEE ARCHIVO DE CONFIGURACION--------------------
 
-	infoConfig = config_create("config.txt");
+	infoConfig = config_create("../config.txt");
 
 
 		if(config_has_property(infoConfig,"NOMBRE_NODO")){
@@ -54,6 +54,26 @@ void *esperarConexionesMaster(void * args){
 
 			if (nuevoSocket != -1) {
 				printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
+
+				//de aca para abajo es lo agregado de mi solucion, borrar si usamos la solucion de Mariano
+
+				pid_t pid = fork();
+				if(pid < 0)
+						{
+								perror("No se ha podido crear el proceso hijo\n");
+						}else{
+							if(pid == 0){
+
+								//ACA IRIA SOLICITUD QUE DEBE REALIZAR PROCESO HIJO
+
+								printf("Soy el proceso hijo, esto es una prueba %d\n", pid);
+								//solo imprime si recibe una conexion
+
+								//exit(0) para que termine el proceso luego de responder la solicitud
+								exit(0);
+							}
+						}
+
 
 			}
 
