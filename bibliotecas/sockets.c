@@ -31,7 +31,7 @@ int escuchar(int puerto) {
 
 	if (bind(socketEscucha, (struct sockaddr *) &address, sizeof(address))
 			< 0) {
-		printf("Error al bindear");
+		printf("Error al bindear\n");
 		return -1;
 	}
 	if (listen(socketEscucha, MAX_CLIENTES) < 0) {
