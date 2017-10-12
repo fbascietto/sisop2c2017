@@ -13,9 +13,14 @@
 #include <pthread.h>
 #include <sys/types.h>
 
+#define SIZE 1024 //use el valor del ejemplo, pero aca iria la cantidad que lee el buffer...
+
 void iniciarWorker(){
 
 //--------------WORKER LEE ARCHIVO DE CONFIGURACION--------------------
+
+	numeroDeArchivoTemporal = 0; /*para contar la cantidad de archivos temporales para cuando se crea el nombre de dichos
+								archivos*/
 
 	infoConfig = config_create("../config.txt");
 
@@ -40,6 +45,43 @@ void iniciarWorker(){
 
 		}
 
+void transformar(){
+
+	//esta funcion esta muy incompleta obviamente...solo esta la salida no estandar
+
+	int master = 1; /*el numero de Master tendria que obtenerse de manera distinta dado
+													que no es una variable local sino que depende de donde viene la
+													conexion*/
+	char* buffer = malloc(SIZE); //buffer que se utiliza para guardar lo leido y luego volcarlo en el archivo temporal
+	char ruta[20];
+	sprintf(ruta, "/tmp/%d-%d", master, numeroDeArchivoTemporal); /*creacion de la ruta de los archivos temporales
+																de transformacion*/
+	FILE* fd = fopen(ruta,"w");
+	fputs(buffer,fd);
+	fclose(fd);
+	free(buffer); //
+}
+
+void responderSolicitud(){
+
+	int status;
+	pid_t pid = fork();
+	if(pid < 0){
+		perror("No se ha podido crear el proceso hijo\n");
+	}else{
+		if(pid == 0){
+			//proceso hijo
+			transformar();
+			//realiza solicitud luego termina
+			exit(0);
+		}else{
+			//proceso padre
+			waitpid(pid,&status,0); /*matazombies, no creo que se pueda usar esto igual porque el proceso
+									padre se queda esperando a que termine el hijo*/
+		}
+	}
+}
+
 void *esperarConexionesMaster(void * args){
 
 	t_esperar_conexion *argumentos = (t_esperar_conexion*) args;
@@ -57,26 +99,11 @@ void *esperarConexionesMaster(void * args){
 
 				//de aca para abajo es lo agregado de mi solucion, borrar si usamos la solucion de Mariano
 
-				pid_t pid = fork();
-				if(pid < 0)
-						{
-								perror("No se ha podido crear el proceso hijo\n");
-						}else{
-							if(pid == 0){
-
-								//ACA IRIA SOLICITUD QUE DEBE REALIZAR PROCESO HIJO
-
-								printf("Soy el proceso hijo, esto es una prueba %d\n", pid);
-								//solo imprime si recibe una conexion
-
-								//exit(0) para que termine el proceso luego de responder la solicitud
-								exit(0);
-							}
-						}
+				numeroDeArchivoTemporal++;
+				responderSolicitud();
 
 
 			}
-
 
 }
 
