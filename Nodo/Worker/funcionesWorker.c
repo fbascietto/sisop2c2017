@@ -53,8 +53,8 @@ void transformar(){
 													que no es una variable local sino que depende de donde viene la
 													conexion*/
 	char* buffer = malloc(SIZE); //buffer que se utiliza para guardar lo leido y luego volcarlo en el archivo temporal
-	char ruta[20];
-	sprintf(ruta, "/tmp/%d-%d", master, numeroDeArchivoTemporal); /*creacion de la ruta de los archivos temporales
+	char ruta[30];
+	sprintf(ruta, "/tmp/Master%d-temp%d", master, numeroDeArchivoTemporal); /*creacion de la ruta de los archivos temporales
 																de transformacion*/
 	FILE* fd = fopen(ruta,"w");
 	fputs(buffer,fd);
