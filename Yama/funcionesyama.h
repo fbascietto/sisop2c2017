@@ -26,6 +26,7 @@ typedef struct{
 }t_nodo;
 
 void *esperarConexionMaster(void *args);
+
 t_list* prePlanificacionClock(int bloques, int dispBase, t_list* listaNodos);
 
 void* agregarDisponibilidad(void* unNodo);
