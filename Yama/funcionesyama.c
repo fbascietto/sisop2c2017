@@ -7,6 +7,7 @@ void deserializarDato(void* dato, char* buffer, int size, int* offset){
 	*offset += size;
 }
 
+
 void *esperarConexionMaster(void *args) {
 
 	t_esperar_conexion *argumentos = (t_esperar_conexion*) args;
@@ -41,11 +42,10 @@ void *esperarConexionMaster(void *args) {
 					case PROCESO_MASTER:
 						recibirSolicitudMaster(nuevoSocket);
 				}
-
-
 			}
 		}
 }
+
 
 void recibirSolicitudMaster(int nuevoSocket){
 	Package* package = createPackage();
@@ -57,11 +57,13 @@ void recibirSolicitudMaster(int nuevoSocket){
 	}
 }
 
+
 void procesarSolicitudArchivoMaster(int nuevoSocket, uint32_t message_long, char* message){
 	//en este caso recibo solo un string como mensaje, pero en caso de recibir un objeto serializado, hay que deserializarlo antes.
 	printf("mensaje recibido: %s\n",message);
 	printf("longitudmensaje: %d\n",message_long);
 }
+
 
 void procesarSolicitudMaster(nuevoSocket){
     int protocolo;
@@ -75,10 +77,31 @@ void procesarSolicitudMaster(nuevoSocket){
 }
 
 
+void inicializarConfigYama(){
+	infoConfig = config_create("../config.txt");
 
+	if(config_has_property(infoConfig,"IP_FILESYSTEM")){
+		fsIP = config_get_string_value(infoConfig,"IP_FILESYSTEM");
+		printf("IP del filesystem: %s\n", fsIP);
+	}
 
+	if(config_has_property(infoConfig,"PUERTO_FILESYSTEM")){
+		fsPort = config_get_int_value(infoConfig,"PUERTO_FILESYSTEM");
+		printf("Puerto del filsystem: %d\n", fsPort);
+	}
 
+	if(config_has_property(infoConfig,"RETARDO_PLANIFICACION")){
+		retardoPlanificacion = config_get_int_value(infoConfig,"RETARDO_PLANIFICACION");
+		printf("Tiempo de retardo (en milisegundos: %d\n", retardoPlanificacion);
+	}
 
+	if(config_has_property(infoConfig,"ALGORITMO_BALANCEO")){
+		algoritmoBalanceo = config_get_string_value(infoConfig,"ALGORITMO_BALANCEO");
+		printf("Algoritmo de balanceo seleccionado: %s\n", algoritmoBalanceo);
+	}
 
-
-
+	if(config_has_property(infoConfig,"DISP_BASE")){
+		dispBase = config_get_int_value(infoConfig,"DISP_BASE");
+		printf("Disponibilidad Base: %d\n", dispBase);
+	}
+}

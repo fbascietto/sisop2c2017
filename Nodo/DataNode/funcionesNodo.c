@@ -64,7 +64,7 @@ void iniciarDataNode(){
 				nombreNodo[strlen(nombreNodo)+1]='\0';
 		}
 
-		if(config_has_property(infoConfig,"NOMBRE_NODO")){
+		if(config_has_property(infoConfig,"RUTA_DATABIN")){
 				rutaNodo = config_get_string_value(infoConfig,"RUTA_DATABIN");
 				rutaNodo[strlen(rutaNodo)+1]='\0';
 		}

@@ -26,6 +26,9 @@ void main() {
 
 	t_esperar_conexion *esperarConexion;
 
+	//cargo config.txt
+	incializarConfigYama();
+
 	esperarConexion = malloc(sizeof(t_esperar_conexion));
 
 	esperarConexion->fdSocketEscucha = fdSocketsEscucha;
@@ -33,6 +36,8 @@ void main() {
 
 	//Espero conexión de procesos master
 	esperarConexionMaster((void*) esperarConexion);
+
+
 
 }
 
