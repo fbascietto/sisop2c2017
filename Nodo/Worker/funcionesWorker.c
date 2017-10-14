@@ -75,7 +75,7 @@ void responderSolicitud(){
 	}
 }
 
-void *esperarConexionMaster(void *args) {
+void *esperarConexionesMaster(void *args) {
 
 	t_esperar_conexion *argumentos = (t_esperar_conexion*) args;
 
