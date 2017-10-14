@@ -13,6 +13,7 @@
 #include <pthread.h>
 #include <sys/types.h>
 
+
 //#define SIZE 1024   YAMA hace nombrado de archivos temp
 
 void iniciarWorker(){
@@ -44,7 +45,7 @@ void iniciarWorker(){
 
 		}
 
-void transformar(){
+void transformarArchivo(){
 
 	//Nombrado de archivos lo hace Yama
 
@@ -56,6 +57,10 @@ void transformar(){
 	fputs(buffer,fd);
 	fclose(fd);
 	free(buffer); */
+}
+
+void reducirArchivo(){
+
 }
 
 void responderSolicitud(){
@@ -113,7 +118,16 @@ void *esperarConexionesMaster(void *args) {
 }
 
 void recibirSolicitudMaster(int nuevoSocket){
-
+	Package* package = createPackage();
+	int leidos = recieve_and_deserialize(package, nuevoSocket);
+	printf("codigo de mensaje: %d\n",	package->msgCode);
+	switch(package->msgCode){
+		case TRANSFORMAR_ARCHIVO:
+			transformarArchivo();
+			break;
+		case REDUCIR_ARCHIVO:
+			reducirArchivo();
+			break;
+	}
 }
-
 

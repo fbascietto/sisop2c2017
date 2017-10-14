@@ -27,7 +27,7 @@ void main() {
 	t_esperar_conexion *esperarConexion;
 
 	//cargo config.txt
-	incializarConfigYama();
+	inicializarConfigYama();
 
 	esperarConexion = malloc(sizeof(t_esperar_conexion));
 
