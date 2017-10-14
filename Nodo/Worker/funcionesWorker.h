@@ -31,9 +31,10 @@ int puerto;
 int numeroDeArchivoTemporal;
 
 void iniciarWorker();
-void *esperarConexionesMaster(void * args);
+void *esperarConexionesMaster(void *);
 void responderSolicitud();
 void transformar();
+void recibirSolicitudMaster(int);
 
 #endif /* FUNCIONESWORKER_H_ */
 

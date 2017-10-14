@@ -46,7 +46,7 @@ void main() {
 					break;
 
 					case 0: // Cuando pid es cero quiere decir que es el proceso hijo*/
-						esperarConexionesMaster((void*) esperarConexion);
+						//esperarConexionesMaster((void*) esperarConexion);
 						/*break;
 
 					default: // Cuando es distinto de cero es el padre

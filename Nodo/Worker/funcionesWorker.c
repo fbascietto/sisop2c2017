@@ -13,14 +13,13 @@
 #include <pthread.h>
 #include <sys/types.h>
 
-#define SIZE 1024 //use el valor del ejemplo, pero aca iria la cantidad que lee el buffer...
+//#define SIZE 1024   YAMA hace nombrado de archivos temp
 
 void iniciarWorker(){
 
 //--------------WORKER LEE ARCHIVO DE CONFIGURACION--------------------
 
-	numeroDeArchivoTemporal = 0; /*para contar la cantidad de archivos temporales para cuando se crea el nombre de dichos
-								archivos*/
+	//numeroDeArchivoTemporal = 0;   //nombrado de archivos lo hace YAMA
 
 	infoConfig = config_create("../config.txt");
 
@@ -47,22 +46,21 @@ void iniciarWorker(){
 
 void transformar(){
 
-	//esta funcion esta muy incompleta obviamente...solo esta la salida no estandar
+	//Nombrado de archivos lo hace Yama
 
-	int master = 1; /*el numero de Master tendria que obtenerse de manera distinta dado
-													que no es una variable local sino que depende de donde viene la
-													conexion*/
-	char* buffer = malloc(SIZE); //buffer que se utiliza para guardar lo leido y luego volcarlo en el archivo temporal
+	/*int master = 1;
+	char* buffer = malloc(SIZE);   buffer que se utiliza para guardar lo leido y luego volcarlo en el archivo temporal
 	char ruta[30];
-	sprintf(ruta, "/tmp/Master%d-temp%d", master, numeroDeArchivoTemporal); /*creacion de la ruta de los archivos temporales
-																de transformacion*/
+	sprintf(ruta, "/tmp/Master%d-temp%d", master, numeroDeArchivoTemporal); creacion de la ruta de archivos temp
 	FILE* fd = fopen(ruta,"w");
 	fputs(buffer,fd);
 	fclose(fd);
-	free(buffer); //
+	free(buffer); */
 }
 
 void responderSolicitud(){
+
+	//el forkeo va a ir en el switch dentro de recibirSolicitudMaster, no en esta funcion
 
 	int status;
 	pid_t pid = fork();
@@ -71,39 +69,50 @@ void responderSolicitud(){
 	}else{
 		if(pid == 0){
 			//proceso hijo
-			transformar();
 			//realiza solicitud luego termina
 			exit(0);
-		}else{
-			//proceso padre
-			waitpid(pid,&status,0); /*matazombies, no creo que se pueda usar esto igual porque el proceso
-									padre se queda esperando a que termine el hijo*/
 		}
 	}
 }
 
-void *esperarConexionesMaster(void * args){
+void *esperarConexionMaster(void *args) {
 
 	t_esperar_conexion *argumentos = (t_esperar_conexion*) args;
 
+	printf("Esperando conexiones en Yama...\n");
 
-		// ---------------ME QUEDO ESPERANDO UNA CONEXION NUEVA--------------//
-			printf("Esperando conexiones de Master en Worker...\n");
+	// ---------------ME QUEDO ESPERANDO UNA CONEXION NUEVA--------------
 
-			int nuevoSocket;
-			nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,
-					argumentos->socketEscucha);
+
+		int nuevoSocket;
+
+		nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,
+				argumentos->socketEscucha);
+
+		if (nuevoSocket != -1) {
+			printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
+
+		}
+
+		while(1){
+			int nuevoSocket = -1;
+
+			nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,argumentos->socketEscucha);
 
 			if (nuevoSocket != -1) {
+				//log_trace(logSockets,"Nuevo Socket!");
 				printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
-
-				//de aca para abajo es lo agregado de mi solucion, borrar si usamos la solucion de Mariano
-
-				numeroDeArchivoTemporal++;
-				responderSolicitud();
-
-
+				int cliente;
+				recibirInt(nuevoSocket,&cliente);
+				switch(cliente){
+					case PROCESO_MASTER:
+						recibirSolicitudMaster(nuevoSocket);
+				}
 			}
+		}
+}
+
+void recibirSolicitudMaster(int nuevoSocket){
 
 }
 
