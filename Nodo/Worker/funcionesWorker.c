@@ -10,8 +10,8 @@
 #include "../../bibliotecas/protocolo.h"
 #include <commons/log.h>
 #include <commons/config.h>
-#include <pthread.h>
 #include <sys/types.h>
+#include "interfaceWorker.h"
 
 
 //#define SIZE 1024   YAMA hace nombrado de archivos temp
@@ -45,39 +45,19 @@ void iniciarWorker(){
 
 		}
 
-void transformarArchivo(){
+int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
-	//Nombrado de archivos lo hace Yama
-
-	/*int master = 1;
-	char* buffer = malloc(SIZE);   buffer que se utiliza para guardar lo leido y luego volcarlo en el archivo temporal
-	char ruta[30];
-	sprintf(ruta, "/tmp/Master%d-temp%d", master, numeroDeArchivoTemporal); creacion de la ruta de archivos temp
-	FILE* fd = fopen(ruta,"w");
-	fputs(buffer,fd);
-	fclose(fd);
-	free(buffer); */
+	return 0;
 }
 
-void reducirArchivo(){
+int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 
+	return 0;
 }
 
-void responderSolicitud(){
+int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada){
 
-	//el forkeo va a ir en el switch dentro de recibirSolicitudMaster, no en esta funcion
-
-	int status;
-	pid_t pid = fork();
-	if(pid < 0){
-		perror("No se ha podido crear el proceso hijo\n");
-	}else{
-		if(pid == 0){
-			//proceso hijo
-			//realiza solicitud luego termina
-			exit(0);
-		}
-	}
+	return 0;
 }
 
 void *esperarConexionesMaster(void *args) {
@@ -121,13 +101,39 @@ void recibirSolicitudMaster(int nuevoSocket){
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
 	printf("codigo de mensaje: %d\n",	package->msgCode);
-	switch(package->msgCode){
-		case TRANSFORMAR_ARCHIVO:
-			transformarArchivo();
-			break;
-		case REDUCIR_ARCHIVO:
-			reducirArchivo();
-			break;
+	int exit_code;
+	pid_t pid = fork();
+	if(pid == 0){
+		//proceso hijo continua con la solicitud
+		switch(package->msgCode){
+			case ACCION_TRANSFORMACION:
+				; //empty statement. Es solucion a un error que genera el lenguaje C
+				solicitud_programa_transformacion* solicitudTDeserializada =
+							deserializarSolicitudProgramaTransformacion(package->message);
+				exit_code = transformacion(solicitudTDeserializada);
+				break;
+			case ACCION_REDUCCION_LOCAL:
+				; //empty statement. Es solucion a un error que genera el lenguaje C
+				solicitud_programa_reduccion_local* solicitudRLDeserializada =
+							deserializarSolicitudProgramaReduccionLocal(package->message);
+				exit_code = reduccionLocal(solicitudRLDeserializada);
+				break;
+			case ACCION_REDUCCION_GLOBAL:
+				; //empty statement. Es solucion a un error que genera el lenguaje C
+				solicitud_programa_reduccion_global* solicitudRGDeserializada =
+							deserializarSolicitudProgramaReduccionGlobal(package->message);
+				exit_code = reduccionGlobal(solicitudRGDeserializada);
+				break;
+		}
+		exit(0);
+	}else{
+		if(pid < 0){
+			//cuando no pudo crear el hijo
+			perror("No se ha podido crear el proceso hijo\n");
+		}else{
+			//lo que haria el padre si es que necesitamos que haga algo
+		}
+
 	}
 }
 
