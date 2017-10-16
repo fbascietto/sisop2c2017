@@ -136,8 +136,6 @@ void crearDirectorio(t_list* folderList, t_directory* carpetaActual, char* nombr
 		string_append(&ruta, "./metadata/archivos/");
 		string_append(&ruta, string_itoa(carpeta->index));
 		mkdir(ruta, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-
-		free(carpeta);
 		fclose(fptr);
 }
 
