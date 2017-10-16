@@ -8,56 +8,8 @@
 #ifndef INTERFACE_H_
 #define INTERFACE_H_
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "../bibliotecas/estructuras.h"
 
-/*ESTRUCTURA SOLICITUD TRANSFORMACION*/
-typedef struct item_transformacion {
-	uint32_t nodo_id;		//nodo
-	char ip_puerto_worker[20];		//IP y Puerto del Worker
-	uint32_t bloque;		//bloque a aplicar programa de Transformacion
-	uint32_t bytes_ocupados;		//Bytes Ocupados
-	char archivo_temporal[50];		//Archivo temporal
-} item_transformacion;
-
-typedef struct solicitud_transformacion {
-	item_transformacion* items_transformacion;		//array de item_transformacion
-	uint32_t item_cantidad; //cantidad de items
-} solicitud_transformacion;
-
-/*ESTRUCTURA SOLICITUD REDUCCION LOCAL*/
-typedef struct item_reduccion_local {
-	uint32_t nodo_id;		//nodo
-	char ip_puerto_worker[20];		//IP y Puerto del Worker
-	char archivo_temporal_transformacion[50];		//Archivo temporal transformacion
-	char archivo_temporal_reduccion_local[50];		//Archivo temporal reduccion local
-} item_reduccion_local;
-
-typedef struct solicitud_reduccion_local {
-	item_reduccion_local* items_reduccion_local;		//array de item_reduccion_local
-	uint32_t item_cantidad; //cantidad de items
-} solicitud_reduccion_local;
-
-/*ESTRUCTURA SOLICITUD REDUCCION GLOBAL*/
-typedef struct item_reduccion_global {
-	uint32_t nodo_id;		//nodo
-	char ip_puerto_worker[20];		//IP y Puerto del Worker
-	char archivo_temporal_reduccion_local[50];		//Archivo temporal reduccion local
-	char archivo_temporal_reduccion_global[50];		//Archivo temporal reduccion global
-	bool esEncargado;
-} item_reduccion_global;
-
-typedef struct solicitud_reduccion_global {
-	item_reduccion_global* items_reduccion_global;		//array de item_reduccion_global
-	uint32_t item_cantidad; //cantidad de items
-} solicitud_reduccion_global;
-
-/*ESTRUCTURA SOLICITUD ALMACENADO FINAL*/
-typedef struct solicitud_almacenado_final {
-	uint32_t nodo_id;		//nodo
-	char ip_puerto_worker[20];		//IP y Puerto del Worker
-	char archivo_temporal_reduccion_global[50];		//Archivo temporal reduccion global
-} solicitud_almacenado_final;
 
 void serializarDato(char* buffer, void* dato, int size_to_send, int* offset);
 void deserializarDato(void* dato, char* buffer, int size, int* offset);
