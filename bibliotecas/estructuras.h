@@ -23,7 +23,7 @@ typedef struct item_transformacion {
 	char ip_puerto_worker[20];		//IP y Puerto del Worker
 	uint32_t bloque;		//bloque a aplicar programa de Transformacion
 	uint32_t bytes_ocupados;		//Bytes Ocupados
-	char archivo_temporal[50];		//Archivo temporal
+	char archivo_temporal[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal
 } item_transformacion;
 
 typedef struct solicitud_transformacion {
