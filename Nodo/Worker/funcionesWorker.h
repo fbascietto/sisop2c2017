@@ -15,7 +15,7 @@
 #include <commons/collections/list.h>
 #include "../../bibliotecas/protocolo.h"
 #include <commons/config.h>
-#include <interfaceWorker.h>
+#include "interfaceWorker.h"
 
 #ifndef FUNCIONESWORKER_H_
 #define FUNCIONESWORKER_H_
@@ -32,9 +32,8 @@ int puerto;
 
 void iniciarWorker();
 void *esperarConexionesMaster(void *);
-void responderSolicitud();
-void transformacion();
-void reduccionLocal();
+void transformacion(solicitud_programa_transformacion *);
+void reduccionLocal(solicitud_programa_reduccion_local *);
 void recibirSolicitudMaster(int);
 
 #endif /* FUNCIONESWORKER_H_ */

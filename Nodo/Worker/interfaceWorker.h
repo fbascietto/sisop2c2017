@@ -29,6 +29,10 @@ typedef struct {
 	archivo_temp* archivos_temporales;  //lista de archivos temporales
 	uint32_t cantidad_archivos_temp;  //cantidad de archivos temporales en dicha lista
 	char archivo_temporal_resultante[LENGTH_RUTA_ARCHIVO_TEMP];
-};
+} solicitud_programa_reduccion_local;
+
+solicitud_programa_transformacion* deserializarSolicitudProgramaTransformacion(char*);
+solicitud_programa_reduccion_local* deserializarSolicitudProgramaReduccionLocal(char*);
+
 
 #endif /* INTERFACEWORKER_H_ */

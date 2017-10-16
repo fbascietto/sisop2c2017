@@ -11,6 +11,7 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <sys/types.h>
+#include "interfaceWorker.h"
 
 
 //#define SIZE 1024   YAMA hace nombrado de archivos temp
@@ -44,28 +45,12 @@ void iniciarWorker(){
 
 		}
 
-void transformacion(){
+void transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
 }
 
-void reduccionLocal(){
+void reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 
-}
-
-void responderSolicitud(){
-
-	//el forkeo va a ir en el switch dentro de recibirSolicitudMaster, no en esta funcion
-
-	pid_t pid = fork();
-	if(pid < 0){
-		perror("No se ha podido crear el proceso hijo\n");
-	}else{
-		if(pid == 0){
-			//proceso hijo
-			//realiza solicitud luego termina
-			exit(0);
-		}
-	}
 }
 
 void *esperarConexionesMaster(void *args) {
@@ -109,13 +94,32 @@ void recibirSolicitudMaster(int nuevoSocket){
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
 	printf("codigo de mensaje: %d\n",	package->msgCode);
-	switch(package->msgCode){
-		case TRANSFORMAR_ARCHIVO:
-			transformacion();
-			break;
-		case REDUCIR_ARCHIVO:
-			reduccionLocal();
-			break;
+	pid_t pid = fork();
+	if(pid == 0){
+		//proceso hijo continua con la solicitud
+		switch(package->msgCode){
+			case ACCION_TRANSFORMACION:
+				; //empty statement. Es solucion a un error que genera el lenguaje C
+				solicitud_programa_transformacion* solicitudTDeserializada =
+							deserializarSolicitudProgramaTransformacion(package->message);
+				transformacion(solicitudTDeserializada);
+				break;
+			case ACCION_REDUCCION_LOCAL:
+				; //empty statement. Es solucion a un error que genera el lenguaje C
+				solicitud_programa_reduccion_local* solicitudRLDeserializada =
+							deserializarSolicitudProgramaReduccionLocal(package->message);
+				reduccionLocal(solicitudRLDeserializada);
+				break;
+		}
+		exit(0);
+	}else{
+		if(pid < 0){
+			//cuando no pudo crear el hijo
+			perror("No se ha podido crear el proceso hijo\n");
+		}else{
+			//lo que haria el padre si es que necesitamos que haga algo
+		}
+
 	}
 }
 

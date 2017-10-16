@@ -34,25 +34,7 @@ void main() {
 
 	while(1){
 
-		//Dejo comentado la solucion de Mariano, descomentar si nos quedamos con esa
+		esperarConexionesMaster((void*) esperarConexion);
 
-		/*pid_t pid;
-		pid = fork();
-
-		switch(pid)
-			{
-				case -1: // Si pid es -1 quiere decir que ha habido un error
-					perror("No se ha podido crear el proceso hijo\n");
-					break;
-
-					case 0: // Cuando pid es cero quiere decir que es el proceso hijo*/
-						esperarConexionesMaster((void*) esperarConexion);
-						/*break;
-
-					default: // Cuando es distinto de cero es el padre
-						iniciarWorker();
-						printf("worker iniciado");
-						break;
-			}*/
 	}
 }
