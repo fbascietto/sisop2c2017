@@ -10,7 +10,6 @@
 #include "../../bibliotecas/protocolo.h"
 #include <commons/log.h>
 #include <commons/config.h>
-#include <pthread.h>
 #include <sys/types.h>
 
 
@@ -45,21 +44,11 @@ void iniciarWorker(){
 
 		}
 
-void transformarArchivo(){
+void transformacion(){
 
-	//Nombrado de archivos lo hace Yama
-
-	/*int master = 1;
-	char* buffer = malloc(SIZE);   buffer que se utiliza para guardar lo leido y luego volcarlo en el archivo temporal
-	char ruta[30];
-	sprintf(ruta, "/tmp/Master%d-temp%d", master, numeroDeArchivoTemporal); creacion de la ruta de archivos temp
-	FILE* fd = fopen(ruta,"w");
-	fputs(buffer,fd);
-	fclose(fd);
-	free(buffer); */
 }
 
-void reducirArchivo(){
+void reduccionLocal(){
 
 }
 
@@ -67,7 +56,6 @@ void responderSolicitud(){
 
 	//el forkeo va a ir en el switch dentro de recibirSolicitudMaster, no en esta funcion
 
-	int status;
 	pid_t pid = fork();
 	if(pid < 0){
 		perror("No se ha podido crear el proceso hijo\n");
@@ -123,10 +111,10 @@ void recibirSolicitudMaster(int nuevoSocket){
 	printf("codigo de mensaje: %d\n",	package->msgCode);
 	switch(package->msgCode){
 		case TRANSFORMAR_ARCHIVO:
-			transformarArchivo();
+			transformacion();
 			break;
 		case REDUCIR_ARCHIVO:
-			reducirArchivo();
+			reduccionLocal();
 			break;
 	}
 }

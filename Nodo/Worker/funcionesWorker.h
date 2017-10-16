@@ -7,14 +7,15 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <string.h>
-#include <pthread.h>
 #include <errno.h>
 #include <commons/log.h>
 #include <commons/collections/list.h>
 #include "../../bibliotecas/protocolo.h"
 #include <commons/config.h>
+#include <interfaceWorker.h>
 
 #ifndef FUNCIONESWORKER_H_
 #define FUNCIONESWORKER_H_
@@ -28,12 +29,12 @@ t_config* infoConfig;
 char* nombreNodo;
 char* rutaNodo;
 int puerto;
-//int numeroDeArchivoTemporal;   nombrado de archivos temp en YAMA
 
 void iniciarWorker();
 void *esperarConexionesMaster(void *);
 void responderSolicitud();
-void transformar();
+void transformacion();
+void reduccionLocal();
 void recibirSolicitudMaster(int);
 
 #endif /* FUNCIONESWORKER_H_ */
