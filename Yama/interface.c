@@ -15,10 +15,10 @@ void serializarDato(char* buffer, void* dato, int size_to_send, int* offset){
 	*offset += size_to_send;
 }
 
-void deserializarDato(void* dato, char* buffer, int size, int* offset){
+/*void deserializarDato(void* dato, char* buffer, int size, int* offset){
 	memcpy(dato,buffer + *offset,size);
 	*offset += size;
-}
+}*/
 
 char* serializarSolicitudTransformacion(solicitud_transformacion* solicitudTransformacion){
 
@@ -660,3 +660,4 @@ void testSerializarSolicitudAlmacenadoFinal(){
 
 
 #endif /* INTERFAZ_C_ */
+
