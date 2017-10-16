@@ -27,3 +27,9 @@ solicitud_programa_reduccion_local* deserializarSolicitudProgramaReduccionLocal(
 	strcpy(mock->archivo_temporal_resultante, "/tmp/Master1-Worker1");
 	return mock;
 }
+
+solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGlobal(char* message){
+
+	solicitud_programa_reduccion_global* mock = malloc(sizeof(solicitud_programa_reduccion_global));
+	return mock;
+}

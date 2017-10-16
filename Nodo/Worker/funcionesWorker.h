@@ -32,9 +32,10 @@ int puerto;
 
 void iniciarWorker();
 void *esperarConexionesMaster(void *);
-void transformacion(solicitud_programa_transformacion *);
-void reduccionLocal(solicitud_programa_reduccion_local *);
 void recibirSolicitudMaster(int);
+int transformacion(solicitud_programa_transformacion *);
+int reduccionLocal(solicitud_programa_reduccion_local *);
+int reduccionGlobal(solicitud_programa_reduccion_global *);
 
 #endif /* FUNCIONESWORKER_H_ */
 

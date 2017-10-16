@@ -31,8 +31,14 @@ typedef struct {
 	char archivo_temporal_resultante[LENGTH_RUTA_ARCHIVO_TEMP];
 } solicitud_programa_reduccion_local;
 
+typedef struct {
+//definir este struct
+
+} solicitud_programa_reduccion_global;
+
 solicitud_programa_transformacion* deserializarSolicitudProgramaTransformacion(char*);
 solicitud_programa_reduccion_local* deserializarSolicitudProgramaReduccionLocal(char*);
+solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGlobal(char*);
 
 
 #endif /* INTERFACEWORKER_H_ */

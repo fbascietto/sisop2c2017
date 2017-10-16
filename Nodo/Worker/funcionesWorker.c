@@ -45,12 +45,19 @@ void iniciarWorker(){
 
 		}
 
-void transformacion(solicitud_programa_transformacion* solicitudDeserializada){
+int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
+	return 0;
 }
 
-void reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
+int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 
+	return 0;
+}
+
+int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada){
+
+	return 0;
 }
 
 void *esperarConexionesMaster(void *args) {
@@ -94,6 +101,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
 	printf("codigo de mensaje: %d\n",	package->msgCode);
+	int exit_code;
 	pid_t pid = fork();
 	if(pid == 0){
 		//proceso hijo continua con la solicitud
@@ -102,13 +110,19 @@ void recibirSolicitudMaster(int nuevoSocket){
 				; //empty statement. Es solucion a un error que genera el lenguaje C
 				solicitud_programa_transformacion* solicitudTDeserializada =
 							deserializarSolicitudProgramaTransformacion(package->message);
-				transformacion(solicitudTDeserializada);
+				exit_code = transformacion(solicitudTDeserializada);
 				break;
 			case ACCION_REDUCCION_LOCAL:
 				; //empty statement. Es solucion a un error que genera el lenguaje C
 				solicitud_programa_reduccion_local* solicitudRLDeserializada =
 							deserializarSolicitudProgramaReduccionLocal(package->message);
-				reduccionLocal(solicitudRLDeserializada);
+				exit_code = reduccionLocal(solicitudRLDeserializada);
+				break;
+			case ACCION_REDUCCION_GLOBAL:
+				; //empty statement. Es solucion a un error que genera el lenguaje C
+				solicitud_programa_reduccion_global* solicitudRGDeserializada =
+							deserializarSolicitudProgramaReduccionGlobal(package->message);
+				exit_code = reduccionGlobal(solicitudRGDeserializada);
 				break;
 		}
 		exit(0);
