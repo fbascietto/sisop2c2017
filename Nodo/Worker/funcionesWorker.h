@@ -28,9 +28,13 @@ t_config* infoConfig;
 char* nombreNodo;
 char* rutaNodo;
 int puerto;
+//int numeroDeArchivoTemporal;   nombrado de archivos temp en YAMA
 
 void iniciarWorker();
-void *esperarConexionesMaster(void * args);
+void *esperarConexionesMaster(void *);
+void responderSolicitud();
+void transformar();
+void recibirSolicitudMaster(int);
 
 #endif /* FUNCIONESWORKER_H_ */
 

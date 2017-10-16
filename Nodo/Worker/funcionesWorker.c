@@ -13,9 +13,14 @@
 #include <pthread.h>
 #include <sys/types.h>
 
+
+//#define SIZE 1024   YAMA hace nombrado de archivos temp
+
 void iniciarWorker(){
 
 //--------------WORKER LEE ARCHIVO DE CONFIGURACION--------------------
+
+	//numeroDeArchivoTemporal = 0;   //nombrado de archivos lo hace YAMA
 
 	infoConfig = config_create("../config.txt");
 
@@ -40,44 +45,89 @@ void iniciarWorker(){
 
 		}
 
-void *esperarConexionesMaster(void * args){
+void transformarArchivo(){
 
-	t_esperar_conexion *argumentos = (t_esperar_conexion*) args;
+	//Nombrado de archivos lo hace Yama
 
+	/*int master = 1;
+	char* buffer = malloc(SIZE);   buffer que se utiliza para guardar lo leido y luego volcarlo en el archivo temporal
+	char ruta[30];
+	sprintf(ruta, "/tmp/Master%d-temp%d", master, numeroDeArchivoTemporal); creacion de la ruta de archivos temp
+	FILE* fd = fopen(ruta,"w");
+	fputs(buffer,fd);
+	fclose(fd);
+	free(buffer); */
+}
 
-		// ---------------ME QUEDO ESPERANDO UNA CONEXION NUEVA--------------//
-			printf("Esperando conexiones de Master en Worker...\n");
-
-			int nuevoSocket;
-			nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,
-					argumentos->socketEscucha);
-
-			if (nuevoSocket != -1) {
-				printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
-
-				//de aca para abajo es lo agregado de mi solucion, borrar si usamos la solucion de Mariano
-
-				pid_t pid = fork();
-				if(pid < 0)
-						{
-								perror("No se ha podido crear el proceso hijo\n");
-						}else{
-							if(pid == 0){
-
-								//ACA IRIA SOLICITUD QUE DEBE REALIZAR PROCESO HIJO
-
-								printf("Soy el proceso hijo, esto es una prueba %d\n", pid);
-								//solo imprime si recibe una conexion
-
-								//exit(0) para que termine el proceso luego de responder la solicitud
-								exit(0);
-							}
-						}
-
-
-			}
-
+void reducirArchivo(){
 
 }
 
+void responderSolicitud(){
+
+	//el forkeo va a ir en el switch dentro de recibirSolicitudMaster, no en esta funcion
+
+	int status;
+	pid_t pid = fork();
+	if(pid < 0){
+		perror("No se ha podido crear el proceso hijo\n");
+	}else{
+		if(pid == 0){
+			//proceso hijo
+			//realiza solicitud luego termina
+			exit(0);
+		}
+	}
+}
+
+void *esperarConexionesMaster(void *args) {
+
+	t_esperar_conexion *argumentos = (t_esperar_conexion*) args;
+
+	printf("Esperando conexiones en Yama...\n");
+
+	// ---------------ME QUEDO ESPERANDO UNA CONEXION NUEVA--------------
+
+
+		int nuevoSocket;
+
+		nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,
+				argumentos->socketEscucha);
+
+		if (nuevoSocket != -1) {
+			printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
+
+		}
+
+		while(1){
+			int nuevoSocket = -1;
+
+			nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,argumentos->socketEscucha);
+
+			if (nuevoSocket != -1) {
+				//log_trace(logSockets,"Nuevo Socket!");
+				printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
+				int cliente;
+				recibirInt(nuevoSocket,&cliente);
+				switch(cliente){
+					case PROCESO_MASTER:
+						recibirSolicitudMaster(nuevoSocket);
+				}
+			}
+		}
+}
+
+void recibirSolicitudMaster(int nuevoSocket){
+	Package* package = createPackage();
+	int leidos = recieve_and_deserialize(package, nuevoSocket);
+	printf("codigo de mensaje: %d\n",	package->msgCode);
+	switch(package->msgCode){
+		case TRANSFORMAR_ARCHIVO:
+			transformarArchivo();
+			break;
+		case REDUCIR_ARCHIVO:
+			reducirArchivo();
+			break;
+	}
+}
 

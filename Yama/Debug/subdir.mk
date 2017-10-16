@@ -5,14 +5,17 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../funcionesyama.c \
+../prePlanificacion.c \
 ../yama.c 
 
 OBJS += \
 ./funcionesyama.o \
+./prePlanificacion.o \
 ./yama.o 
 
 C_DEPS += \
 ./funcionesyama.d \
+./prePlanificacion.d \
 ./yama.d 
 
 
