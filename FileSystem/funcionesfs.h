@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <commons/log.h>
 #include <commons/string.h>
+#include <commons/bitarray.h>
 #include <commons/collections/list.h>
 #include "../bibliotecas/protocolo.h"
 
@@ -47,6 +48,8 @@ typedef struct {
   int espacioLibre;
 } t_nodo;
 
+
+// t_bitarray* t_fs_bitmap;
 pthread_mutex_t mx_nodobin;
 
 void *escucharConsola();
@@ -54,14 +57,24 @@ void *esperarConexiones(void *args);
 void procesarSolicitudMaster(int nuevoSocket);
 int recibirConexionDataNode(int nuevoSocket);
 void actualizarNodosBin();
-void crearBitmap(int tamNodo, char* nombreNodo[20]);
-void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs);
+
+/*Funciones de bitmap*/
+t_bitarray* creaAbreBitmap(int tamNodo, char* nombreNodo[10]);
+int findFreeBloque(int tamNodo, t_bitarray* t_fs_bitmap);
+void escribirBitMap(int tamNodo, char* nombreNodo[10], t_bitarray* t_fs_bitmap);
+
+void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList);
+
 void deserializar_a_nodo(void* serializado, t_nodo *nodo);
+/*Funciones de directorio.dat*/
 t_list* inicializarDirectorios();
 void listarDirectorios(t_list* folderList, t_directory* carpetaActual);
+void ordenoDirectorios(t_list* folderList);
 void crearDirectorio(t_list* folderList, t_directory* carpetaActual, char* nombre);
-int identificaDirectorio(char* directorio_yamafs);
+int identificaDirectorio(char* directorio_yamafs, t_list* folderList);
+/**/
 void escucharConexionNodo(void* socket);
-
+char* getNombreArchivo(char* path);
+char* replace_char(char* str, char find, char replace);
 
 #endif /* FUNCIONESFS_H_ */

@@ -3,6 +3,7 @@
 #include "../bibliotecas/sockets.c"
 #include "../bibliotecas/sockets.h"
 #include <stdbool.h>
+#include <stdlib.h>
 #include "../bibliotecas/protocolo.h"
 #include "../bibliotecas/serializacion.h"
 #include "../bibliotecas/serializacion.c"
@@ -109,6 +110,16 @@ void listarDirectorios(t_list* folderList, t_directory* carpetaActual){
 		*/
 }
 
+void ordenoDirectorios(t_list* folderList){
+	bool ordenar(void* parametro1, void* parametro2) {
+		t_directory* entrada1 = (t_directory*) parametro1;
+		t_directory* entrada2 = (t_directory*) parametro2;
+
+		return entrada1->index < entrada2->index;
+	}
+	list_sort(folderList,ordenar);
+}
+
 void crearDirectorio(t_list* folderList, t_directory* carpetaActual, char* nombre){
 		t_directory* carpeta;
 
@@ -120,21 +131,71 @@ void crearDirectorio(t_list* folderList, t_directory* carpetaActual, char* nombr
 		FILE* fptr = fopen("./metadata/directorios.dat", "a+");
 	    fprintf(fptr,"%d%s%s%s%d%s",carpeta->index,"|",carpeta->nombre,"|",carpeta->padre,"\n");
 		list_add(folderList, carpeta);
+		/*creo carpeta para archivos*/
+		char* ruta =string_new();
+		string_append(&ruta, "./metadata/archivos/");
+		string_append(&ruta, string_itoa(carpeta->index));
+		mkdir(ruta, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
 		free(carpeta);
 		fclose(fptr);
 }
 
-int identificaDirectorio(char* directorio_yamafs){
+void cambiarAdirectorio(char* nombre, t_directory* carpetaActual, t_list* folderList){
 
-	if(string_starts_with(directorio_yamafs,"yamafs:")){
+	bool* carpetasConMismoNombre(void* parametro) {
+				t_directory* dir = (t_directory*) parametro;
+				return (strcmp(dir->nombre,nombre) == 0);
+			}
+	t_list* carpetas = list_filter(folderList,carpetasConMismoNombre);
+	int encontrado = 0;
+	int i = 0;
+	t_directory* carpetaNueva= list_get(carpetas,i);
+	switch(list_size(carpetas)){
+		case 0: printf("Directorio inexistente\n"); break;
+		case 1:
+			if(carpetaActual->index == carpetaNueva->padre ){
+				//actualizo carpetaActual
+				carpetaActual->padre = carpetaNueva->padre;
+				carpetaActual->nombre = carpetaNueva->nombre;
+				carpetaActual->index = carpetaNueva->index;
+			} else {printf("Directorio inexistente\n");}
+			break;
+		default:
+			//recorro lista buscando carpeta con mismo padre
+			while(!encontrado){
+				if(carpetaActual->index == carpetaNueva->padre ){
+					carpetaActual->padre = carpetaNueva->padre;
+					carpetaActual->nombre = carpetaNueva->nombre;
+					carpetaActual->index = carpetaNueva->index;
+					encontrado = 1;
+
+				} else if(++i > list_size(carpetas)){} else {printf("Directorio inexistente\n");break;}
+			}
+			break;
+	}
+}
+int identificaDirectorio(char* directorio_yamafs, t_list* folderList){
+
+	ordenoDirectorios(folderList);
+	t_directory* carpetaActual= list_get(folderList,0); //arranco de root siempre?
+
+	if(!string_starts_with(directorio_yamafs,"yamafs:")){
 		return -1;
-		} else {
-		char* ruta;
-		ruta = replace_str(directorio_yamafs,"yamafs:","");
-		char** arrayString = string_split(directorio_yamafs,"/");
-		// TODO: encontrar la última carpeta del string y buscarla en la lista para hacer return del indice. El indice sirve para guardarlo en la tabla de archivos y para crear /metadata/archivos/<numero de carpeta>/archivo.bin
-		printf("%s", arrayString[1]);
-		return 0;
+		}
+	else {
+	int i = 0;
+	char* ruta;
+	ruta = replace_str(directorio_yamafs,"yamafs:","");
+	char** arrayString = string_split(ruta,"/");
+	while (arrayString[i]!= NULL){
+		cambiarAdirectorio(arrayString[i],carpetaActual,folderList);
+		i++;
+	}
+	return carpetaActual->index;
+	// TODO: encontrar la última carpeta del string y buscarla en la lista para hacer return del indice. El indice sirve para guardarlo en la tabla de archivos y para crear /metadata/archivos/<numero de carpeta>/archivo.bin
+	// printf("%s", arrayString[i-1]);
+
 	}
 }
 
@@ -175,7 +236,6 @@ void *esperarConexiones(void *args) {
 	}
 }
 
-
 int recibirConexionDataNode(int nuevoSocket){
 	pthread_t threadEscucharConexionNodo;
 
@@ -196,7 +256,7 @@ int recibirConexionDataNode(int nuevoSocket){
 	printf("Se conecto el nodo %s\n", nodo->nombre_nodo);
 	printf("Cuenta con %d bloques en total.\n", nodo->tamanio/(1024*1024));
 
-	crearBitmap(nodo->tamanio,nodo->nombre_nodo);
+	creaAbreBitmap(nodo->tamanio,nodo->nombre_nodo);
 	list_add(nodos,nodo);
 
 	actualizarNodosBin();
@@ -230,32 +290,66 @@ void escucharConexionNodo(void* socket){
 	}
 }
 
-
-void crearBitmap(int tamNodo, char* nombreNodo[10]){
+t_bitarray* creaAbreBitmap(int tamNodo, char* nombreNodo[10]){
 
 	char * ruta;
+	int nuevo = 0;
 	ruta = malloc(sizeof(char)*256);
 	snprintf(ruta, 256, "%s%s%s", "./metadata/bitmap/", nombreNodo, ".bin");
+	int sizeNodo = tamNodo / (1024*1024);
 
-	/* Declara el array de bits en cero. Este BIT_MAP se asigna a un dominio, en este caso, un nodo.  */
-	int bitmaplen = tamNodo / (1024*1024);
-	int i = 0;
-	unsigned char* bit_map;
-	bit_map = malloc(sizeof(unsigned char)*bitmaplen);
-	for(;i<bitmaplen;i++){
-		bit_map[i]='0';
+	FILE* bitmap = fopen(ruta, "r");
+		    if(!bitmap) //archivo no existe, crear
+		    {
+		    	bitmap = fopen(ruta, "wb+");
+		    	nuevo = 1;
+		        if (bitmap == NULL)
+		        	printf("Error al abrir directorios.dat\n");
+		        	//exit(1);
+		    }
+
+	/* Declara el array de bits en cero si el bitmap no existía antes. Este BIT_MAP se asigna a un dominio, en este caso, un nodo.  */
+	char bitarray[sizeNodo];
+	t_bitarray* t_fs_bitmap;
+	if(!nuevo){
+	fread(&bitarray,sizeNodo,1,bitmap);
+	t_fs_bitmap = bitarray_create_with_mode(&bitarray, (size_t) sizeNodo, LSB_FIRST); //queda seteado
+	}else{
+	memset(bitarray,0,sizeof(bitarray));
+	t_fs_bitmap = bitarray_create_with_mode(&bitarray, (size_t) sizeNodo, LSB_FIRST); //queda seteado
 	}
-	//bit_map = malloc(sizeof(tamNodo/(1024*1024)));
-	//memset(bit_map, 0, sizeof(tamNodo/(1024*1024)));
 
-
-	FILE* bitmap = fopen(ruta ,"wb+");
-
-	fprintf(bitmap,"%s",bit_map);
+	fwrite(t_fs_bitmap->bitarray,sizeNodo,1,bitmap);
 	fclose(bitmap);
-	free(bit_map);
-	free(ruta);
 
+	free(ruta);
+	return t_fs_bitmap;
+}
+
+void escribirBitMap(int tamNodo, char* nombreNodo[10], t_bitarray* t_fs_bitmap){
+
+	char * ruta;
+	int nuevo = 0;
+	ruta = malloc(sizeof(char)*256);
+	snprintf(ruta, 256, "%s%s%s", "./metadata/bitmap/", nombreNodo, ".bin");
+	int sizeNodo = tamNodo / (1024*1024);
+
+	FILE* bitmap = fopen(ruta, "w");
+	fwrite(t_fs_bitmap->bitarray,sizeNodo,1,bitmap);
+
+	fclose(bitmap);
+}
+
+int findFreeBloque(int tamNodo, t_bitarray* t_fs_bitmap){
+	int sizeNodo = tamNodo / (1024*1024);
+	int pos, i = 0;
+		for (i = 0; i < sizeNodo; i++) {
+			if(bitarray_test_bit(t_fs_bitmap, i) == 0){
+					pos = i;
+					break;
+			}
+		}
+	return pos;
 }
 
 void deserializar_a_nodo(void* serializado, t_nodo *nodo){
@@ -305,7 +399,6 @@ void actualizarNodosBin(){
 
 }
 
-
 void procesarSolicitudMaster(nuevoSocket){
     int protocolo;
 	recibirInt(nuevoSocket,&protocolo);
@@ -316,8 +409,6 @@ void procesarSolicitudMaster(nuevoSocket){
 			break;
 		}
 }
-
-
 
 void *escucharConsola(){
 	t_log_level logL;
@@ -382,11 +473,20 @@ void *escucharConsola(){
 			// printf("Seleccionaste crear carpeta %s\n", linea);
 		}
 		else
+		if(!strncmp(linea, "cd", 2)) {
+			log_trace(logFS,"Consola recibe ""cpfrom""");
+			printf("Seleccionaste cambiar diretorio\n");
+			char ** parametros = string_split(linea, " ");
+			cambiarAdirectorio(parametros[1], carpetaActual, carpetas);
+
+
+		}
+		else
 		if(!strncmp(linea, "cpfrom", 6)) {
 			log_trace(logFS,"Consola recibe ""cpfrom""");
 			printf("Seleccionaste copiar desde\n");
 			char ** parametros = string_split(linea, " ");
-			guardarArchivoLocalEnFS(parametros[1],parametros[2]);
+			guardarArchivoLocalEnFS(parametros[1],parametros[2], carpetas);
 
 
 		}else
@@ -442,21 +542,55 @@ void *escucharConsola(){
   }
 }
 
-void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs){
+char* getNombreArchivo(char* path){
+	int i = 0;
+	char** arrayString = string_split(path,"/");
+		while (arrayString[i]!= NULL){
+			i++;
+		}
+	replace_char(arrayString[i-1],'.', '_');
+	return arrayString[i-1];
+}
 
+void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList){
 
-	identificaDirectorio(directorio_yamafs);
+	int carpeta = 0;
+	carpeta = identificaDirectorio(directorio_yamafs, folderList);
 
 	void* buffer;
 	size_t bytesRead = 0;
 	buffer = malloc(sizeof(char)*4096);
 
 	FILE* origen = fopen(path_archivo_origen, "rb");
+	int fd = fileno(origen);
+	struct stat fileStat;
+			if (fstat(fd, &fileStat) < 0){
+				  fprintf(stderr, "Error fstat --> %s", strerror(errno),"\n");
+				  exit(EXIT_FAILURE);
+			}
 
 	if (origen == NULL){
-		fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+			fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+
+	char* ruta_metadata = string_new();
+	string_append(&ruta_metadata, "./metadata/archivos/");
+	string_append(&ruta_metadata, string_itoa(carpeta));
+	string_append(&ruta_metadata, "/");
+	string_append(&ruta_metadata, getNombreArchivo(path_archivo_origen));
+	string_append(&ruta_metadata, ".dat");
+
+	FILE* metadata = fopen(ruta_metadata,"w+");
+
+	if (metadata == NULL){
+			fprintf(stderr, "Fallo al guardar metadata en %s %s\n",metadata, strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+
+	fprintf(metadata,"%s%s",ruta_metadata,"\n");
+	fprintf(metadata,"%s%s%s","TAMANIO=",string_itoa((int)fileStat.st_size),"\n");
+	fprintf(metadata,"%s%s%s","TIPO=","BIN","\n"); //
 
 	t_list * nodos_conectados;
 		bool criterio(void* parametro) {
@@ -464,6 +598,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs)
 						(t_nodo*) parametro;
 				return (relacion->socket_nodo != -1);
 			}
+
 	nodos_conectados = list_filter(nodos,criterio);
 
 	int nodopos = 0;
@@ -471,11 +606,16 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs)
 	t_nodo* nodo;
 
 	nodo = malloc(sizeof(t_nodo));
-	int bloque=0;
-
+	int iteration=0;
+	int bloque = 0;
+	t_bitarray* t_fs_bitmap;
 	while(!feof(origen)){
 
 	  nodo = list_get(nodos_conectados,nodopos);
+	  t_fs_bitmap = creaAbreBitmap(nodo->tamanio, nodo->nombre_nodo);
+	  bloque = findFreeBloque(nodo->tamanio, t_fs_bitmap);
+	  bitarray_set_bit(t_fs_bitmap,bloque);
+	  escribirBitMap(nodo->tamanio, nodo->nombre_nodo, t_fs_bitmap);
 	  socketnodo = nodo->socket_nodo;
 	  enviarInt(socketnodo,bloque);
 	  while(!feof(origen) && bytesRead<=1024*1024){
@@ -484,15 +624,27 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs)
 		  enviarInt(socketnodo,leido);
 		  send(socketnodo,buffer,(size_t)leido,NULL);
 	  }
-		  bloque++; //TODO: buscoBloque, función que busque el bloque libre en el bitmap de este nodo  (/metadata//bitmap/<nombrenodo>.bin)
+	  fprintf(metadata,"%s%d%s%s%s%s%d%s","BLOQUE",iteration,"=[",nodo->nombre_nodo, ", ", bloque, "]","\n");
+	  fprintf(metadata,"%s%d%s%d%s","BLOQUE",iteration,"BYTES=",bytesRead, "\n");
+
 		  nodopos++;
 		  if(nodopos >= list_size(nodos)){
 			  nodopos = 0;
 		  }
+	  iteration++;
 	}
 
 	free(buffer);
 	fclose(origen);
+	fclose(metadata);
 }
 
 
+char* replace_char(char* str, char find, char replace){
+    char *current_pos = strchr(str,find);
+    while (current_pos){
+        *current_pos = replace;
+        current_pos = strchr(current_pos,find);
+    }
+    return str;
+}

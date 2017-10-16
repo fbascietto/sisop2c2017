@@ -27,6 +27,8 @@ void main(){
 	int status = mkdir("metadata", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	/*creo carpeta bitmap*/
 	status = mkdir("metadata/bitmap", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	/*creo carpeta para archivos*/
+	status = mkdir("metadata/archivos", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
 
 	nodos_file = "nodos.bin";
