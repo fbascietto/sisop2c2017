@@ -136,8 +136,6 @@ void crearDirectorio(t_list* folderList, t_directory* carpetaActual, char* nombr
 		string_append(&ruta, "./metadata/archivos/");
 		string_append(&ruta, string_itoa(carpeta->index));
 		mkdir(ruta, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-
-		free(carpeta);
 		fclose(fptr);
 }
 
@@ -298,7 +296,7 @@ t_bitarray* creaAbreBitmap(int tamNodo, char* nombreNodo[10]){
 	snprintf(ruta, 256, "%s%s%s", "./metadata/bitmap/", nombreNodo, ".bin");
 	int sizeNodo = tamNodo / (1024*1024);
 
-	FILE* bitmap = fopen(ruta, "r");
+	FILE* bitmap = fopen(ruta, "rb+");
 		    if(!bitmap) //archivo no existe, crear
 		    {
 		    	bitmap = fopen(ruta, "wb+");
@@ -309,17 +307,25 @@ t_bitarray* creaAbreBitmap(int tamNodo, char* nombreNodo[10]){
 		    }
 
 	/* Declara el array de bits en cero si el bitmap no existía antes. Este BIT_MAP se asigna a un dominio, en este caso, un nodo.  */
-	char bitarray[sizeNodo];
+	char bitarray[sizeNodo+1];
 	t_bitarray* t_fs_bitmap;
+
 	if(!nuevo){
-	fread(&bitarray,sizeNodo,1,bitmap);
-	t_fs_bitmap = bitarray_create_with_mode(&bitarray, (size_t) sizeNodo, LSB_FIRST); //queda seteado
+		fread(&bitarray,sizeNodo,1,bitmap);
+		t_fs_bitmap = bitarray_create_with_mode(&bitarray, (size_t) sizeNodo, LSB_FIRST); //queda seteado
 	}else{
-	memset(bitarray,0,sizeof(bitarray));
-	t_fs_bitmap = bitarray_create_with_mode(&bitarray, (size_t) sizeNodo, LSB_FIRST); //queda seteado
+		// memset(bitarray,0,sizeof(char)*sizeNodo);
+		int i = 0;
+		for(i;i<sizeNodo;i++){
+			bitarray[i]='0';
+		}
+		bitarray[sizeNodo]='\0';
+		t_fs_bitmap = bitarray_create_with_mode(&bitarray, (size_t) sizeNodo, LSB_FIRST); //queda seteado
+		txt_write_in_file(bitmap,t_fs_bitmap->bitarray);
 	}
 
-	fwrite(t_fs_bitmap->bitarray,sizeNodo,1,bitmap);
+	// fwrite(t_fs_bitmap->bitarray,sizeNodo,1,bitmap);
+
 	fclose(bitmap);
 
 	free(ruta);
@@ -475,7 +481,7 @@ void *escucharConsola(){
 		else
 		if(!strncmp(linea, "cd", 2)) {
 			log_trace(logFS,"Consola recibe ""cpfrom""");
-			printf("Seleccionaste cambiar diretorio\n");
+			// printf("Seleccionaste cambiar diretorio\n");
 			char ** parametros = string_split(linea, " ");
 			cambiarAdirectorio(parametros[1], carpetaActual, carpetas);
 
@@ -605,17 +611,21 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 	int socketnodo;
 	t_nodo* nodo;
 
-	nodo = malloc(sizeof(t_nodo));
+
 	int iteration=0;
 	int bloque = 0;
+
 	t_bitarray* t_fs_bitmap;
+
 	while(!feof(origen)){
 
 	  nodo = list_get(nodos_conectados,nodopos);
+
 	  t_fs_bitmap = creaAbreBitmap(nodo->tamanio, nodo->nombre_nodo);
 	  bloque = findFreeBloque(nodo->tamanio, t_fs_bitmap);
 	  bitarray_set_bit(t_fs_bitmap,bloque);
 	  escribirBitMap(nodo->tamanio, nodo->nombre_nodo, t_fs_bitmap);
+
 	  socketnodo = nodo->socket_nodo;
 	  enviarInt(socketnodo,bloque);
 	  while(!feof(origen) && bytesRead<=1024*1024){
