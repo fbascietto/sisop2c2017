@@ -20,7 +20,7 @@ void main() {
 	FD_ZERO(&fdSocketsEscucha);
 
 
-	socketEscucha= escuchar(4002);
+	socketEscucha= escuchar(4003);
 	FD_SET(socketEscucha, &fdSocketsEscucha);
 
 

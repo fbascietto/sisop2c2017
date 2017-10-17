@@ -18,7 +18,10 @@
 
 void main() {
 	//testSerializarSolicitudTrasnformacion();
-	testSerializarItemTransformacion();
+	//testSerializarItemTransformacion();
+	//testSerializarSolicitudReduccionLocal();
+	//testSerializarSolicitudReduccionGlobal();
+	//testSerializarSolicitudAlmacenadoFinal();
 
 	t_config* infoConfig;
 	char* yamaIP;
@@ -43,6 +46,7 @@ void main() {
 		nombreNodo[strlen(nombreNodo)+1]='\0';
 	}
 
+	//TODO: crear un hilo para manejar esta comunicacion con Yama.
 	socketConn = conectarseA(yamaIP, yamaPort);
 
 	enviarInt(socketConn,PROCESO_MASTER);
@@ -50,10 +54,29 @@ void main() {
 	int len = strlen(archivoMensage);
 	uint32_t message_long = sizeof(char)*len;
 	enviarMensajeSocketConLongitud(socketConn,ACCION_PROCESAR_ARCHIVO,archivoMensage,len);
-	// enviarMensaje(socketConn, nombreNodo);
-	//envioArchivo(socketConn,"sent.txt");
-
-
+	while(1){
+		Package* package = createPackage();
+		printf("esperando mensaje de yama: %d\n",socketConn);
+		int leidos = recieve_and_deserialize(package, socketConn);
+		printf("codigo de mensaje: %d\n",	package->msgCode);
+		switch(package->msgCode){
+			case ACCION_PROCESAR_TRANSFORMACION:
+				procesarSolicitudTransformacion(socketConn, package->message_long, package->message);
+				enviarMensajeSocketConLongitud(socketConn,RESULTADO_TRANSFORMACION,archivoMensage,len);
+				break;
+			case ACCION_PROCESAR_REDUCCION_LOCAL:
+				procesarSolicitudReduccionLocal(socketConn, package->message_long, package->message);
+				enviarMensajeSocketConLongitud(socketConn,RESULTADO_REDUCCION_LOCAL,archivoMensage,len);
+				break;
+			case ACCION_PROCESAR_REDUCCION_GLOBAL:
+				procesarSolicitudReduccionGlobal(socketConn, package->message_long, package->message);
+				enviarMensajeSocketConLongitud(socketConn,RESULTADO_REDUCCION_GLOBAL,archivoMensage,len);
+				break;
+			case ACCION_PROCESAR_ALMACENADO_FINAL:
+				procesarSolicitudAlmacenadoFinal(socketConn, package->message_long, package->message);
+				enviarMensajeSocketConLongitud(socketConn,RESULTADO_ALMACENADO_FINAL,archivoMensage,len);
+				break;
+		}
+	}
 }
-
 
