@@ -14,6 +14,10 @@
 #ifndef YAMA_FUNCIONESYAMA_H_
 #define YAMA_FUNCIONESYAMA_H_
 
+typedef struct {
+	int socketCliente;
+} t_esperar_mensaje;
+
 t_config* infoConfig;
 int dispBase;
 char* fsIP;
