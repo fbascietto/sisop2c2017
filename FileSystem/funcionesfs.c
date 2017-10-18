@@ -3,6 +3,7 @@
 #include "../bibliotecas/sockets.c"
 #include "../bibliotecas/sockets.h"
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "../bibliotecas/protocolo.h"
 #include "../bibliotecas/serializacion.h"
@@ -294,7 +295,13 @@ t_bitarray* creaAbreBitmap(int tamNodo, char* nombreNodo[10]){
 	int nuevo = 0;
 	ruta = malloc(sizeof(char)*256);
 	snprintf(ruta, 256, "%s%s%s", "./metadata/bitmap/", nombreNodo, ".bin");
-	int sizeNodo = tamNodo / (1024*1024);
+	int sizeNodoEnBits ;
+	if(tamNodo % 8 == 0)
+		{
+		sizeNodoEnBits = tamNodo/8;
+		}else{
+		sizeNodoEnBits = tamNodo/8 + 1;
+	}
 
 	FILE* bitmap = fopen(ruta, "rb+");
 		    if(!bitmap) //archivo no existe, crear
@@ -306,28 +313,22 @@ t_bitarray* creaAbreBitmap(int tamNodo, char* nombreNodo[10]){
 		        	//exit(1);
 		    }
 
-	/* Declara el array de bits en cero si el bitmap no existía antes. Este BIT_MAP se asigna a un dominio, en este caso, un nodo.  */
-	char bitarray[sizeNodo+1];
+	/* Declara el array de bits en cero si el bitmap no existía antes. Este bitmap se asigna a un dominio, en este caso, un nodo.  */
+	char bitarray[sizeNodoEnBits];
 	t_bitarray* t_fs_bitmap;
 
 	if(!nuevo){
-		fread(&bitarray,sizeNodo,1,bitmap);
-		t_fs_bitmap = bitarray_create_with_mode(&bitarray, (size_t) sizeNodo, LSB_FIRST); //queda seteado
+		fread(&bitarray,sizeNodoEnBits,1,bitmap);
+		t_fs_bitmap = bitarray_create_with_mode(&bitarray, (size_t) sizeNodoEnBits, LSB_FIRST); //queda seteado
 	}else{
-		// memset(bitarray,0,sizeof(char)*sizeNodo);
-		int i = 0;
-		for(i;i<sizeNodo;i++){
-			bitarray[i]='0';
-		}
-		bitarray[sizeNodo]='\0';
-		t_fs_bitmap = bitarray_create_with_mode(&bitarray, (size_t) sizeNodo, LSB_FIRST); //queda seteado
+		memset(bitarray,0,sizeof(bitarray));
+		t_fs_bitmap = bitarray_create_with_mode(&bitarray, (size_t) sizeNodoEnBits, LSB_FIRST); //queda seteado
 		txt_write_in_file(bitmap,t_fs_bitmap->bitarray);
 	}
 
 	// fwrite(t_fs_bitmap->bitarray,sizeNodo,1,bitmap);
 
 	fclose(bitmap);
-
 	free(ruta);
 	return t_fs_bitmap;
 }
@@ -338,19 +339,30 @@ void escribirBitMap(int tamNodo, char* nombreNodo[10], t_bitarray* t_fs_bitmap){
 	int nuevo = 0;
 	ruta = malloc(sizeof(char)*256);
 	snprintf(ruta, 256, "%s%s%s", "./metadata/bitmap/", nombreNodo, ".bin");
-	int sizeNodo = tamNodo / (1024*1024);
+	int sizeNodoEnBits ;
+		if(tamNodo % 8 == 0)
+			{
+			sizeNodoEnBits = tamNodo/8;
+			}else{
+			sizeNodoEnBits = tamNodo/8 + 1;
+		}
 
 	FILE* bitmap = fopen(ruta, "w");
-	fwrite(t_fs_bitmap->bitarray,sizeNodo,1,bitmap);
-
+	fwrite(t_fs_bitmap->bitarray,sizeNodoEnBits,1,bitmap);
 	fclose(bitmap);
 }
 
 int findFreeBloque(int tamNodo, t_bitarray* t_fs_bitmap){
-	int sizeNodo = tamNodo / (1024*1024);
+	int sizeNodoEnBits ;
+		if(tamNodo % 8 == 0)
+			{
+			sizeNodoEnBits = tamNodo/8;
+			}else{
+			sizeNodoEnBits = tamNodo/8 + 1;
+		}
 	int pos, i = 0;
-		for (i = 0; i < sizeNodo; i++) {
-			if(bitarray_test_bit(t_fs_bitmap, i) == 0){
+		for (i = 0; i < sizeNodoEnBits; i++) {
+			 if(bitarray_test_bit(t_fs_bitmap, i*8) == 0){ // if(t_fs_bitmap->bitarray[i] == 0){
 					pos = i;
 					break;
 			}
@@ -615,32 +627,30 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 	int iteration=0;
 	int bloque = 0;
 
-	t_bitarray* t_fs_bitmap;
 
 	while(!feof(origen)){
 
-	  nodo = list_get(nodos_conectados,nodopos);
-
-	  t_fs_bitmap = creaAbreBitmap(nodo->tamanio, nodo->nombre_nodo);
-	  bloque = findFreeBloque(nodo->tamanio, t_fs_bitmap);
-	  bitarray_set_bit(t_fs_bitmap,bloque);
-	  escribirBitMap(nodo->tamanio, nodo->nombre_nodo, t_fs_bitmap);
-
-	  socketnodo = nodo->socket_nodo;
-	  enviarInt(socketnodo,bloque);
-	  while(!feof(origen) && bytesRead<=1024*1024){
+		t_bitarray* t_fs_bitmap;
+		nodo = list_get(nodos_conectados,nodopos);
+		t_fs_bitmap = creaAbreBitmap(nodo->tamanio, nodo->nombre_nodo);
+		bloque = findFreeBloque(nodo->tamanio, t_fs_bitmap);
+		bitarray_set_bit(t_fs_bitmap,bloque*8);
+		escribirBitMap(nodo->tamanio, nodo->nombre_nodo, t_fs_bitmap);
+		socketnodo = nodo->socket_nodo;
+		enviarInt(socketnodo,bloque);
+		while(!feof(origen) && bytesRead<=1024*1024){
 		  int leido = fread(buffer, 1, sizeof(char)*4096, origen);
 		  bytesRead += leido;
 		  enviarInt(socketnodo,leido);
 		  send(socketnodo,buffer,(size_t)leido,NULL);
-	  }
-	  fprintf(metadata,"%s%d%s%s%s%s%d%s","BLOQUE",iteration,"=[",nodo->nombre_nodo, ", ", bloque, "]","\n");
-	  fprintf(metadata,"%s%d%s%d%s","BLOQUE",iteration,"BYTES=",bytesRead, "\n");
+		}
+		fprintf(metadata,"%s%d%s%s%s%d%s%s","BLOQUE",iteration,"=[",nodo->nombre_nodo, ", ", bloque, "]","\n");
+		fprintf(metadata,"%s%d%s%d%s","BLOQUE",iteration,"BYTES=",bytesRead, "\n");
 
-		  nodopos++;
-		  if(nodopos >= list_size(nodos)){
-			  nodopos = 0;
-		  }
+		nodopos++;
+		if(nodopos >= list_size(nodos)){
+			nodopos = 0;
+		}
 	  iteration++;
 	}
 
