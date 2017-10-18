@@ -78,7 +78,7 @@ void procesarSolicitudMaster(nuevoSocket){
 
 
 void inicializarConfigYama(){
-	infoConfig = config_create("../config.txt");
+	infoConfig = config_create("config.txt");
 
 	if(config_has_property(infoConfig,"IP_FILESYSTEM")){
 		fsIP = config_get_string_value(infoConfig,"IP_FILESYSTEM");

@@ -13,6 +13,7 @@
 #include "../bibliotecas/sockets.h"
 #include "../bibliotecas/sockets.c"
 #include "funcionesyama.h"
+#include "prePlanificacion.h"
 
 void main() {
 	int socketEscucha;
@@ -26,8 +27,11 @@ void main() {
 
 	t_esperar_conexion *esperarConexion;
 
+
 	//cargo config.txt
 	inicializarConfigYama();
+
+	ejemploPrePlanificacion();
 
 	esperarConexion = malloc(sizeof(t_esperar_conexion));
 

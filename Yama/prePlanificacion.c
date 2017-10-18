@@ -1,30 +1,71 @@
+#include "prePlanificacion.h"
 #include "funcionesyama.h"
 
-void agregarNodoALaPlanificacion(int numNodo, t_nodo* nodo, t_list* planificacionNodos){
+void agregarNodoALaPlanificacion(int bloque, t_nodo* nodo, t_list* planificacionNodos){
 	nodo->disponibilidad--;
-	agregarCarga(planificacionNodos, numNodo, 1);
-	list_add(planificacionNodos, &numNodo);
+	nodo->cargaDeTrabajoActual++;
+
+	t_planificacion* planificacion = malloc(sizeof(t_planificacion));
+	planificacion->nodo = nodo;
+	planificacion->bloque = bloque;
+	planificacion->reduccionGlobal = 0;
+	list_add(planificacionNodos, planificacion);
 }
 
+
 /*
- * recibe la lista de nodos,
- * la posicion del nodo al que se le quiere aumentar la carga
- * y le agrega n cargas de trabajo
+ * setea las disponibilidades de los nodos
+ * segun el algoritmo especificado
+ * y ademas resetea la carga de trabajo actual a 0
  */
-void agregarCarga(t_list* planificacionNodos, int numNodo, int n){
-	t_nodo* nodo = list_get(planificacionNodos, numNodo);
-	nodo->cargaDeTrabajo += n;
-	free(nodo);
+void asignarDisponibilidades(t_list* nodos, char* tipoAlgoritmo){
+	int i;
+	int tamanioLista;
+	t_nodo* nodo;
+
+	tamanioLista = list_size(nodos);
+
+	for(i=0; i<tamanioLista; i++){
+		nodo = list_get(nodos, i);
+		nodo->disponibilidad = disponibilidad(nodo, tipoAlgoritmo);
+		nodo->cargaDeTrabajoActual = 0;
+		printf("disponibilidad de %s: %d\n", nodo->nombreNodo, nodo->disponibilidad);
+	}
 }
 
 /*
  * agrega el valor establecido en
- * valorBaseTemporal
- * al nodo
+ * valorBaseTemporal al nodo
+ * establecido en agregarDisponibilidadNodos
  */
 void agregarDisponibilidad(void* unNodo){
 	t_nodo* nodo = (t_nodo*) unNodo;
 	nodo -> disponibilidad += valorBaseTemporal;
+}
+
+void agregarCargaDeTrabajo(t_planificacion* planificacionNodo) {
+	if (planificacionNodo->reduccionGlobal == 0) {
+		planificacionNodo->nodo->cargaDeTrabajo++;
+		planificacionNodo->nodo->cargaDeTrabajoHistorica++;
+	} else {
+		planificacionNodo->nodo->cargaDeTrabajo +=
+				planificacionNodo->reduccionGlobal;
+		planificacionNodo->nodo->cargaDeTrabajoActual +=
+				planificacionNodo->reduccionGlobal;
+		planificacionNodo->nodo->cargaDeTrabajoHistorica +=
+				planificacionNodo->reduccionGlobal;
+	}
+}
+
+void actualizarWL(t_list* planificacionNodos){
+	int i;
+	int tamanio = list_size(planificacionNodos);
+	t_planificacion* planificacionNodo = NULL;
+
+	for(i=0; i<tamanio; i++){
+		planificacionNodo = list_get(planificacionNodos, i);
+		agregarCargaDeTrabajo(planificacionNodo);
+	}
 }
 
 /*
@@ -41,43 +82,58 @@ void agregarDisponibilidadNodos(void* nodosSinDisponibilidad, int valorBase){
 	list_iterate(nodos, agregarDisponibilidad);
 }
 
+/*
+ * dada una posicion
+ * y una lista de nodos
+ * 		retorna el siguiente nodo
+ * 		y actualiza el numero de la lista al siguiente
+ */
+t_nodo* siguienteNodo(int* numNodo, t_list* nodos) {
 
-
-
-int siguienteNodo(int numNodo, t_list* nodos, t_nodo* nodo) {
+	t_nodo* nodo;
 	//si no llego al fin de la lista de nodos
-	if (numNodo != list_size(nodos)) {
-		numNodo++;
-		nodo = list_get(nodos, numNodo);
+	if ((*numNodo) != (list_size(nodos) - 1)) {
+		(*numNodo)++;
+		nodo = list_get(nodos, *numNodo);
 	} else {
-		numNodo = 0;
-		nodo = list_get(nodos, numNodo);
+		(*numNodo) = 0;
+		nodo = list_get(nodos, *numNodo);
 	}
-	return numNodo;
+
+	return nodo;
 }
 
 
 bool estaElBloque(void* bloqueAVerificar){
-	int * bloque = (int *) bloqueAVerificar;
+	int* bloque = (int*) bloqueAVerificar;
 
-	//el numero de bloque se cambia en la funcion anterior porque solo admite un valor el filter
-	return *bloque == miBloque;
+	//el numero de bloque se cambia en tieneElBloque porque solo admite un valor el filter
+	return (*bloque) == miBloque;
 }
 
 
-bool tieneElBloque(void* nodo, int bloque){
+bool tieneElBloque(t_nodo* nodo, int bloque){
+	int * unBloque = NULL;
+	int i;
+	int cantBloques;
+
+	cantBloques = list_size(nodo->bloques);
 	miBloque = bloque;
-	t_nodo* bloques = (t_nodo*) nodo;
-	if (list_any_satisfy(bloques->bloques, estaElBloque)){
+
+	for (i=0; i<cantBloques; i++){
+		unBloque = list_get(nodo->bloques, i);
+		if(*unBloque == bloque){
 			return true;
-		}else{
-			return false;
 		}
+	}
+
+
+	return false;
 }
 
 /*
  * verifica que haya al menos una copia de cada bloque
- * en la lista de nodos que se le pase
+ * en la lista de nodos que se pase
  */
 bool hayUnaCopiaDeCadaBloque(t_list* listaNodos, int bloques){
 	int i;
@@ -96,7 +152,7 @@ bool hayUnaCopiaDeCadaBloque(t_list* listaNodos, int bloques){
 			if(tieneElBloque(list_get(listaNodos, j), i)){
 						i++;
 						j=0;
-						recorridoListaNodos=1;
+						recorridoListaNodos=0;
 						break;
 			}
 			recorridoListaNodos++;
@@ -109,32 +165,93 @@ bool hayUnaCopiaDeCadaBloque(t_list* listaNodos, int bloques){
 	return true;
 }
 
+
 int disponibilidad (t_nodo* nodo, char* tipoAlgoritmo){
 	if (strcmp(tipoAlgoritmo, "CLOCK") == 0){
-		return nodo -> disponibilidad;
+		return valorBaseTemporal;
 	}else{
-		return (nodo -> disponibilidad) + pwl(nodo);
+		return valorBaseTemporal + pwl(nodo);
 	}
 }
 
+
 int pwl(t_nodo* nodo){
-	/*
-	 * TBD: preguntar si WLmax es para todos los nodos que existan
-	 * o si se debe calcular solo para los nodos que se pasaron
-	 * para la preplanificacion
-	 */
-	return 0;
+	return nodo->cargaDeTrabajo - nodo->cargaDeTrabajoActual;
 }
 
 
-//todavia no restaura la disponibilidad que tenia previamente cada nodo
+t_nodo* nodoConMayorDisponibilidad(t_list* nodos, int* numNodo, char* tipoAlgoritmo){
+	int tamanioLista = list_size(nodos);
+	int i;
+	int disponibilidadNodo;
+	t_nodo* nodo;
+	t_nodo* nodoConMasDisponibilidad = list_get(nodos, 0);
+	unsigned long int mayorDisponibilidad = 0;
+
+	for(i=0; i < tamanioLista; i++){
+		nodo = list_get(nodos, i);
+		disponibilidadNodo = nodo->disponibilidad;
+		if (mayorDisponibilidad < disponibilidadNodo){
+			mayorDisponibilidad = disponibilidadNodo;
+			nodoConMasDisponibilidad = nodo;
+			*numNodo = i;
+
+		} else
+			if (mayorDisponibilidad == disponibilidadNodo){
+				if (nodoConMasDisponibilidad->cargaDeTrabajoHistorica > nodo->cargaDeTrabajoHistorica){
+					nodoConMasDisponibilidad = nodo;
+					*numNodo = i;
+				}
+			}
+	}
+
+	return nodoConMasDisponibilidad;
+}
+
+t_nodo* nodoConMenorCargaTrabajo(t_list* nodos){
+	int tamanioLista = list_size(nodos);
+	int i;
+	int cargaDeTrabajoNodo;
+	t_nodo* nodo;
+	t_nodo* nodoConMenosCargaTrabajo = list_get(nodos, 0);
+	unsigned long int menorCargaDeTrabajo = 999999;
+
+	for(i=0; i < tamanioLista; i++){
+			nodo = list_get(nodos, i);
+			cargaDeTrabajoNodo = nodo->cargaDeTrabajoActual;
+			if(menorCargaDeTrabajo > cargaDeTrabajoNodo){
+				menorCargaDeTrabajo = cargaDeTrabajoNodo;
+				nodoConMenosCargaTrabajo = nodo;
+			}
+	}
+	return nodoConMenosCargaTrabajo;
+}
+
+
+void seleccionarNodoParaReduccionFinal(t_list* nodos, char* tipoAlgoritmo, t_list* planificacionNodos, int cantBloques){
+	t_nodo* nodo;
+	nodo = nodoConMenorCargaTrabajo(nodos);
+	t_planificacion* planificacionRG = malloc(sizeof(t_planificacion));
+	planificacionRG->nodo = nodo;
+
+	//mitad redondeada para arriba de cantidad de bloques a reducir para reduccion final
+	if(cantBloques % 2 == 0){
+		planificacionRG->reduccionGlobal = cantBloques/2;
+	}else{
+		planificacionRG->reduccionGlobal = (cantBloques/2) +1;
+	}
+	list_add(planificacionNodos,planificacionRG);
+}
+
+
+
 /**
  * Retorna una lista t_list
- * donde cada posicion indica el numero de bloque
- * y el numero contenido indica el numero de nodo
+ * con structs t_planificacion
+ * todos los elementos tienen el valor reduccionGlobal en 0 salvo
+ * el bloque seleccionado para reduccion global
  */
 t_list* prePlanificacion(int cantBloques, int valorBase, t_list* listaNodos, char* tipoAlgoritmo){
-		char* algoritmo = tipoAlgoritmo;
 		int bloque;
 		int numNodo = 0;
 
@@ -142,91 +259,144 @@ t_list* prePlanificacion(int cantBloques, int valorBase, t_list* listaNodos, cha
 		t_nodo* nodo = NULL;
 		t_nodo* aux = NULL;
 
-		/*
-		 * esta lista va a tener el orden de los nodos (por el momento la lista tiene solo el numero correspondiente del nodo)
-		 * para los bloques (la posicion de la lista)
-		*/
 		t_list* planificacionNodos = list_create();
 
-		t_list* nodos = listaNodos;
+		valorBaseTemporal = valorBase;
+		asignarDisponibilidades(listaNodos, tipoAlgoritmo);
 
-
-		nodo = list_get(nodos, 0);
+		nodo = nodoConMayorDisponibilidad(listaNodos, &numNodo, tipoAlgoritmo);
 
 		for(bloque=0;bloque < cantBloques;){
 
 		if(tieneElBloque(nodo, bloque)){
 
-			if(disponibilidad(nodo, algoritmo) > 0){
+			if(nodo->disponibilidad > 0){
 
-				agregarNodoALaPlanificacion(numNodo, nodo,planificacionNodos);
-				numNodo = siguienteNodo(numNodo, nodos, nodo);
+				agregarNodoALaPlanificacion(bloque, nodo, planificacionNodos);
+				nodo = siguienteNodo(&numNodo, listaNodos);
 				bloque++;
 
 			} else{
 
 				nodo -> disponibilidad = valorBase;
-				numNodo = siguienteNodo(numNodo, nodos, nodo);
-				bloque++;
+				nodo = siguienteNodo(&numNodo, listaNodos);
 
 			}
 
 		} else{
 
 			int auxNodo = numNodo;
+			aux = siguienteNodo(&auxNodo, listaNodos);
 			while(1){
 
-				auxNodo = siguienteNodo(auxNodo, nodos, aux);
 
-				if(aux == nodo){
+				if(auxNodo == numNodo){
 
-					agregarDisponibilidadNodos(nodos, valorBase);
+					agregarDisponibilidadNodos(listaNodos, valorBase);
+					aux = siguienteNodo(&auxNodo, listaNodos);
 
 				}else{
 
 					if(tieneElBloque(aux, bloque)){
 
-						if(disponibilidad(aux, algoritmo) > 0){
+						if(aux->disponibilidad > 0){
 
-							agregarNodoALaPlanificacion(numNodo, nodo, planificacionNodos);
-							numNodo = siguienteNodo(numNodo, nodos, aux);
+							agregarNodoALaPlanificacion(bloque, aux, planificacionNodos);
 							bloque++;
 							break;
 
 						} else{
 
-							auxNodo = siguienteNodo(auxNodo, nodos, aux);
+							aux = siguienteNodo(&auxNodo, listaNodos);
 
 						}
 
 					} else{
 
-						auxNodo = siguienteNodo(auxNodo, nodos, aux);
+						aux = siguienteNodo(&auxNodo, listaNodos);
 
 					}
 				}
 			}
 		}
 	}
-		free(nodo);
-		free(aux);
-		list_destroy(nodos);
+
+		seleccionarNodoParaReduccionFinal(listaNodos, tipoAlgoritmo, planificacionNodos, cantBloques);
+		actualizarWL(planificacionNodos);
 		return planificacionNodos;
 }
 
-
-void quitarNodo(t_list* listaNodos, int nodoFallado){
-	list_remove(listaNodos, nodoFallado);
-}
-
+/*
+ * dada la lista de preplanificacion de nodos
+ * el tipo de algoritmo usado
+ * la disponibilidad base usada previamente
+ * bloques que va a utilizar (estan tambien en la lista de planificacion de nodos)
+ * y el nodo que fallo
+ *
+ * replanifica en base al nodo fallado
+ *
+ * si no hay una copia de cada bloque
+ * devuelve NULL
+ */
 t_list* replanificacion(t_list* listaNodos, int nodoFallado, int bloques, int dispBase, char* tipoAlgoritmo){
 
-	quitarNodo(listaNodos, nodoFallado);
+	t_nodo* nodoEliminado;
+
+	nodoEliminado = list_remove(listaNodos, nodoFallado);
+
+	printf("se ejecuta rePlanificacion porque fallo el bloque %s \n", nodoEliminado->nombreNodo);
+	printf("se eliminino el nodo %s\n", nodoEliminado->nombreNodo);
+	printf("nuevo tamanio de la lista: %d\n", list_size(listaNodos));
 
 	if (hayUnaCopiaDeCadaBloque(listaNodos, bloques)){
+
 		return prePlanificacion(bloques, dispBase, listaNodos, tipoAlgoritmo);
+
 	} else{
+
 		//pendiente: definir que devolver en caso de que no haya una copia de cada bloque
 		return NULL;
 	}
 }
+
+
+
+void estadisticas(void* unaPlanif){
+	t_planificacion* unaPlanificacion = (t_planificacion*) unaPlanif;
+	if(unaPlanificacion->reduccionGlobal == 0){
+		printf("bloque: %d nodo: %s cargaDeTrabajoActual: %d \n",
+			unaPlanificacion->bloque, unaPlanificacion->nodo->nombreNodo, unaPlanificacion->nodo->cargaDeTrabajoActual);
+	}else{
+		printf("nodo de reduccion final: %s con una cargaDeTrabajoActual: %d \n",
+			unaPlanificacion->nodo->nombreNodo, unaPlanificacion->nodo->cargaDeTrabajoActual);
+	}
+
+}
+
+/*
+ * recibe una planificacion
+ * y restaura todos los valores de
+ * las cargas de trabajo
+ */
+void terminarJob(t_list* planificacion){
+	printf("finalizando job, mostrando estadisticas (pueden repetirse los nodos)\n\n");
+	int tamanioPlanificacion = list_size(planificacion);
+	int i;
+	t_planificacion* unaPlanificacion;
+
+	for(i=0; i<tamanioPlanificacion; i++){
+		unaPlanificacion = list_get(planificacion, i);
+		if(unaPlanificacion->reduccionGlobal == 0){
+			unaPlanificacion->nodo->cargaDeTrabajo--;
+		}	else{
+			unaPlanificacion->nodo->cargaDeTrabajo -= unaPlanificacion->reduccionGlobal;
+		}
+		unaPlanificacion->nodo->disponibilidad++;
+	}
+	list_iterate(planificacion,estadisticas);
+	list_destroy(planificacion);
+	printf("planificacion finalizada exitosamente\n");
+}
+
+
+
