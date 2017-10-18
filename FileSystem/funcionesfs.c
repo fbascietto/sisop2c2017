@@ -174,6 +174,8 @@ void cambiarAdirectorio(char* nombre, t_directory* carpetaActual, t_list* folder
 			break;
 	}
 }
+
+
 int identificaDirectorio(char* directorio_yamafs, t_list* folderList){
 
 	ordenoDirectorios(folderList);
@@ -576,7 +578,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 	carpeta = identificaDirectorio(directorio_yamafs, folderList);
 
 	void* buffer;
-	size_t bytesRead = 0;
+	size_t bytesRead;
 	buffer = malloc(sizeof(char)*4096);
 
 	FILE* origen = fopen(path_archivo_origen, "rb");
@@ -629,24 +631,26 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 
 
 	while(!feof(origen)){
-
+		bytesRead = 0;
 		t_bitarray* t_fs_bitmap;
 		nodo = list_get(nodos_conectados,nodopos);
 		t_fs_bitmap = creaAbreBitmap(nodo->tamanio, nodo->nombre_nodo);
 		bloque = findFreeBloque(nodo->tamanio, t_fs_bitmap);
-		bitarray_set_bit(t_fs_bitmap,bloque*8);
-		escribirBitMap(nodo->tamanio, nodo->nombre_nodo, t_fs_bitmap);
 		socketnodo = nodo->socket_nodo;
-		enviarInt(socketnodo,bloque);
-		while(!feof(origen) && bytesRead<=1024*1024){
-		  int leido = fread(buffer, 1, sizeof(char)*4096, origen);
-		  bytesRead += leido;
-		  enviarInt(socketnodo,leido);
-		  send(socketnodo,buffer,(size_t)leido,NULL);
-		}
-		fprintf(metadata,"%s%d%s%s%s%d%s%s","BLOQUE",iteration,"=[",nodo->nombre_nodo, ", ", bloque, "]","\n");
-		fprintf(metadata,"%s%d%s%d%s","BLOQUE",iteration,"BYTES=",bytesRead, "\n");
+		if(enviarInt(socketnodo,bloque) > 0){
+			bitarray_set_bit(t_fs_bitmap,bloque*8);
+			escribirBitMap(nodo->tamanio, nodo->nombre_nodo, t_fs_bitmap);
 
+
+			while(!feof(origen) && bytesRead<1024*1024){
+			  int leido = fread(buffer, 1, sizeof(char)*4096, origen);
+			  bytesRead += leido;
+			  enviarInt(socketnodo,leido);
+			  send(socketnodo,buffer,(size_t)leido,NULL);
+			}
+			fprintf(metadata,"%s%d%s%s%s%d%s%s","BLOQUE",iteration,"=[",nodo->nombre_nodo, ", ", bloque, "]","\n");
+			fprintf(metadata,"%s%d%s%d%s","BLOQUE",iteration,"BYTES=",bytesRead, "\n");
+		}
 		nodopos++;
 		if(nodopos >= list_size(nodos)){
 			nodopos = 0;
