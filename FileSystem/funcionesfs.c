@@ -8,6 +8,7 @@
 #include "../bibliotecas/protocolo.h"
 #include "../bibliotecas/serializacion.h"
 #include "../bibliotecas/serializacion.c"
+#include <openssl/md5.h>
 
 
 void levantarNodos(int clean){
@@ -523,7 +524,8 @@ void *escucharConsola(){
 		if(!strncmp(linea, "md5", 3)) {
 			log_trace(logFS,"Consola recibe ""md5""");
 			printf("Seleccionaste obtener md5\n");
-
+			char ** parametros = string_split(linea, " ");
+			obtenerMD5Archivo(parametros[1]);
 		}else
 		if(!strncmp(linea, "ls", 2)) {
 			log_trace(logFS,"Consola recibe ""ls""");
@@ -652,7 +654,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 			fprintf(metadata,"%s%d%s%d%s","BLOQUE",iteration,"BYTES=",bytesRead, "\n");
 		}
 		nodopos++;
-		if(nodopos >= list_size(nodos)){
+		if(nodopos >= list_size(nodos_conectados)){
 			nodopos = 0;
 		}
 	  iteration++;
@@ -663,6 +665,31 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 	fclose(metadata);
 }
 
+int obtenerMD5Archivo(char * archivo){
+		unsigned char c[MD5_DIGEST_LENGTH];
+
+	    int i;
+	    FILE *inFile = fopen (archivo, "rb");
+	    MD5_CTX mdContext;
+	    int bytes;
+	    unsigned char data[1024];
+
+	    if (inFile == NULL) {
+	        printf ("%s can't be opened.\n", archivo);
+	        return -1;
+	    } else {
+
+	    MD5_Init (&mdContext);
+	    while ((bytes = fread (data, 1, 1024, inFile)) != 0)
+	        MD5_Update (&mdContext, data, bytes);
+	    MD5_Final (c,&mdContext);
+	    for(i = 0; i < MD5_DIGEST_LENGTH; i++) printf("%02x", c[i]);
+	    printf (" %s\n", archivo);
+	    fclose (inFile);
+	    }
+
+	    return 1;
+}
 
 char* replace_char(char* str, char find, char replace){
     char *current_pos = strchr(str,find);
