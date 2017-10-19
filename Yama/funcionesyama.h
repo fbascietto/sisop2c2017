@@ -10,6 +10,7 @@
 #include "../bibliotecas/sockets.h"
 #include "../bibliotecas/protocolo.h"
 #include "../Master/interface.h"
+#include <stdint.h>
 
 #ifndef YAMA_FUNCIONESYAMA_H_
 #define YAMA_FUNCIONESYAMA_H_
@@ -24,6 +25,8 @@ char* fsIP;
 int fsPort;
 int retardoPlanificacion; //en milisegundos
 char* algoritmoBalanceo;
+uint32_t nombreRutaTemporal;
+uint32_t rutaGlobal;
 
 
 

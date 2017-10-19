@@ -1,4 +1,5 @@
 #include "funcionesyama.h"
+#include "prePlanificacion.h"
 #include "../bibliotecas/protocolo.h"
 
 
@@ -147,25 +148,84 @@ solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinalMock(char* message){
 	return solicitud;
 }
 
-solicitud_transformacion* obtenerSolicitudTrasnformacion(char* message){
-	//TODO: obtener desde la pre-planificacion
-	return obtenerSolicitudTrasnformacionMock(message);
+solicitud_transformacion* obtenerSolicitudTrasnformacion(t_list* planificacion, char* ip_puerto_worker, t_list* rutasTemporales){
+	int i;
+	t_planificacion* unaPlanificacion;
+	char* rutaArchivoTemporal;
+	solicitud_transformacion* solicitud = malloc(sizeof(solicitud_transformacion));
+	for(i=0; i<list_size(planificacion);i++){
+		unaPlanificacion = list_get(planificacion, i);
+		rutaArchivoTemporal = list_get(rutasTemporales, i);
+		if(unaPlanificacion->reduccionGlobal==0){
+			solicitud->items_transformacion[i].nodo_id = unaPlanificacion->nodo->idNodo;
+			solicitud->items_transformacion[i].bloque = unaPlanificacion->bloque->numeroBloque;
+			solicitud->items_transformacion[i].bytes_ocupados = unaPlanificacion->bloque->bytesOcupados;
+			strcpy(solicitud->items_transformacion[i].ip_puerto_worker, ip_puerto_worker);
+			strcpy(solicitud->items_transformacion[i].archivo_temporal, rutaArchivoTemporal);
+
+			solicitud->item_cantidad++;
+		}
+	}
+	return solicitud;
+	//return obtenerSolicitudTrasnformacionMock(message);
 }
 
-solicitud_reduccion_local* obtenerSolicitudReduccionLocal(char* message){
-	//TODO: obtener desde la pre-planificacion
-	return obtenerSolicitudReduccionLocalMock(message);
+solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_list* planificacion, char* ip_puerto_worker, t_list* rutasTransformacionTemporales, char* rutaReduccion){
+	int i;
+	t_planificacion* unaPlanificacion;
+	char* rutaArchivoTransformacionTemporal;
+	solicitud_reduccion_local* solicitud = malloc(sizeof(solicitud_reduccion_local));
+	for(i=0; i<list_size(planificacion);i++){
+		unaPlanificacion = list_get(planificacion, i);
+		rutaArchivoTransformacionTemporal = list_get(rutasTransformacionTemporales, i);
+		if(unaPlanificacion->reduccionGlobal==0){
+			solicitud->items_reduccion_local[i].nodo_id = unaPlanificacion->nodo->idNodo;
+			strcpy(solicitud->items_reduccion_local[i].ip_puerto_worker, ip_puerto_worker);
+			strcpy(solicitud->items_reduccion_local[i].archivo_temporal_transformacion, rutaArchivoTransformacionTemporal);
+			strcpy(solicitud->items_reduccion_local[i].archivo_temporal_reduccion_local, rutaReduccion);
+			solicitud->item_cantidad++;
+		}
+	}
+	return solicitud;
+	//return obtenerSolicitudReduccionLocalMock(message);
 }
 
-solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(char* message){
-	//TODO: obtener desde la pre-planificacion
-	return obtenerSolicitudReduccionGlobalMock(message);
+solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_list* planificacion, char* ip_puerto_worker, t_list* rutasRedLocalTemporales, char* rutaReduccionGlobal){
+		int i;
+		t_planificacion* unaPlanificacion;
+		char* rutaArchivoRedLocalTemporal;
+		solicitud_reduccion_global* solicitud = malloc(sizeof(solicitud_reduccion_global));
+		for(i=0; i<list_size(planificacion);i++){
+			unaPlanificacion = list_get(planificacion, i);
+			rutaArchivoRedLocalTemporal = list_get(rutasRedLocalTemporales, i);
+				solicitud->items_reduccion_global[i].nodo_id = unaPlanificacion->nodo->idNodo;
+				strcpy(solicitud->items_reduccion_global[i].ip_puerto_worker, ip_puerto_worker);
+				strcpy(solicitud->items_reduccion_global[i].archivo_temporal_reduccion_local, rutaArchivoRedLocalTemporal);
+				solicitud->item_cantidad++;
+			if(unaPlanificacion->reduccionGlobal!=0){
+				solicitud->items_reduccion_global[i].esEncargado = true;
+				strcpy(solicitud->items_reduccion_global[i].archivo_temporal_reduccion_global, rutaReduccionGlobal);
+			} else{
+				solicitud->items_reduccion_global[i].esEncargado = false;
+			}
+		}
+		return solicitud;
+	//return obtenerSolicitudReduccionGlobalMock(message);
 }
 
-solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(char* message){
-	//TODO: obtener desde la pre-planificacion
-	return obtenerSolicitudAlmacenadoFinalMock(message);
+solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_nodo* nodoEncargado, char* ip_puerto_worker, char* rutaReduccionGlobal){
+
+	solicitud_almacenado_final* solicitud = malloc(sizeof(solicitud_almacenado_final));
+	solicitud->nodo_id = nodoEncargado->idNodo;
+	strcpy(solicitud->ip_puerto_worker, ip_puerto_worker);
+	strcpy(solicitud->archivo_temporal_reduccion_global, rutaReduccionGlobal);
+
+
+	return solicitud;
+	//return obtenerSolicitudAlmacenadoFinalMock(message);
 }
+
+
 
 void procesarResultadoTransformacion(int nuevoSocket, uint32_t message_long, char* message){
 	solicitud_reduccion_local* solicitudTransformacion = obtenerSolicitudReduccionLocal(message);
@@ -215,6 +275,20 @@ void procesarSolicitudMaster(nuevoSocket){
 			break;
 		}
 }
+
+
+/*
+ * recibe un string y devuelve una ruta generada
+ * la ruta es la direccion /tmp/ y el
+ * nombre del archivo es un simple contador que siempre aumenta
+ * por cada vez que pase por la funcion
+ */
+char* generarRutaTemporal(char* ruta){
+	rutaGlobal++;
+	sprintf(ruta, "/tmp/%d", rutaGlobal);
+	return ruta;
+}
+
 
 void inicializarConfigYama(){
 	infoConfig = config_create("../config.txt");
