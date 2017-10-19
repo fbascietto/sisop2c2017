@@ -13,7 +13,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <commons/collections/list.h>
-
+#include "funcionesyama.h"
 
 /*
  * nodosConectados son todos los nodos que se conectaron
@@ -26,7 +26,7 @@ int miBloque;
 
 
 typedef struct{
-	char* nombreNodo;
+	int idNodo;
 	int disponibilidad;
 	uint32_t cargaDeTrabajo;
 	uint32_t cargaDeTrabajoHistorica;
@@ -34,16 +34,22 @@ typedef struct{
 	t_list * bloques;
 }t_nodo;
 
+typedef struct{
+	t_nodo* nodo;
+	t_list* bloques;
+}nodoConectado;
+
+
 typedef struct {
 	t_nodo* nodo;
-	int bloque;
+	t_bloque* bloque;
 	int reduccionGlobal;
 } t_planificacion;
 
 
 
-t_list* prePlanificacion(int bloques, int dispBase, t_list* listaNodos, char* tipoAlgoritmo);
-t_list* replanificacion(t_list* listaNodos, int nodoFallado, int bloques, int dispBase, char* tipoAlgoritmo);
+t_list* prePlanificacion(t_list* bloques, int valorBase, t_list* listaNodos, char* tipoAlgoritmo);
+t_list* replanificacion(t_list* listaNodos, int nodoFallado, t_list* bloques, int dispBase, char* tipoAlgoritmo);
 void terminarJob(t_list* planificacion);
 
 void agregarDisponibilidad(void* unNodo);
@@ -52,7 +58,7 @@ void asignarDisponibilidades(t_list* nodos, char* tipoAlgoritmo);
 int disponibilidad (t_nodo* nodo, char* tipoAlgoritmo);
 t_nodo* nodoConMayorDisponibilidad(t_list* nodos, int* numNodo, char* tipoAlgoritmo);
 
-void agregarNodoALaPlanificacion(int numNodo, t_nodo* nodo,t_list* planificacionNodos);
+void agregarNodoALaPlanificacion(t_bloque* bloque, t_nodo* nodo, t_list* planificacionNodos);
 t_nodo* siguienteNodo(int* numNodo, t_list* nodos);
 
 void agregarCargaDeTrabajo(t_planificacion* planificacionNodo);
@@ -61,8 +67,8 @@ int pwl(t_nodo* nodo);
 void actualizarWL(t_list* planificacionNodos);
 
 bool estaElBloque(void* bloqueAVerificar);
-bool tieneElBloque(t_nodo* nodo, int bloque);
-bool hayUnaCopiaDeCadaBloque(t_list* listaNodos, int bloques);
+bool tieneElBloque(t_nodo* nodo, t_bloque* bloque);
+bool hayUnaCopiaDeCadaBloque(t_list* listaNodos, t_list* bloques);
 
 void seleccionarNodoParaReduccionFinal(t_list* nodos, char* tipoAlgoritmo, t_list* planificacionNodos, int cantBloques);
 void* quitarNodo(t_list* listaNodos, int indiceNodoFallado);
@@ -70,8 +76,8 @@ void* obtenerNodos(void* elemento);
 
 
 //prueba de preplanificacion
-void inicializarNodo(t_nodo* nodo, char* nombre);
-void asignarBloque(t_nodo* nodo, int* bloque);
+void inicializarNodo(t_nodo* nodo, int id);
+void asignarBloque(t_nodo* nodo, int numeroBloque, int bytesOcupados);
 void ejemploPrePlanificacion();
 
 #endif /* PREPLANIFICACION_H_ */

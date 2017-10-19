@@ -33,6 +33,11 @@ typedef struct {
 } t_esperar_conexion;
 
 
+typedef struct{
+	int numeroBloque;
+	int bytesOcupados;
+}t_bloque;
+
 
 
 void *esperarConexionMaster(void *args);

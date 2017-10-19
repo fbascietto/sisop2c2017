@@ -218,4 +218,27 @@ void procesarSolicitudMaster(nuevoSocket){
 
 void inicializarConfigYama(){
 	infoConfig = config_create("../config.txt");
+
+	if(config_has_property(infoConfig,"IP_FILESYSTEM")){
+		fsIP = config_get_string_value(infoConfig,"IP_FILESYSTEM");
+		printf("IP del filesystem: %s\n", fsIP);
+	}
+
+	if(config_has_property(infoConfig,"PUERTO_FILESYSTEM")){
+		fsPort = config_get_int_value(infoConfig,"PUERTO_FILESYSTEM");
+		printf("Puerto del filsystem: %d\n", fsPort);
+	}
+
+	if(config_has_property(infoConfig,"RETARDO_PLANIFICACION")){
+		retardoPlanificacion = config_get_int_value(infoConfig,"RETARDO_PLANIFICACION");
+		printf("Tiempo de retardo (en milisegundos: %d\n", retardoPlanificacion);
+	}
+	if(config_has_property(infoConfig,"ALGORITMO_BALANCEO")){
+		algoritmoBalanceo = config_get_string_value(infoConfig,"ALGORITMO_BALANCEO");
+		printf("Algoritmo de balanceo seleccionado: %s\n", algoritmoBalanceo);
+	}
+	if(config_has_property(infoConfig,"DISP_BASE")){
+		dispBase = config_get_int_value(infoConfig,"DISP_BASE");
+		printf("Disponibilidad Base: %d\n", dispBase);
+	}
 }
