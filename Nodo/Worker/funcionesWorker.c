@@ -44,17 +44,58 @@ void iniciarWorker(){
 
 		}
 
-int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
+void responderSolicitudT(int exit_code){
 
+	if(exit_code == 0){
+		//enviar OK
+	}else{
+		if(exit_code == -1){
+			//enviar ERROR
+		}
+	}
+}
+
+void responderSolicitudRL(int exit_code){
+
+	if(exit_code == 0){
+		//enviar OK
+	}else{
+		if(exit_code == -1){
+			//enviar ERROR
+		}
+	}
+}
+
+void responderSolicitudRG(int exit_code){
+
+	if(exit_code == 0){
+		//enviar OK
+	}else{
+		if(exit_code == -1){
+			//enviar ERROR
+		}
+	}
+}
+
+int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
+//TODO: realizar etapa de transformacion
 	return 0;
 }
 
 int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
-
+//TODO: realizar etapa de reduccion local
 	return 0;
 }
 
 int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada){
+
+	int i;
+
+	for(i=0; i<=solicitudDeserializada->cantidad_item_programa_reduccion; i++){
+
+
+
+	}
 
 	return 0;
 }
@@ -69,22 +110,12 @@ void leerArchivoTemp(solicitud_leer_archivo_temp* solicitudDeserializada){
 
 void *esperarConexionesMaster(void *args) {
 
-	t_esperar_conexion *argumentos = (t_esperar_conexion*) args;
+	t_esperar_conexion* argumentos = (t_esperar_conexion*) args;
 
-	printf("Esperando conexiones en Yama...\n");
+	printf("Esperando conexiones en Worker...\n");
 
 	// ---------------ME QUEDO ESPERANDO UNA CONEXION NUEVA--------------
 
-
-		int nuevoSocket;
-
-		nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,
-				argumentos->socketEscucha);
-
-		if (nuevoSocket != -1) {
-			printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
-
-		}
 
 		while(1){
 			int nuevoSocket = -1;
@@ -122,18 +153,21 @@ void recibirSolicitudMaster(int nuevoSocket){
 				solicitud_programa_transformacion* solicitudTDeserializada =
 							deserializarSolicitudProgramaTransformacion(package->message);
 				exit_code = transformacion(solicitudTDeserializada);
+				responderSolicitudT(exit_code);
 				break;
 			case ACCION_REDUCCION_LOCAL:
 				; //empty statement. Es solucion a un error que genera el lenguaje C
 				solicitud_programa_reduccion_local* solicitudRLDeserializada =
 							deserializarSolicitudProgramaReduccionLocal(package->message);
 				exit_code = reduccionLocal(solicitudRLDeserializada);
+				responderSolicitudRL(exit_code);
 				break;
 			case ACCION_REDUCCION_GLOBAL:
 				; //empty statement. Es solucion a un error que genera el lenguaje C
 				solicitud_programa_reduccion_global* solicitudRGDeserializada =
 							deserializarSolicitudProgramaReduccionGlobal(package->message);
 				exit_code = reduccionGlobal(solicitudRGDeserializada);
+				responderSolicitudRG(exit_code);
 				break;
 		}
 		exit(0);

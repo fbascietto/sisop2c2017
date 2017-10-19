@@ -16,6 +16,8 @@
 
 void main() {
 
+	iniciarWorker();
+
 	int socketEscucha;
 		fd_set fdSocketsEscucha;
 		FD_ZERO(&fdSocketsEscucha);
@@ -32,9 +34,10 @@ void main() {
 		esperarConexion->fdSocketEscucha = fdSocketsEscucha;
 		esperarConexion->socketEscucha = socketEscucha;
 
-	while(1){
+		while(1){
 
-		esperarConexionesMaster((void*) esperarConexion);
+			esperarConexionesMaster((void*) esperarConexion);
 
-	}
+		}
+
 }
