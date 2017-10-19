@@ -152,10 +152,17 @@ solicitud_transformacion* obtenerSolicitudTrasnformacion(t_list* planificacion, 
 	int i;
 	t_planificacion* unaPlanificacion;
 	char* rutaArchivoTemporal;
+	int tamanioListaPlanificacion = list_size(planificacion);
+
+	// menos 1 porque esta el de reduccion global en la planificacion
 	solicitud_transformacion* solicitud = malloc(sizeof(solicitud_transformacion));
-	for(i=0; i<list_size(planificacion);i++){
+	solicitud->items_transformacion = realloc(solicitud->items_transformacion,sizeof(item_transformacion)*(tamanioListaPlanificacion - 1));
+
+
+	for(i=0; i<tamanioListaPlanificacion;i++){
 		unaPlanificacion = list_get(planificacion, i);
 		rutaArchivoTemporal = list_get(rutasTemporales, i);
+
 		if(unaPlanificacion->reduccionGlobal==0){
 			solicitud->items_transformacion[i].nodo_id = unaPlanificacion->nodo->idNodo;
 			solicitud->items_transformacion[i].bloque = unaPlanificacion->bloque->numeroBloque;
@@ -171,11 +178,18 @@ solicitud_transformacion* obtenerSolicitudTrasnformacion(t_list* planificacion, 
 }
 
 solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_list* planificacion, char* ip_puerto_worker, t_list* rutasTransformacionTemporales, char* rutaReduccion){
+
 	int i;
 	t_planificacion* unaPlanificacion;
 	char* rutaArchivoTransformacionTemporal;
+	int tamanioListaPlanificacion = list_size(planificacion);
+
+	// menos 1 porque esta el de reduccion global en la planificacion
 	solicitud_reduccion_local* solicitud = malloc(sizeof(solicitud_reduccion_local));
-	for(i=0; i<list_size(planificacion);i++){
+	solicitud->items_reduccion_local = realloc(solicitud->items_reduccion_local,sizeof(item_reduccion_local)*(tamanioListaPlanificacion - 1));
+
+
+	for(i=0; i<tamanioListaPlanificacion;i++){
 		unaPlanificacion = list_get(planificacion, i);
 		rutaArchivoTransformacionTemporal = list_get(rutasTransformacionTemporales, i);
 		if(unaPlanificacion->reduccionGlobal==0){
@@ -191,10 +205,16 @@ solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_list* planificacion,
 }
 
 solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_list* planificacion, char* ip_puerto_worker, t_list* rutasRedLocalTemporales, char* rutaReduccionGlobal){
+
 		int i;
-		t_planificacion* unaPlanificacion;
 		char* rutaArchivoRedLocalTemporal;
+		t_planificacion* unaPlanificacion;
+		int tamanioListaPlanificacion = list_size(planificacion);
+
 		solicitud_reduccion_global* solicitud = malloc(sizeof(solicitud_reduccion_global));
+		solicitud->items_reduccion_global = realloc(solicitud->items_reduccion_global,sizeof(item_reduccion_local) * tamanioListaPlanificacion);
+
+
 		for(i=0; i<list_size(planificacion);i++){
 			unaPlanificacion = list_get(planificacion, i);
 			rutaArchivoRedLocalTemporal = list_get(rutasRedLocalTemporales, i);
