@@ -14,7 +14,6 @@
 #include "interfaceWorker.h"
 
 
-//#define SIZE 1024   YAMA hace nombrado de archivos temp
 
 void iniciarWorker(){
 
@@ -60,6 +59,14 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 	return 0;
 }
 
+void enviarArchivoTemp(solicitud_enviar_archivo_temp* solicitudDeserializada){
+
+}
+
+void leerArchivoTemp(solicitud_leer_archivo_temp* solicitudDeserializada){
+
+}
+
 void *esperarConexionesMaster(void *args) {
 
 	t_esperar_conexion *argumentos = (t_esperar_conexion*) args;
@@ -92,6 +99,10 @@ void *esperarConexionesMaster(void *args) {
 				switch(cliente){
 					case PROCESO_MASTER:
 						recibirSolicitudMaster(nuevoSocket);
+						break;
+					case PROCESO_WORKER:
+						recibirSolicitudWorker(nuevoSocket);
+						break;
 				}
 			}
 		}
@@ -137,3 +148,25 @@ void recibirSolicitudMaster(int nuevoSocket){
 	}
 }
 
+void recibirSolicitudWorker(int nuevoSocket){
+	Package* package = createPackage();
+	int leidos = recieve_and_deserialize(package, nuevoSocket);
+	printf("codigo de mensaje: %d\n", package->msgCode);
+	int exit_code;
+	switch(package->msgCode){
+		case ACCION_ENVIAR_ARCHIVO_TEMP_DE_RL:
+			; //empty statement. Es solucion a un error que genera el lenguaje C
+			solicitud_enviar_archivo_temp* solicitudEATDeserializada =
+						deserializarSolicitudEnviarArchivoTemp(package->message);
+			enviarArchivoTemp(solicitudEATDeserializada);
+			break;
+		case ACCION_LEER_ARCHIVO_TEMP_DE_RL:
+			; //empty statement. Es solucion a un error que genera el lenguaje C
+			solicitud_leer_archivo_temp* solicitudLATDeserializada =
+						deserializarSolicitudLeerArchivoTemp(package->message);
+			leerArchivoTemp(solicitudLATDeserializada);
+			break;
+
+
+	}
+}

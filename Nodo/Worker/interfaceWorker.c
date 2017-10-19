@@ -31,5 +31,16 @@ solicitud_programa_reduccion_local* deserializarSolicitudProgramaReduccionLocal(
 solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGlobal(char* message){
 
 	solicitud_programa_reduccion_global* mock = malloc(sizeof(solicitud_programa_reduccion_global));
+	//strcpy(mock->programa_reduccion, "/scripts/reductorglobal.sb") ;
+	return mock;
+}
+
+solicitud_enviar_archivo_temp* deserializarSolicitudEnviarArchivoTemp(char* message){
+	solicitud_enviar_archivo_temp* mock = malloc(sizeof(solicitud_enviar_archivo_temp));
+	return mock;
+}
+
+solicitud_leer_archivo_temp* deserializarSolicitudLeerArchivoTemp(char* message){
+	solicitud_leer_archivo_temp* mock = malloc(sizeof(solicitud_leer_archivo_temp));
 	return mock;
 }

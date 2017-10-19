@@ -33,9 +33,12 @@ int puerto;
 void iniciarWorker();
 void *esperarConexionesMaster(void *);
 void recibirSolicitudMaster(int);
+void recibirSolicitudWorker(int);
 int transformacion(solicitud_programa_transformacion *);
 int reduccionLocal(solicitud_programa_reduccion_local *);
 int reduccionGlobal(solicitud_programa_reduccion_global *);
+void enviarArchivoTemp(solicitud_enviar_archivo_temp *);
+void leerArchivoTemp(solicitud_leer_archivo_temp *);
 
 #endif /* FUNCIONESWORKER_H_ */
 

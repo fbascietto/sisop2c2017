@@ -13,6 +13,7 @@
 
 #define LENGTH_RUTA_ARCHIVO_TEMP 50
 #define LENGTH_RUTA_PROGRAMA 200
+#define LENGTH_IP 20
 
 /*Structs de comunicacion YAMA con MASTER*/
 
@@ -98,9 +99,35 @@ typedef struct {
 	//REDUCCION GLOBAL
 
 typedef struct {
-//definir este struct
+	char ip_worker[LENGTH_IP];
+	uint32_t puerto;
+	char archivo_temp_red_local[LENGTH_RUTA_ARCHIVO_TEMP];
+} item_programa_reduccion_global;
 
+typedef struct {
+	char programa_reduccion[LENGTH_RUTA_PROGRAMA];
+	item_programa_reduccion_global* items_programa_reduccion_total; 		/*lista de procesos Worker con sus respectivos IP, puerto y ruta de archivo temporal de
+																			reduccion local*/
+	uint32_t cantidad_item_programa_reduccion; 		//cantidad de elementos en dicha lista
+	char archivo_temporal_resultante[LENGTH_RUTA_ARCHIVO_TEMP];		//ruta del archivo temporal resultante de la reduccion global
 } solicitud_programa_reduccion_global;
+
+//-------------------------------------------------------------------------------------------------------------------
+
+
+/*Structs de comunicacion WORKER con WORKER*/
+
+typedef struct {
+//TODO: definir struct, tal vez ni sea struct este tipo de comunicacion
+
+} solicitud_enviar_archivo_temp;
+
+typedef struct {
+//TODO: definir struct, tal vez ni sea struct este tipo de comunicacion
+
+} solicitud_leer_archivo_temp;
+
+//-------------------------------------------------------------------------------------------------------------------
 
 
 #endif /* ESTRUCTURAS_H_ */
