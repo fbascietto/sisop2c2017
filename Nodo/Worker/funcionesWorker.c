@@ -78,12 +78,51 @@ void responderSolicitudRG(int exit_code){
 }
 
 int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
-//TODO: realizar etapa de transformacion
+
+	FILE *f1;
+	char* buffer = malloc(solicitudDeserializada->bytes_ocupados);
+	int leidos;
+	char* s;
+
+	//abro el data.bin
+	f1 = fopen ("../data.bin", "rb");
+	if (f1==NULL)
+	{
+	   perror("No se pudo abrir data.bin");
+	   return -1;
+	}
+
+	//me desplazo hasta el bloque que quiero leer
+	fseek(f1, 1048576*solicitudDeserializada->bloque, SEEK_SET);
+
+	//leer bloque de archivo
+	leidos = fread(buffer, 1, solicitudDeserializada->bytes_ocupados, f1);
+	if(leidos!= solicitudDeserializada->bytes_ocupados){
+		perror("No se leyo correctamente el bloque");
+		return -2;
+	}
+
+	fclose(f1);
+
+	//meto en el system lo que quiero que ejecute el script
+	//esto funciona asumiendo que el script esta en la maquina del worker, falta pasarlo de archivo a ruta
+	sprintf(s, "echo %s | .%s | sort > %s", buffer, solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
+	system(s);
+	free(buffer);
+
 	return 0;
 }
 
 int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
-//TODO: realizar etapa de reduccion local
+
+	int i;
+
+	for(i=0; i<solicitudDeserializada->cantidad_archivos_temp; i++){
+
+
+
+	}
+
 	return 0;
 }
 
@@ -91,7 +130,7 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 
 	int i;
 
-	for(i=0; i<=solicitudDeserializada->cantidad_item_programa_reduccion; i++){
+	for(i=0; i<solicitudDeserializada->cantidad_item_programa_reduccion; i++){
 
 
 

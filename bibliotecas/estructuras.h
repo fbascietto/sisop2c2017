@@ -21,7 +21,7 @@
 
 typedef struct item_transformacion {
 	uint32_t nodo_id;		//nodo
-	char ip_worker[20];		//IP y Puerto del Worker
+	char ip_worker[LENGTH_IP];		//IP y Puerto del Worker
 	uint32_t puerto_worker;
 	uint32_t bloque;		//bloque a aplicar programa de Transformacion
 	uint32_t bytes_ocupados;		//Bytes Ocupados
@@ -37,7 +37,7 @@ typedef struct solicitud_transformacion {
 
 typedef struct item_reduccion_local {
 	uint32_t nodo_id;		//nodo
-	char ip_worker[20];
+	char ip_worker[LENGTH_IP];
 	uint32_t puerto_worker;
 	char archivo_temporal_transformacion[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal transformacion
 	char archivo_temporal_reduccion_local[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal reduccion local
@@ -52,7 +52,7 @@ typedef struct solicitud_reduccion_local {
 
 typedef struct item_reduccion_global {
 	uint32_t nodo_id;		//nodo
-	char ip_worker[20];
+	char ip_worker[LENGTH_IP];
 	uint32_t puerto_worker;
 	char archivo_temporal_reduccion_local[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal reduccion local
 	char archivo_temporal_reduccion_global[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal reduccion global
@@ -68,7 +68,7 @@ typedef struct solicitud_reduccion_global {
 
 typedef struct solicitud_almacenado_final {
 	uint32_t nodo_id;		//nodo
-	char ip_worker[20];
+	char ip_worker[LENGTH_IP];
 	uint32_t puerto_worker;
 	char archivo_temporal_reduccion_global[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal reduccion global
 } solicitud_almacenado_final;
