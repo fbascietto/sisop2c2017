@@ -13,13 +13,12 @@
 #include <sys/types.h>
 #include "interfaceWorker.h"
 
-
+#define LENGTH_EXTRA_SPRINTF 20
 
 void iniciarWorker(){
 
 //--------------WORKER LEE ARCHIVO DE CONFIGURACION--------------------
 
-	//numeroDeArchivoTemporal = 0;   //nombrado de archivos lo hace YAMA
 
 	infoConfig = config_create("../config.txt");
 
@@ -29,7 +28,7 @@ void iniciarWorker(){
 			nombreNodo[strlen(nombreNodo)+1]='\0';
 		}
 
-		if(config_has_property(infoConfig,"NOMBRE_NODO")){
+		if(config_has_property(infoConfig,"RUTA_DATABIN")){
 			rutaNodo = config_get_string_value(infoConfig,"RUTA_DATABIN");
 			rutaNodo[strlen(rutaNodo)+1]='\0';
 		}
@@ -82,10 +81,10 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 	FILE *f1;
 	char* buffer = malloc(solicitudDeserializada->bytes_ocupados);
 	int leidos;
-	char* s;
+	char* s = malloc(solicitudDeserializada->bytes_ocupados + LENGTH_RUTA_PROGRAMA + LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_EXTRA_SPRINTF);
 
 	//abro el data.bin
-	f1 = fopen ("../data.bin", "rb");
+	f1 = fopen (rutaNodo, "rb");
 	if (f1==NULL)
 	{
 	   perror("No se pudo abrir data.bin");
@@ -93,7 +92,7 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 	}
 
 	//me desplazo hasta el bloque que quiero leer
-	fseek(f1, 1048576*solicitudDeserializada->bloque, SEEK_SET);
+	fseek(f1, TAMANIO_BLOQUE*solicitudDeserializada->bloque, SEEK_SET);
 
 	//leer bloque de archivo
 	leidos = fread(buffer, 1, solicitudDeserializada->bytes_ocupados, f1);
@@ -106,7 +105,7 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
 	//meto en el system lo que quiero que ejecute el script
 	//esto funciona asumiendo que el script esta en la maquina del worker, falta pasarlo de archivo a ruta
-	sprintf(s, "echo %s | .%s | sort > %s", buffer, solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
+	sprintf(s, "echo %s | .%s | sort > \"%s\"", buffer, solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
 	system(s);
 	free(buffer);
 
@@ -114,6 +113,8 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 }
 
 int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
+
+
 
 	int i;
 
