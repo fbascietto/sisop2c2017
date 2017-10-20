@@ -149,7 +149,7 @@ solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinalMock(char* message){
 	return solicitud;
 }
 
-solicitud_transformacion* obtenerSolicitudTrasnformacion(t_list* planificacion, char* ip_puerto_worker, t_list* rutasTemporales){
+solicitud_transformacion* obtenerSolicitudTrasnformacion(t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasTemporales){
 	int i;
 	t_planificacion* unaPlanificacion;
 	char* rutaArchivoTemporal;
@@ -162,14 +162,14 @@ solicitud_transformacion* obtenerSolicitudTrasnformacion(t_list* planificacion, 
 
 	for(i=0; i<tamanioListaPlanificacion;i++){
 		unaPlanificacion = list_get(planificacion, i);
-		rutaArchivoTemporal = list_get(rutasTemporales, i);
 
 		if(unaPlanificacion->reduccionGlobal==0){
+			rutaArchivoTemporal = list_get(rutasTemporales, i);
 			solicitud->items_transformacion[i].nodo_id = unaPlanificacion->nodo->idNodo;
 			solicitud->items_transformacion[i].bloque = unaPlanificacion->bloque->numeroBloque;
 			solicitud->items_transformacion[i].bytes_ocupados = unaPlanificacion->bloque->bytesOcupados;
-			solicitud->items_transformacion[i].puerto_worker = 5555;
-			strcpy(solicitud->items_transformacion[i].ip_worker, ip_puerto_worker);
+			solicitud->items_transformacion[i].puerto_worker = puerto_worker;
+			strcpy(solicitud->items_transformacion[i].ip_worker, ip_worker);
 			strcpy(solicitud->items_transformacion[i].archivo_temporal, rutaArchivoTemporal);
 
 			solicitud->item_cantidad++;
@@ -179,7 +179,7 @@ solicitud_transformacion* obtenerSolicitudTrasnformacion(t_list* planificacion, 
 	//return obtenerSolicitudTrasnformacionMock(message);
 }
 
-solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_list* planificacion, char* ip_puerto_worker, t_list* rutasTransformacionTemporales, char* rutaReduccion){
+solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasTransformacionTemporales, char* rutaReduccion){
 
 	int i;
 	t_planificacion* unaPlanificacion;
@@ -193,11 +193,11 @@ solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_list* planificacion,
 
 	for(i=0; i<tamanioListaPlanificacion;i++){
 		unaPlanificacion = list_get(planificacion, i);
-		rutaArchivoTransformacionTemporal = list_get(rutasTransformacionTemporales, i);
 		if(unaPlanificacion->reduccionGlobal==0){
+			rutaArchivoTransformacionTemporal = list_get(rutasTransformacionTemporales, i);
 			solicitud->items_reduccion_local[i].nodo_id = unaPlanificacion->nodo->idNodo;
-			strcpy(solicitud->items_reduccion_local[i].ip_worker, ip_puerto_worker);
-			solicitud->items_reduccion_local[i].puerto_worker = 5555;
+			strcpy(solicitud->items_reduccion_local[i].ip_worker, ip_worker);
+			solicitud->items_reduccion_local[i].puerto_worker = puerto_worker;
 			strcpy(solicitud->items_reduccion_local[i].archivo_temporal_transformacion, rutaArchivoTransformacionTemporal);
 			strcpy(solicitud->items_reduccion_local[i].archivo_temporal_reduccion_local, rutaReduccion);
 			solicitud->item_cantidad++;
@@ -207,7 +207,7 @@ solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_list* planificacion,
 	//return obtenerSolicitudReduccionLocalMock(message);
 }
 
-solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_list* planificacion, char* ip_puerto_worker, t_list* rutasRedLocalTemporales, char* rutaReduccionGlobal){
+solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasRedLocalTemporales, char* rutaReduccionGlobal){
 
 		int i;
 		char* rutaArchivoRedLocalTemporal;
@@ -222,8 +222,8 @@ solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_list* planificacio
 			unaPlanificacion = list_get(planificacion, i);
 			rutaArchivoRedLocalTemporal = list_get(rutasRedLocalTemporales, i);
 				solicitud->items_reduccion_global[i].nodo_id = unaPlanificacion->nodo->idNodo;
-				strcpy(solicitud->items_reduccion_global[i].ip_worker, ip_puerto_worker);
-				solicitud->items_reduccion_global[i].puerto_worker = 5555;
+				strcpy(solicitud->items_reduccion_global[i].ip_worker, ip_worker);
+				solicitud->items_reduccion_global[i].puerto_worker = puerto_worker;
 				strcpy(solicitud->items_reduccion_global[i].archivo_temporal_reduccion_local, rutaArchivoRedLocalTemporal);
 				solicitud->item_cantidad++;
 			if(unaPlanificacion->reduccionGlobal!=0){
@@ -237,12 +237,12 @@ solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_list* planificacio
 	//return obtenerSolicitudReduccionGlobalMock(message);
 }
 
-solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_nodo* nodoEncargado, char* ip_puerto_worker, char* rutaReduccionGlobal){
+solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_nodo* nodoEncargado, int puerto_worker, char* ip_worker, char* rutaReduccionGlobal){
 
 	solicitud_almacenado_final* solicitud = malloc(sizeof(solicitud_almacenado_final));
 	solicitud->nodo_id = nodoEncargado->idNodo;
 	solicitud->puerto_worker = 5555;
-	strcpy(solicitud->ip_worker, ip_puerto_worker);
+	strcpy(solicitud->ip_worker, ip_worker);
 	strcpy(solicitud->archivo_temporal_reduccion_global, rutaReduccionGlobal);
 
 
