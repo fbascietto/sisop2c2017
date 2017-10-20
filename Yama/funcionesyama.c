@@ -87,9 +87,9 @@ void *esperarConexionMaster(void *args) {
 
 
 solicitud_transformacion* obtenerSolicitudTrasnformacionMock(char* message){
-	item_transformacion* item1 = crearItemTransformacion(1,"127.0.0.1:8080",2222,12345,"/temp1/archivo1.txt");
-	item_transformacion* item2 = crearItemTransformacion(12,"127.23.0.1:0101",523,5777666,"/temsssssp1211/otro.txt");
-	item_transformacion* item3 = crearItemTransformacion(137,"187.0.56.1:9090",62,643,"/temp655/tercero.txt");
+	item_transformacion* item1 = crearItemTransformacion(1,"127.0.0.1",8080,2222,12345,"/temp1/archivo1.txt");
+	item_transformacion* item2 = crearItemTransformacion(12,"127.23.0.1",0101,523,5777666,"/temsssssp1211/otro.txt");
+	item_transformacion* item3 = crearItemTransformacion(137,"187.0.56.1",9090,62,643,"/temp655/tercero.txt");
 
 	solicitud_transformacion* solicitudTransformacion = malloc(sizeof(solicitud_transformacion));
 
@@ -105,9 +105,9 @@ solicitud_transformacion* obtenerSolicitudTrasnformacionMock(char* message){
 }
 
 solicitud_reduccion_local* obtenerSolicitudReduccionLocalMock(char* message){
-	item_reduccion_local* item1 = crearItemReduccionLocal(1,"127.0.0.1:8080","/tmp/Master1-temp38","/tmp/Master1-temp38");
-	item_reduccion_local* item2 = crearItemReduccionLocal(12,"127.23.0.1:0101","/tmp/Master1-temp39","/tmp/Master1-Worker1");
-	item_reduccion_local* item3 = crearItemReduccionLocal(137,"187.0.56.1:9090","/tmp/Master1-temp44","/tmp/Master1-Worker2");
+	item_reduccion_local* item1 = crearItemReduccionLocal(1,"127.0.0.1",8080,"/tmp/Master1-temp38","/tmp/Master1-temp38");
+	item_reduccion_local* item2 = crearItemReduccionLocal(12,"127.23.0.1",0101,"/tmp/Master1-temp39","/tmp/Master1-Worker1");
+	item_reduccion_local* item3 = crearItemReduccionLocal(137,"187.0.56.1",9090,"/tmp/Master1-temp44","/tmp/Master1-Worker2");
 
 	solicitud_reduccion_local* solicitudReduccionLocal = malloc(sizeof(solicitud_reduccion_local));
 
@@ -123,9 +123,9 @@ solicitud_reduccion_local* obtenerSolicitudReduccionLocalMock(char* message){
 }
 
 solicitud_reduccion_global* obtenerSolicitudReduccionGlobalMock(char* message){
-	item_reduccion_global* item1 = crearItemReduccionGlobal(1,"127.0.0.1:8080","/tmp/Master1-temp38","/tmp/Master1-temp38",true);
-	item_reduccion_global* item2 = crearItemReduccionGlobal(12,"127.23.0.1:0101","/tmp/Master1-temp39","/tmp/Master1-Worker1",false);
-	item_reduccion_global* item3 = crearItemReduccionGlobal(137,"187.0.56.1:9090","/tmp/Master1-temp44","/tmp/Master1-Worker2",false);
+	item_reduccion_global* item1 = crearItemReduccionGlobal(1,"127.0.0.1",8080,"/tmp/Master1-temp38","/tmp/Master1-temp38",true);
+	item_reduccion_global* item2 = crearItemReduccionGlobal(12,"127.23.0.1",0101,"/tmp/Master1-temp39","/tmp/Master1-Worker1",false);
+	item_reduccion_global* item3 = crearItemReduccionGlobal(137,"187.0.56.1",9090,"/tmp/Master1-temp44","/tmp/Master1-Worker2",false);
 
 	solicitud_reduccion_global* solicitudReduccionGlobal = malloc(sizeof(solicitud_reduccion_global));
 
@@ -144,11 +144,12 @@ solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinalMock(char* message){
 	solicitud_almacenado_final *solicitud = malloc(sizeof(solicitud_almacenado_final));
 	strcpy(solicitud->archivo_temporal_reduccion_global, "/tmp/Master1-final");
 	solicitud->nodo_id = 2;
-	strcpy(solicitud->ip_puerto_worker,"192.168.1.11:5555");
+	solicitud->puerto_worker = 5555;
+	strcpy(solicitud->ip_worker,"192.168.1.11");
 	return solicitud;
 }
 
-solicitud_transformacion* obtenerSolicitudTrasnformacion(t_list* planificacion, char* ip_puerto_worker, t_list* rutasTemporales){
+solicitud_transformacion* obtenerSolicitudTrasnformacion(t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasTemporales){
 	int i;
 	t_planificacion* unaPlanificacion;
 	char* rutaArchivoTemporal;
@@ -161,13 +162,14 @@ solicitud_transformacion* obtenerSolicitudTrasnformacion(t_list* planificacion, 
 
 	for(i=0; i<tamanioListaPlanificacion;i++){
 		unaPlanificacion = list_get(planificacion, i);
-		rutaArchivoTemporal = list_get(rutasTemporales, i);
 
 		if(unaPlanificacion->reduccionGlobal==0){
+			rutaArchivoTemporal = list_get(rutasTemporales, i);
 			solicitud->items_transformacion[i].nodo_id = unaPlanificacion->nodo->idNodo;
 			solicitud->items_transformacion[i].bloque = unaPlanificacion->bloque->numeroBloque;
 			solicitud->items_transformacion[i].bytes_ocupados = unaPlanificacion->bloque->bytesOcupados;
-			strcpy(solicitud->items_transformacion[i].ip_puerto_worker, ip_puerto_worker);
+			solicitud->items_transformacion[i].puerto_worker = puerto_worker;
+			strcpy(solicitud->items_transformacion[i].ip_worker, ip_worker);
 			strcpy(solicitud->items_transformacion[i].archivo_temporal, rutaArchivoTemporal);
 
 			solicitud->item_cantidad++;
@@ -177,7 +179,7 @@ solicitud_transformacion* obtenerSolicitudTrasnformacion(t_list* planificacion, 
 	//return obtenerSolicitudTrasnformacionMock(message);
 }
 
-solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_list* planificacion, char* ip_puerto_worker, t_list* rutasTransformacionTemporales, char* rutaReduccion){
+solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasTransformacionTemporales, char* rutaReduccion){
 
 	int i;
 	t_planificacion* unaPlanificacion;
@@ -191,10 +193,11 @@ solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_list* planificacion,
 
 	for(i=0; i<tamanioListaPlanificacion;i++){
 		unaPlanificacion = list_get(planificacion, i);
-		rutaArchivoTransformacionTemporal = list_get(rutasTransformacionTemporales, i);
 		if(unaPlanificacion->reduccionGlobal==0){
+			rutaArchivoTransformacionTemporal = list_get(rutasTransformacionTemporales, i);
 			solicitud->items_reduccion_local[i].nodo_id = unaPlanificacion->nodo->idNodo;
-			strcpy(solicitud->items_reduccion_local[i].ip_puerto_worker, ip_puerto_worker);
+			strcpy(solicitud->items_reduccion_local[i].ip_worker, ip_worker);
+			solicitud->items_reduccion_local[i].puerto_worker = puerto_worker;
 			strcpy(solicitud->items_reduccion_local[i].archivo_temporal_transformacion, rutaArchivoTransformacionTemporal);
 			strcpy(solicitud->items_reduccion_local[i].archivo_temporal_reduccion_local, rutaReduccion);
 			solicitud->item_cantidad++;
@@ -204,7 +207,7 @@ solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_list* planificacion,
 	//return obtenerSolicitudReduccionLocalMock(message);
 }
 
-solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_list* planificacion, char* ip_puerto_worker, t_list* rutasRedLocalTemporales, char* rutaReduccionGlobal){
+solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasRedLocalTemporales, char* rutaReduccionGlobal){
 
 		int i;
 		char* rutaArchivoRedLocalTemporal;
@@ -219,7 +222,8 @@ solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_list* planificacio
 			unaPlanificacion = list_get(planificacion, i);
 			rutaArchivoRedLocalTemporal = list_get(rutasRedLocalTemporales, i);
 				solicitud->items_reduccion_global[i].nodo_id = unaPlanificacion->nodo->idNodo;
-				strcpy(solicitud->items_reduccion_global[i].ip_puerto_worker, ip_puerto_worker);
+				strcpy(solicitud->items_reduccion_global[i].ip_worker, ip_worker);
+				solicitud->items_reduccion_global[i].puerto_worker = puerto_worker;
 				strcpy(solicitud->items_reduccion_global[i].archivo_temporal_reduccion_local, rutaArchivoRedLocalTemporal);
 				solicitud->item_cantidad++;
 			if(unaPlanificacion->reduccionGlobal!=0){
@@ -233,11 +237,12 @@ solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_list* planificacio
 	//return obtenerSolicitudReduccionGlobalMock(message);
 }
 
-solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_nodo* nodoEncargado, char* ip_puerto_worker, char* rutaReduccionGlobal){
+solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_nodo* nodoEncargado, int puerto_worker, char* ip_worker, char* rutaReduccionGlobal){
 
 	solicitud_almacenado_final* solicitud = malloc(sizeof(solicitud_almacenado_final));
 	solicitud->nodo_id = nodoEncargado->idNodo;
-	strcpy(solicitud->ip_puerto_worker, ip_puerto_worker);
+	solicitud->puerto_worker = 5555;
+	strcpy(solicitud->ip_worker, ip_worker);
 	strcpy(solicitud->archivo_temporal_reduccion_global, rutaReduccionGlobal);
 
 
@@ -248,14 +253,16 @@ solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_nodo* nodoEncargad
 
 
 void procesarResultadoTransformacion(int nuevoSocket, uint32_t message_long, char* message){
-	solicitud_reduccion_local* solicitudTransformacion = obtenerSolicitudReduccionLocal(message);
+	//solicitud_reduccion_local* solicitudTransformacion = obtenerSolicitudReduccionLocal(message);
+	solicitud_reduccion_local* solicitudTransformacion = obtenerSolicitudReduccionLocalMock(message);
 	char* solicitudSerializado = serializarSolicitudReduccionLocal(solicitudTransformacion);
 	uint32_t longitud = getLong_SolicitudReduccionLocal(solicitudTransformacion);
 	int enviados = enviarMensajeSocketConLongitud(nuevoSocket,ACCION_PROCESAR_REDUCCION_LOCAL,solicitudSerializado,longitud);
 }
 
 void procesarResultadoReduccionLocal(int nuevoSocket, uint32_t message_long, char* message){
-	solicitud_reduccion_local* solicitudReduccionGlobal = obtenerSolicitudReduccionGlobal(message);
+	//solicitud_reduccion_local* solicitudReduccionGlobal = obtenerSolicitudReduccionGlobal(message);
+	solicitud_reduccion_local* solicitudReduccionGlobal = obtenerSolicitudReduccionGlobalMock(message);
 	char* solicitudSerializado = serializarSolicitudReduccionGlobal(solicitudReduccionGlobal);
 	uint32_t longitud = getLong_SolicitudReduccionGlobal(solicitudReduccionGlobal);
 	int enviados = enviarMensajeSocketConLongitud(nuevoSocket,ACCION_PROCESAR_REDUCCION_GLOBAL,solicitudSerializado,longitud);
@@ -263,7 +270,8 @@ void procesarResultadoReduccionLocal(int nuevoSocket, uint32_t message_long, cha
 }
 
 void procesarResultadoReduccionGlobal(int nuevoSocket, uint32_t message_long, char* message){
-	solicitud_almacenado_final* solicitudAlmacenadoFinal = obtenerSolicitudAlmacenadoFinal(message);
+	//solicitud_almacenado_final* solicitudAlmacenadoFinal = obtenerSolicitudAlmacenadoFinal(message);
+	solicitud_almacenado_final* solicitudAlmacenadoFinal = obtenerSolicitudAlmacenadoFinalMock(message);
 	char* solicitudSerializado = serializarSolicitudAlmacenadoFinal(solicitudAlmacenadoFinal);
 	uint32_t longitud = getLong_SolicitudAlmacenadoFinal(solicitudAlmacenadoFinal);
 	int enviados = enviarMensajeSocketConLongitud(nuevoSocket,ACCION_PROCESAR_ALMACENADO_FINAL,solicitudSerializado,longitud);
@@ -275,7 +283,8 @@ void procesarResultadoAlmacenadoFinal(int nuevoSocket, uint32_t message_long, ch
 }
 
 void procesarSolicitudArchivoMaster(int nuevoSocket, uint32_t message_long, char* message){
-	solicitud_transformacion* solicitudTransformacion = obtenerSolicitudTrasnformacion(message);
+	//solicitud_transformacion* solicitudTransformacion = obtenerSolicitudTrasnformacion(message);
+	solicitud_transformacion* solicitudTransformacion = obtenerSolicitudTrasnformacionMock(message);
 	char* solicitudTransfSerializado = serializarSolicitudTransformacion(solicitudTransformacion);
 	uint32_t longitud = getLong_SolicitudTransformacion(solicitudTransformacion);
 	int enviados = enviarMensajeSocketConLongitud(nuevoSocket,ACCION_PROCESAR_TRANSFORMACION,solicitudTransfSerializado,longitud);

@@ -17,7 +17,7 @@
 #define PROCESO_MASTER 4
 
 void main() {
-	//testSerializarSolicitudTrasnformacion();
+	testSerializarSolicitudTrasnformacion();
 	//testSerializarItemTransformacion();
 	//testSerializarSolicitudReduccionLocal();
 	//testSerializarSolicitudReduccionGlobal();
