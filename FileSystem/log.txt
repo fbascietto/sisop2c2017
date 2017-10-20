@@ -472,3 +472,25 @@
 [TRACE] 00:34:27:195 Yamafs/(9809:9810): Consola recibe cat
 [TRACE] 00:35:23:360 Yamafs/(9853:9855): Nuevo Socket!
 [TRACE] 00:35:34:417 Yamafs/(9853:9854): Consola recibe cat
+[TRACE] 12:31:22:192 Yamafs/(10477:10479): Nuevo Socket!
+[TRACE] 12:31:30:871 Yamafs/(10477:10478): Consola recibe cat
+[TRACE] 12:44:11:117 Yamafs/(10572:10581): Nuevo Socket!
+[TRACE] 12:44:29:160 Yamafs/(10572:10580): Consola recibe cat
+[TRACE] 12:47:15:485 Yamafs/(10810:10815): Nuevo Socket!
+[TRACE] 12:47:45:814 Yamafs/(10810:10814): Consola recibe cat
+[TRACE] 15:42:49:632 Yamafs/(11311:11314): Nuevo Socket!
+[TRACE] 15:43:01:248 Yamafs/(11311:11313): Consola recibe cat
+[TRACE] 16:30:51:899 Yamafs/(11586:11588): Nuevo Socket!
+[TRACE] 16:31:07:910 Yamafs/(11586:11587): Consola recibe cat
+[TRACE] 16:43:54:397 Yamafs/(11789:11791): Nuevo Socket!
+[TRACE] 16:44:05:841 Yamafs/(11789:11790): Consola recibe cat
+[TRACE] 17:58:23:525 Yamafs/(12115:12117): Nuevo Socket!
+[TRACE] 17:58:29:533 Yamafs/(12115:12116): Consola recibe cat
+[TRACE] 17:59:49:898 Yamafs/(12179:12189): Nuevo Socket!
+[TRACE] 18:00:46:919 Yamafs/(12179:12188): Consola recibe cat
+[TRACE] 18:03:15:949 Yamafs/(12259:12267): Nuevo Socket!
+[TRACE] 18:03:27:596 Yamafs/(12259:12266): Consola recibe cat
+[TRACE] 18:04:50:12 Yamafs/(12321:12324): Nuevo Socket!
+[TRACE] 18:05:01:518 Yamafs/(12321:12323): Consola recibe cat
+[TRACE] 18:06:10:5 Yamafs/(12528:12534): Nuevo Socket!
+[TRACE] 18:06:20:705 Yamafs/(12528:12533): Consola recibe cat

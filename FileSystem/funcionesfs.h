@@ -66,7 +66,8 @@ void escribirBitMap(int tamNodo, char* nombreNodo[10], t_bitarray* t_fs_bitmap);
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList);
 void deserializar_a_nodo(void* serializado, t_nodo *nodo);
 int obtenerMD5Archivo(char * archivo);
-void leerBloque(int bloque, int largo);
+void leerBloque(t_nodo * nodo, int bloque, int largo);
+void recibirDatosBloque(t_nodo * nodo);
 /*Funciones de directorio.dat*/
 t_list* inicializarDirectorios();
 void listarDirectorios(t_list* folderList, t_directory* carpetaActual);

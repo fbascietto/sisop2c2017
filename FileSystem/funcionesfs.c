@@ -272,22 +272,29 @@ void escucharConexionNodo(void* socket){
 	int socketNodo = (int) socket;
 	int a = 0;
 	int error = 1;
+
 	while(1){
+		int i;
+		int found = 0;
+		t_nodo * nodo;
+		for(i=0;found<1 && i<list_size(nodos);i++){
+			nodo = list_get(nodos,i);
+			if(nodo->socket_nodo == socketNodo){
+				found = 1;
+		}
 		error = recv(socketNodo, &a, sizeof(int), 0);
 		if(error<=0){
-			int i;
-			int found = 0;
-			t_nodo * nodo;
-			for(i=0;found<1 && i<list_size(nodos);i++){
-				nodo = list_get(nodos,i);
-				if(nodo->socket_nodo == socketNodo){
-					nodo->socket_nodo = -1;
-					found = 1;
+			nodo->socket_nodo = -1;
+			printf("Se desconecto nodo del socket %d\n", socketNodo);
+			break;
+		} else {
+				switch(a){
+					case LEER_BLOQUE_NODO:
+						recibirDatosBloque(nodo);
+						break;
 				}
 			}
 			//actualizarNodosBin();
-			printf("Se desconecto nodo del socket %d\n", socketNodo);
-			break;
 		}
 	}
 }
@@ -479,7 +486,7 @@ void *escucharConsola(){
 			log_trace(logFS,"Consola recibe ""cat""");
 			printf("Seleccionaste concatenar\n");
 			char ** parametros = string_split(linea, " ");
-			leerBloque(atoi(parametros[1]), atoi(parametros[2]));
+			//leerBloque(atoi(parametros[1]), atoi(parametros[2]));
 		}
 		else
 		if(!strncmp(linea, "mkdir", 5)) {
@@ -501,7 +508,6 @@ void *escucharConsola(){
 			// printf("Seleccionaste cambiar diretorio\n");
 			char ** parametros = string_split(linea, " ");
 			cambiarAdirectorio(parametros[1], carpetaActual, carpetas);
-
 
 		}
 		else
@@ -671,21 +677,26 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 	fclose(metadata);
 }
 
-void leerBloque(int bloque, int largo){
-	t_nodo * nodo = list_get(nodos, 0);
+void leerBloque(t_nodo * nodo, int bloque, int largo){
 	enviarInt(nodo->socket_nodo, LEER_BLOQUE_NODO);
-	int bytesRecibidos = 0;
-	int largoArecibir = 0;
+
 	enviarInt(nodo->socket_nodo, bloque);
 	enviarInt(nodo->socket_nodo, largo);
-	//while(bytesRecibidos<largo){
-		recibirInt(nodo->socket_nodo,&largoArecibir);
-		void * buffer;
-		buffer = malloc((size_t)largoArecibir);
-		bytesRecibidos += recv(nodo->socket_nodo,buffer,largoArecibir,NULL);
-		printf("%s\n", buffer);
-		free(buffer);
-	//}
+	//recibirDatosBloque(nodo);
+}
+
+void recibirDatosBloque(t_nodo * nodo){
+	int bytesRecibidos = 0;
+	int largoArecibir = 0;
+		//while(bytesRecibidos<largo){
+			recibirInt(nodo->socket_nodo,&largoArecibir);
+			void * buffer;
+			buffer = malloc((size_t)largoArecibir);
+			bytesRecibidos += recv(nodo->socket_nodo,buffer,largoArecibir,NULL);
+			printf("recibido");
+			//printf("%s", buffer);
+			free(buffer);
+		//}
 }
 
 int obtenerMD5Archivo(char * archivo){

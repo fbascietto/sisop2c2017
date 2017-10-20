@@ -92,7 +92,7 @@ void iniciarDataNode(){
 		int solicitudFs;
 		while(1){
 			errorConexionFS =  recibirInt(socketConn,&solicitudFs);
-			if(errorConexionFS<0){
+			if(errorConexionFS<=0){
 				printf("Se desconecto el file system\n");
 				break;
 			}else{
@@ -216,7 +216,7 @@ int leerBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 
 			int bytes_totales_leidos = 0;
 			int bytes_leidos = 0;
-
+			enviarInt(socketConn, LEER_BLOQUE_NODO);
 			while(bytes_totales_leidos < bytesAleer){
 				unsigned char * buffer;
 				buffer = malloc((size_t)4096);
