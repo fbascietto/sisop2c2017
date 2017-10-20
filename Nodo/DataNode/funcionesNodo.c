@@ -89,11 +89,23 @@ void iniciarDataNode(){
 		free(buff);
 
 		int errorConexionFS = 0;
+		int solicitudFs;
 		while(1){
-			esperarBloque(socketConn, nodo, rutaNodo);
+			errorConexionFS =  recibirInt(socketConn,&solicitudFs);
 			if(errorConexionFS<0){
 				printf("Se desconecto el file system\n");
 				break;
+			}else{
+				switch (solicitudFs){
+					case ESCRIBIR_BLOQUE_NODO:
+						printf("se recibio solicitud para escribir nodo\n");
+						esperarBloque(socketConn, nodo, rutaNodo);
+						break;
+					case LEER_BLOQUE_NODO:
+						printf("se recibio solicitud para leer nodo\n");
+						leerBloque(socketConn, nodo, rutaNodo);
+						break;
+				}
 			}
 		}
 
@@ -164,4 +176,71 @@ void *serializarNodo(t_nodo* nodo){
 	serializar_desde_string(serializado, nodo->nombre, sizeof(char[10]),&offset);
 	return serializado;
 
+}
+
+int leerBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
+	unsigned char* map;
+		map = malloc(sizeof(unsigned char)*(1024*1024));
+		int bloque;
+		int err = recibirInt(socketConn, &bloque);
+
+		if(err<0){
+			printf("error de conexion con el fs");
+			return -1;
+		}
+
+			printf("se recibio solicitud para leer el bloque %d \n", bloque);
+
+
+			int data = open(rutaNodo,O_RDWR);
+			struct stat fileStat;
+			if (fstat(data, &fileStat) < 0){
+				  fprintf(stderr, "Error fstat --> %s", strerror(errno),"\n");
+				  exit(EXIT_FAILURE);
+			}
+
+			map = (unsigned char*) mmap(NULL, fileStat.st_size /*/(fileStat.st_size/(1024*1024))*/ , PROT_READ | PROT_WRITE, MAP_SHARED, data, sizeof(unsigned char)*bloque*(1024*1024));
+			if (map == MAP_FAILED){
+				close(data);
+				perror("Error en el mapeo del data.bin.\n");
+				exit(EXIT_FAILURE);
+			   }
+
+			int bytesAleer;
+			int err1 = recibirInt(socketConn, &bytesAleer);
+
+			if(err1<0){
+				printf("error de conexion con el fs");
+				return -1;
+			}
+
+			int bytes_totales_leidos = 0;
+			int bytes_leidos = 0;
+
+			while(bytes_totales_leidos < bytesAleer){
+				unsigned char * buffer;
+				buffer = malloc((size_t)4096);
+
+				for (;bytes_leidos<4096 && bytes_totales_leidos< bytesAleer;bytes_totales_leidos++){
+					buffer[bytes_leidos] = map[bytes_totales_leidos];
+					bytes_leidos++;
+				}
+				enviarInt(socketConn,bytes_leidos);
+				send(socketConn,buffer,(size_t) bytes_leidos,NULL);
+					/*free(buffer);
+					printf("error de conexion con el fs");
+					return -1;
+				}*/
+				printf("%s\n",buffer);
+				bytes_leidos=0;
+
+				free(buffer);
+			}
+
+
+			printf("se termino de leer el bloque %d \n", bloque);
+			munmap(map,fileStat.st_size);
+			// free(map);
+			close(data);
+			return 1;
 }

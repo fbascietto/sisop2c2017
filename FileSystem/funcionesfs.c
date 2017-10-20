@@ -478,6 +478,8 @@ void *escucharConsola(){
 		if(!strncmp(linea, "cat", 3)) {
 			log_trace(logFS,"Consola recibe ""cat""");
 			printf("Seleccionaste concatenar\n");
+			char ** parametros = string_split(linea, " ");
+			leerBloque(atoi(parametros[1]), atoi(parametros[2]));
 		}
 		else
 		if(!strncmp(linea, "mkdir", 5)) {
@@ -636,9 +638,13 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 		bytesRead = 0;
 		t_bitarray* t_fs_bitmap;
 		nodo = list_get(nodos_conectados,nodopos);
+		socketnodo = nodo->socket_nodo;
+		int err = enviarInt(socketnodo,ESCRIBIR_BLOQUE_NODO);
+		if(err<0){
+			printf("error de conexion con el nodo %s\n", nodo->nombre_nodo);
+		}
 		t_fs_bitmap = creaAbreBitmap(nodo->tamanio, nodo->nombre_nodo);
 		bloque = findFreeBloque(nodo->tamanio, t_fs_bitmap);
-		socketnodo = nodo->socket_nodo;
 		if(enviarInt(socketnodo,bloque) > 0){
 			bitarray_set_bit(t_fs_bitmap,bloque*8);
 			escribirBitMap(nodo->tamanio, nodo->nombre_nodo, t_fs_bitmap);
@@ -665,6 +671,23 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 	fclose(metadata);
 }
 
+void leerBloque(int bloque, int largo){
+	t_nodo * nodo = list_get(nodos, 0);
+	enviarInt(nodo->socket_nodo, LEER_BLOQUE_NODO);
+	int bytesRecibidos = 0;
+	int largoArecibir = 0;
+	enviarInt(nodo->socket_nodo, bloque);
+	enviarInt(nodo->socket_nodo, largo);
+	//while(bytesRecibidos<largo){
+		recibirInt(nodo->socket_nodo,&largoArecibir);
+		void * buffer;
+		buffer = malloc((size_t)largoArecibir);
+		bytesRecibidos += recv(nodo->socket_nodo,buffer,largoArecibir,NULL);
+		printf("%s\n", buffer);
+		free(buffer);
+	//}
+}
+
 int obtenerMD5Archivo(char * archivo){
 		unsigned char c[MD5_DIGEST_LENGTH];
 
@@ -679,13 +702,18 @@ int obtenerMD5Archivo(char * archivo){
 	        return -1;
 	    } else {
 
-	    MD5_Init (&mdContext);
-	    while ((bytes = fread (data, 1, 1024, inFile)) != 0)
-	        MD5_Update (&mdContext, data, bytes);
-	    MD5_Final (c,&mdContext);
-	    for(i = 0; i < MD5_DIGEST_LENGTH; i++) printf("%02x", c[i]);
-	    printf (" %s\n", archivo);
-	    fclose (inFile);
+			if(MD5_Init (&mdContext)<0){
+				return -1;
+			}
+				while ((bytes = fread (data, 1, 1024, inFile)) != 0){
+					if(	MD5_Update (&mdContext, data, bytes) < 0){
+						return -1;
+					}
+				}
+				if(MD5_Final (c,&mdContext)<0) return -1;
+				for(i = 0; i < MD5_DIGEST_LENGTH; i++) printf("%02x", c[i]);
+				printf (" %s\n", archivo);
+				fclose (inFile);
 	    }
 
 	    return 1;
@@ -699,3 +727,5 @@ char* replace_char(char* str, char find, char replace){
     }
     return str;
 }
+
+
