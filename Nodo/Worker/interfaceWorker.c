@@ -9,6 +9,7 @@
 
 solicitud_programa_transformacion* deserializarSolicitudProgramaTransformacion(char* message){
 
+	//TODO: hacer funcion real, esta mockeado
 	solicitud_programa_transformacion* mock = malloc(sizeof(solicitud_programa_transformacion));
 	strcpy(mock->programa_transformacion, "/scripts/transformador.sh");
 	mock->bloque = 1;
@@ -19,6 +20,7 @@ solicitud_programa_transformacion* deserializarSolicitudProgramaTransformacion(c
 
 solicitud_programa_reduccion_local* deserializarSolicitudProgramaReduccionLocal(char* message){
 
+	//TODO: hacer funcion real, esta mockeado
 	archivo_temp* lista_de_temps = malloc(sizeof(archivo_temp));
 	solicitud_programa_reduccion_local* mock = malloc(sizeof(solicitud_programa_reduccion_local));
 	strcpy(mock->programa_reduccion, "/scripts/reductor.rb");
@@ -30,6 +32,7 @@ solicitud_programa_reduccion_local* deserializarSolicitudProgramaReduccionLocal(
 
 solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGlobal(char* message){
 
+	//TODO: hacer funcion real, esta mockeado
 	item_programa_reduccion_global* lista_de_workers = malloc(sizeof(item_programa_reduccion_global)*2);
 	strcpy(lista_de_workers[0].ip_worker, "192.168.0.15");
 	lista_de_workers[0].puerto_worker = 9000;
