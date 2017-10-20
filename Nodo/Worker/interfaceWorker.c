@@ -33,7 +33,7 @@ solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGloba
 	item_programa_reduccion_global* lista_de_workers = malloc(sizeof(item_programa_reduccion_global));
 	solicitud_programa_reduccion_global* mock = malloc(sizeof(solicitud_programa_reduccion_global));
 	strcpy(mock->programa_reduccion, "/scripts/reductor.rb");
-	mock->items_programa_reduccion_total = lista_de_workers;
+	mock->items_programa_reduccion_global = lista_de_workers;
 	mock->cantidad_item_programa_reduccion = 6;
 	strcpy(mock->archivo_temporal_resultante, "/tmp/Master1-final");
 	return mock;
