@@ -29,6 +29,24 @@ void levantarNodos(int clean){
 
 }
 
+t_nodo* getNodoPorNombre(char* nombre_nodo, t_list* listaABuscar){
+
+	t_nodo* nodoBuscado;
+	t_list* nodosOK;
+
+	bool* buscaNodoPorNombre(void* parametro) {
+	t_nodo* nodo = (t_nodo*) parametro;
+	return strcmp(nodo->nombre_nodo,nombre_nodo);
+	}
+
+	nodosOK = list_filter(listaABuscar,buscaNodoPorNombre);
+
+	nodoBuscado = list_get(nodosOK,0);
+
+	return nodoBuscado;
+
+}
+
 t_list* inicializarDirectorios(){
 
 		t_list *folderList;
@@ -102,14 +120,6 @@ void listarDirectorios(t_list* folderList, t_directory* carpetaActual){
 		list_iterate(listado,imprimoCarpetas);
 
 		printf("\n");
-		/*---FORMA SIN USAR LIST_ITERATE (TAMPOCO FUNCIONA)
-		t_directory* carpeta;
-		int i = 0;
-		for(;i<list_size(listado);i++){
-			carpeta = list_get(listado,i);
-			printf("%s ", carpeta->nombre);
-		}
-		*/
 }
 
 void ordenoDirectorios(t_list* folderList){
@@ -176,7 +186,6 @@ void cambiarAdirectorio(char* nombre, t_directory* carpetaActual, t_list* folder
 	}
 }
 
-
 int identificaDirectorio(char* directorio_yamafs, t_list* folderList){
 
 	ordenoDirectorios(folderList);
@@ -191,13 +200,13 @@ int identificaDirectorio(char* directorio_yamafs, t_list* folderList){
 	ruta = replace_str(directorio_yamafs,"yamafs:","");
 	char** arrayString = string_split(ruta,"/");
 	while (arrayString[i]!= NULL){
+		if((strchr(arrayString[i],'.') != NULL) && (arrayString[i+1] == NULL)){ //ignoro el componente "archivo" de la ruta, considero el fin cuando lo recibí
+			break;
+		}
 		cambiarAdirectorio(arrayString[i],carpetaActual,folderList);
 		i++;
 	}
 	return carpetaActual->index;
-	// TODO: encontrar la última carpeta del string y buscarla en la lista para hacer return del indice. El indice sirve para guardarlo en la tabla de archivos y para crear /metadata/archivos/<numero de carpeta>/archivo.bin
-	// printf("%s", arrayString[i-1]);
-
 	}
 }
 
@@ -513,7 +522,7 @@ void *escucharConsola(){
 		else
 		if(!strncmp(linea, "cpfrom", 6)) {
 			log_trace(logFS,"Consola recibe ""cpfrom""");
-			printf("Seleccionaste copiar desde\n");
+			// printf("Seleccionaste copiar desde\n");
 			char ** parametros = string_split(linea, " ");
 			guardarArchivoLocalEnFS(parametros[1],parametros[2], carpetas);
 
@@ -521,7 +530,9 @@ void *escucharConsola(){
 		}else
 		if(!strncmp(linea, "cpto", 4)) {
 			log_trace(logFS,"Consola recibe ""cpto""");
-			printf("Seleccionaste copiar hasta\n");
+			// printf("Seleccionaste copiar hasta\n");
+			char ** parametros = string_split(linea, " ");
+			traerArchivoDeFs(parametros[1],parametros[2], carpetas);
 
 		}else
 		if(!strncmp(linea, "cpblock", 7)) {
@@ -578,8 +589,20 @@ char* getNombreArchivo(char* path){
 		while (arrayString[i]!= NULL){
 			i++;
 		}
-	replace_char(arrayString[i-1],'.', '_');
 	return arrayString[i-1];
+}
+
+char* getRutaMetadata(char* ruta_archivo, t_list* folderList){
+
+	int carpeta = identificaDirectorio(ruta_archivo, folderList);
+	char* ruta_metadata = string_new();
+
+	string_append(&ruta_metadata, "./metadata/archivos/");
+	string_append(&ruta_metadata, string_itoa(carpeta));
+	string_append(&ruta_metadata, "/");
+	string_append(&ruta_metadata, getNombreArchivo(ruta_archivo));
+
+	return ruta_metadata;
 }
 
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList){
@@ -604,12 +627,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 			exit(EXIT_FAILURE);
 		}
 
-	char* ruta_metadata = string_new();
-	string_append(&ruta_metadata, "./metadata/archivos/");
-	string_append(&ruta_metadata, string_itoa(carpeta));
-	string_append(&ruta_metadata, "/");
-	string_append(&ruta_metadata, getNombreArchivo(path_archivo_origen));
-	string_append(&ruta_metadata, ".dat");
+	char* ruta_metadata = getRutaMetadata(path_archivo_origen, folderList);
 
 	FILE* metadata = fopen(ruta_metadata,"w+");
 
@@ -728,6 +746,90 @@ int obtenerMD5Archivo(char * archivo){
 	    }
 
 	    return 1;
+}
+
+void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList){
+
+	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList);
+
+	t_list * nodos_conectados;
+
+	bool criterio(void* parametro) {
+			t_nodo* relacion =
+					(t_nodo*) parametro;
+			return (relacion->socket_nodo != -1);
+		}
+
+	nodos_conectados = list_filter(nodos,criterio);
+
+	FILE * metadata;
+
+	char * line = NULL;
+	size_t len = 0;
+
+	metadata = fopen(ruta_metadata,"r");
+	if (metadata == NULL){
+		exit(EXIT_FAILURE);}
+
+	//linea de la ruta
+	getline(&line, &len, metadata);
+	//linea de tamaño
+	getline(&line, &len, metadata);
+
+	char** parametros;
+
+
+	parametros = string_split(line,"=");
+	int tamArch = atoi(parametros[1]);
+	int sumaBloq = 0;
+    int copiaNotAvail = 0;
+    int sizeBloque = 0;
+
+    //linea de TIPO, todavía no hace nada particular
+    getline(&line, &len, metadata);
+
+	while (!feof(metadata)) {
+
+		char** arrayBloque;
+		t_nodo* nodoValido;
+
+		/* SECTOR COPIA 0 */
+		getline(&line, &len, metadata);
+		parametros = string_split(line,"=");
+		arrayBloque =string_get_string_as_array(parametros[1]);
+		printf("%s", arrayBloque[0]);  // arrayBloque[0] es nombre Nodo
+		printf("%s", arrayBloque[1]); //arrayBloque[1] es bloque de ese nodo
+		// acá conecto al nodo y traigo el bloque, sumaBloq+ bytes; si falla, copiaNotAvail = 1;
+
+		nodoValido = getNodoPorNombre(arrayBloque[0],nodos_conectados);
+
+		/*
+		if(nodoValido == NULL){
+			copiaNotAvail = 1;
+		}*/ // esto va a setear el flag que indica que tengo que buscar la copia, se comenta ahora para que no entre erróneamente en el
+
+		/* SECTOR COPIA 1 */
+		getline(&line, &len, metadata);
+		parametros = string_split(line,"=");
+		arrayBloque =string_get_string_as_array(parametros[1]);
+			if(copiaNotAvail){
+				printf("%s", arrayBloque[0]);  // arrayBloque[0] es nombre Nodo
+				printf("%s", arrayBloque[1]); //arrayBloque[1] es bloque de ese nodo
+		}
+
+		/*SECTOR TAMAÑO EN BYTES */
+		getline(&line, &len, metadata);
+		parametros = string_split(line,"=");
+		sizeBloque = atoi(parametros[1]);
+
+		/*Ya tengo el nodo y el bloque que se pide, y el tamaño que debería leer. Acá traigo bloque y hago lo que tengo que hacer, ya sea cat o cpto*/
+	}
+
+	fclose(metadata);
+
+	if (line){
+	   free(line);}
+	exit(EXIT_SUCCESS);
 }
 
 char* replace_char(char* str, char find, char replace){

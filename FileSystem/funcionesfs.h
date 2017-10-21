@@ -48,8 +48,6 @@ typedef struct {
   int espacioLibre;
 } t_nodo;
 
-
-// t_bitarray* t_fs_bitmap;
 pthread_mutex_t mx_nodobin;
 
 void *escucharConsola();
@@ -57,26 +55,34 @@ void *esperarConexiones(void *args);
 void procesarSolicitudMaster(int nuevoSocket);
 int recibirConexionDataNode(int nuevoSocket);
 void actualizarNodosBin();
+void deserializar_a_nodo(void* serializado, t_nodo *nodo);
+t_nodo* getNodoPorNombre(char* nombre_nodo, t_list* listaABuscar);
 
 /*Funciones de bitmap*/
 t_bitarray* creaAbreBitmap(int tamNodo, char* nombreNodo[10]);
 int findFreeBloque(int tamNodo, t_bitarray* t_fs_bitmap);
 void escribirBitMap(int tamNodo, char* nombreNodo[10], t_bitarray* t_fs_bitmap);
 
+/*Funciones de Filesys*/
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList);
-void deserializar_a_nodo(void* serializado, t_nodo *nodo);
+void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList);
 int obtenerMD5Archivo(char * archivo);
+
 void leerBloque(t_nodo * nodo, int bloque, int largo);
 void recibirDatosBloque(t_nodo * nodo);
+void escucharConexionNodo(void* socket);
+
+
 /*Funciones de directorio.dat*/
 t_list* inicializarDirectorios();
 void listarDirectorios(t_list* folderList, t_directory* carpetaActual);
 void ordenoDirectorios(t_list* folderList);
 void crearDirectorio(t_list* folderList, t_directory* carpetaActual, char* nombre);
 int identificaDirectorio(char* directorio_yamafs, t_list* folderList);
-
-void escucharConexionNodo(void* socket);
+char* getRutaMetadata(char* ruta_archivo, t_list* folderList);
 char* getNombreArchivo(char* path);
+
+/*Misc*/
 char* replace_char(char* str, char find, char replace);
 
 #endif /* FUNCIONESFS_H_ */
