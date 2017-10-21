@@ -15,7 +15,7 @@
 #define LENGTH_RUTA_PROGRAMA 200
 #define LENGTH_IP 20
 
-/*Structs de comunicacion YAMA con MASTER*/
+*Structs de comunicacion YAMA con MASTER*/
 
 	//TRANSFORMACION
 
@@ -39,7 +39,8 @@ typedef struct item_reduccion_local {
 	uint32_t nodo_id;		//nodo
 	char ip_worker[20];
 	uint32_t puerto_worker;
-	char archivo_temporal_transformacion[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal transformacion
+	archivo_temp* archivos_temporales_transformacion;		//Archivo temporal transformacion
+	uint32_t cantidad_archivos_temp;
 	char archivo_temporal_reduccion_local[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal reduccion local
 } item_reduccion_local;
 
@@ -55,13 +56,13 @@ typedef struct item_reduccion_global {
 	char ip_worker[20];
 	uint32_t puerto_worker;
 	char archivo_temporal_reduccion_local[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal reduccion local
-	char archivo_temporal_reduccion_global[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal reduccion global
-	bool esEncargado;
 } item_reduccion_global;
 
 typedef struct solicitud_reduccion_global {
 	item_reduccion_global* items_reduccion_global;		//array de item_reduccion_global
 	uint32_t item_cantidad; //cantidad de items
+	item_reduccion_global* encargado_reduccion_global;
+	char archivo_temporal_reduccion_global[LENGTH_RUTA_ARCHIVO_TEMP];
 } solicitud_reduccion_global;
 
 	//ALMACENAMIENTO FINAL
