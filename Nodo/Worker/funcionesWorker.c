@@ -13,7 +13,7 @@
 #include <sys/types.h>
 #include "interfaceWorker.h"
 
-#define LENGTH_EXTRA_SPRINTF 20
+#define LENGTH_EXTRA_SPRINTF 40
 
 void iniciarWorker(){
 
@@ -42,11 +42,9 @@ void iniciarWorker(){
 
 }
 
-int crearProgramaYGrabarContenido(char* ruta, char* contenido, char* etapa){
+int crearProgramaYGrabarContenido(char* ruta, char* contenido, int longitud_contenido, char* etapa){
 
 	FILE* f2;
-	//largo (cantidad de bytes) del contenido del programa -> se utiliza para la escritura
-	int longitud = strlen(contenido);
 	//inicializo en -1 para que no pueda ser igual a la longitud excepto que complete correctamente el fwrite
 	int escritos = -1;
 	char* mensaje_de_error = malloc(100);
@@ -60,8 +58,8 @@ int crearProgramaYGrabarContenido(char* ruta, char* contenido, char* etapa){
 			}
 
 		//le escribo el contenido con lo recibido por socket
-		escritos = fwrite(contenido, 1, longitud, f2);
-		if(escritos != longitud){
+		escritos = fwrite(contenido, 1, longitud_contenido, f2);
+		if(escritos != longitud_contenido){
 			sprintf(mensaje_de_error, "No se pudo escribir el contenido del programa de %s\n", etapa);
 			perror(mensaje_de_error);
 			return -4;
@@ -119,14 +117,28 @@ void responderSolicitudRG(int exit_code){
 
 int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
+	//fichero para leer el data.bin
 	FILE* f1;
-	int retorno;
+	int leidos;
 	//buffer donde pongo datos que leo del bloque del data.bin
 	char* buffer = malloc(solicitudDeserializada->bytes_ocupados);
-	int leidos;
+	//puntero que va a tener la cadena de caracteres que se la pasa a la funcion system para dar permisos de ejecucion al script
+	char* p = malloc(LENGTH_RUTA_PROGRAMA +LENGTH_EXTRA_SPRINTF);
+	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
 	char* s = malloc(solicitudDeserializada->bytes_ocupados + LENGTH_RUTA_PROGRAMA + LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_EXTRA_SPRINTF);
+
+	int retorno;
 	//etapa para pasarle a la funcion
 	char* etapa = "transformacion";
+
+	//persisto el programa transformador
+	retorno = crearProgramaYGrabarContenido(solicitudDeserializada->programa_transformacion, solicitudDeserializada->programa,
+													solicitudDeserializada->length_programa, etapa);
+	if(retorno == -3 || retorno == -4){
+		free(buffer);
+		free(s);
+		return retorno;
+	}
 
 	//abro el data.bin
 	f1 = fopen (rutaNodo, "rb");
@@ -148,15 +160,13 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
 	fclose(f1);
 
-	retorno = crearProgramaYGrabarContenido(solicitudDeserializada->programa_transformacion, solicitudDeserializada->programa, etapa);
-	if(retorno == -3 || retorno == -4){
-		free(buffer);
-		free(s);
-		return retorno;
-	}
+	//le doy permisos de ejecucion al script
+	sprintf(p, "chmod +x \"%s\"", solicitudDeserializada->programa_transformacion);
+	system(p);
+	free(p);
 
-	//meto en el system lo que quiero que ejecute el script
-	sprintf(s, "echo %s | .%s | sort > \"%s\"", buffer, solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
+	//meto en s lo que quiero pasarle a system para que ejecute el script
+	sprintf(s, "echo %s | .\"%s\" | sort > \"%s\"", buffer, solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
 	system(s);
 	free(buffer);
 	free(s);
@@ -168,9 +178,18 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
 int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 
-
-
 	int i;
+
+	int retorno;
+	//etapa para pasarle a la funcion
+	char* etapa = "reduccion_local";
+
+	//persisto el programa reductor
+	retorno = crearProgramaYGrabarContenido(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa,
+														solicitudDeserializada->length_programa, etapa);
+	if(retorno == -3 || retorno == -4){
+		return retorno;
+		}
 
 	for(i=0; i<solicitudDeserializada->cantidad_archivos_temp; i++){
 
