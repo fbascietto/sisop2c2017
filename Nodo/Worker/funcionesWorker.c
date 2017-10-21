@@ -13,7 +13,7 @@
 #include <sys/types.h>
 #include "interfaceWorker.h"
 
-#define LENGTH_EXTRA_SPRINTF 40
+#define LENGTH_EXTRA_SPRINTF 100
 
 void iniciarWorker(){
 
@@ -42,12 +42,18 @@ void iniciarWorker(){
 
 }
 
-int crearProgramaYGrabarContenido(char* ruta, char* contenido, int longitud_contenido, char* etapa){
+int persistirPrograma(char* nombre, char* contenido, char* etapa){
 
 	FILE* f1;
 	FILE* f2;
+	//longitud del contenido del programa
+	int longitud_contenido = strlen(contenido);
 	//inicializo en -1 para que no pueda ser igual a la longitud excepto que complete correctamente el fwrite
 	int escritos = -1;
+
+	//creo ruta para crear el archivo TODO: SE DEBE CREAR /scripts PREVIAMENTE AL LEVANTAR LA VM "mkdir scripts"
+	char* ruta;
+	sprintf(ruta, "/scripts/%s", nombre);
 
 	f1 = fopen(ruta, "r");
 	if(f1 == NULL){
@@ -57,9 +63,11 @@ int crearProgramaYGrabarContenido(char* ruta, char* contenido, int longitud_cont
 
 		//creo el programa vacio en el servidor local con la ruta
 		f2 = fopen(ruta, "w");
+		free(ruta);
 		if(f2==NULL){
 			sprintf(mensaje_de_error, "No se pudo crear el programa de %s\n", etapa);
 			perror(mensaje_de_error);
+			free(mensaje_de_error);
 			return -1;
 			}
 
@@ -68,6 +76,7 @@ int crearProgramaYGrabarContenido(char* ruta, char* contenido, int longitud_cont
 		if(escritos != longitud_contenido){
 			sprintf(mensaje_de_error, "No se pudo escribir el contenido del programa de %s\n", etapa);
 			perror(mensaje_de_error);
+			free(mensaje_de_error);
 			return -2;
 		}
 
@@ -78,6 +87,7 @@ int crearProgramaYGrabarContenido(char* ruta, char* contenido, int longitud_cont
 	}
 		//si ya esta persistido, no hace nada
 		fclose(f1);
+		printf("Ya estaba persistido\n");
 		return 0;
 
 }
@@ -107,6 +117,31 @@ void responderSolicitudT(int exit_code){
 
 void responderSolicitudRL(int exit_code){
 
+	switch(exit_code){
+
+		case 0:
+			//enviar OK
+			break;
+		case -1:
+			//enviar ERROR de creacion de programa de reduccion
+			break;
+		case -2:
+			//enviar ERROR de escritura de programa de reduccion
+			break;
+		case -3:
+			//enviar ERROR de apertura de archivo temporal
+			break;
+		case -4:
+			//enviar ERROR de posicionamiento al final del archivo temporal
+			break;
+		case -5:
+			//enviar ERROR de posicionamiento al principio del archivo temporal
+			break;
+		case -6:
+			//enviar ERROR de lectura de archivo temporal
+			break;
+	}
+
 	if(exit_code == 0){
 		//enviar OK
 	}else{
@@ -133,12 +168,6 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 	//fichero para leer el data.bin
 	FILE* f1;
 	int leidos;
-	//buffer donde pongo datos que leo del bloque del data.bin
-	char* buffer = malloc(solicitudDeserializada->bytes_ocupados);
-	//puntero que va a tener la cadena de caracteres que se la pasa a la funcion system para dar permisos de ejecucion al script
-	char* p = malloc(LENGTH_RUTA_PROGRAMA +LENGTH_EXTRA_SPRINTF);
-	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
-	char* s = malloc(solicitudDeserializada->bytes_ocupados + LENGTH_RUTA_PROGRAMA + LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_EXTRA_SPRINTF);
 
 	//retorno de la funcion que persiste el programa de transformacion
 	int retorno;
@@ -146,11 +175,8 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 	char* etapa = "transformacion";
 
 	//persisto el programa transformador
-	retorno = crearProgramaYGrabarContenido(solicitudDeserializada->programa_transformacion, solicitudDeserializada->programa,
-													solicitudDeserializada->length_programa, etapa);
+	retorno = persistirPrograma(solicitudDeserializada->programa_transformacion, solicitudDeserializada->programa, etapa);
 	if(retorno == -1 || retorno == -2){
-		free(buffer);
-		free(s);
 		return retorno;
 	}
 
@@ -159,28 +185,38 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 	if (f1==NULL)
 	{
 	   perror("No se pudo abrir data.bin\n");
-	   return -1;
+	   return -3;
 	}
 
 	//me desplazo hasta el bloque que quiero leer
 	fseek(f1, TAMANIO_BLOQUE*solicitudDeserializada->bloque, SEEK_SET);
 
+	//buffer donde pongo datos que leo del bloque del data.bin
+	char* buffer = malloc(solicitudDeserializada->bytes_ocupados + 1);
+
 	//leer bloque de archivo
 	leidos = fread(buffer, 1, solicitudDeserializada->bytes_ocupados, f1);
 	if(leidos!= solicitudDeserializada->bytes_ocupados){
 		perror("No se leyo correctamente el bloque");
-		return -2;
+		free(buffer);
+		return -4;
 	}
 
 	fclose(f1);
 
+	//puntero que va a tener la cadena de caracteres que se la pasa a la funcion system para dar permisos de ejecucion al script
+	char* p = malloc(LENGTH_NOMBRE_PROGRAMA +LENGTH_EXTRA_SPRINTF);
+
 	//le doy permisos de ejecucion al script
-	sprintf(p, "chmod +x \"%s\"", solicitudDeserializada->programa_transformacion);
+	sprintf(p, "chmod 777 \"/scripts/%s\"", solicitudDeserializada->programa_transformacion);
 	system(p);
 	free(p);
 
+	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
+	char* s = malloc(solicitudDeserializada->bytes_ocupados + LENGTH_NOMBRE_PROGRAMA + LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_EXTRA_SPRINTF + 1);
+
 	//meto en s lo que quiero pasarle a system para que ejecute el script
-	sprintf(s, "echo %s | .\"%s\" | sort > \"%s\"", buffer, solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
+	sprintf(s, "echo %s | .\"/scripts/%s\" | sort > \"%s\"", buffer, solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
 	system(s);
 	free(buffer);
 	free(s);
@@ -192,7 +228,16 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
 int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 
+	//entero para iterar array
 	int i;
+	//entero para depositar longitud de archivos temporales y leerlos completos
+	int longitud_archivo_temporal;
+	//para guardar el contenido de 1 archivo
+	char* buffer;
+	//variable que uso para trackear cuanta memoria asignada tiene previamente el buffer_total
+	int memoria_asignada = sizeof(char);
+	FILE* f1;
+	int leidos;
 
 	//retorno de la funcion que persiste el programa de reduccion
 	int retorno;
@@ -200,17 +245,76 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 	char* etapa = "reduccion_local";
 
 	//persisto el programa reductor
-	retorno = crearProgramaYGrabarContenido(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa,
-														solicitudDeserializada->length_programa, etapa);
+	retorno = persistirPrograma(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa, etapa);
 	if(retorno == -1 || retorno == -2){
 		return retorno;
 		}
 
+	//para guardar el contenido de todos los archivos
+	char* buffer_total = malloc(memoria_asignada);
+
 	for(i=0; i<solicitudDeserializada->cantidad_archivos_temp; i++){
 
+		//abro el archivo temporal de transformacion
+		f1 = fopen(solicitudDeserializada->archivos_temporales[i].archivo_temp, "r");
+		if (f1==NULL){
+		   perror("No se pudo abrir el archivo temporal\n");
+		   free(buffer_total);
+		   return -3;
+		}
 
 
+		//me posiciono al final del archivo
+		retorno = fseek(f1, 0, SEEK_END);
+		if(retorno!=0){
+			perror("No se pudo posicionar al final del archivo temporal\n");
+			free(buffer_total);
+			return -4;
+		}
+		//determino longitud del archivo
+		longitud_archivo_temporal = ftell(f1);
+		//me posiciono al principio del archivo para poder leer
+		retorno = fseek(f1, 0, SEEK_SET);
+		if(retorno!=0){
+			perror("No se pudo posicionar al principio del archivo temporal\n");
+			free(buffer_total);
+			return -5;
+		}
+
+		buffer = malloc(longitud_archivo_temporal + 1);
+		//leo archivo y lo pongo en el buffer
+		leidos = fread(buffer, 1, longitud_archivo_temporal, f1);
+		if(leidos != longitud_archivo_temporal){
+			perror("No se leyo correctamente el archivo temporal\n");
+			free(buffer);
+			free(buffer_total);
+			return -6;
+		}
+		//modifico valor de memoria asignada para que tambien tenga la longitud del archivo
+		memoria_asignada = memoria_asignada + longitud_archivo_temporal;
+		buffer_total = realloc(buffer, memoria_asignada);
+		strcat(buffer_total, buffer);
+
+		fclose(f1);
 	}
+
+	//puntero que va a tener la cadena de caracteres que se la pasa a la funcion system para dar permisos de ejecucion al script
+	char* p = malloc(solicitudDeserializada->programa_reduccion + LENGTH_EXTRA_SPRINTF);
+
+	//le doy permisos de ejecucion al script
+	sprintf(p, "chmod 777 \"/scripts/%s\"", solicitudDeserializada->programa_reduccion);
+	system(p);
+	free(p);
+
+	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
+	char* s = malloc(strlen(buffer_total) + LENGTH_NOMBRE_PROGRAMA + LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_EXTRA_SPRINTF + 1);
+
+	sprintf(s, "echo %s | .\"/scripts/%s\" | sort > \"%s\"", buffer_total, solicitudDeserializada->programa_reduccion, solicitudDeserializada->archivo_temporal_resultante);
+	system(s);
+
+	free(s);
+	free(buffer);
+	free(buffer_total);
 
 	return 0;
 }
@@ -225,8 +329,7 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 	char* etapa = "reduccion_global";
 
 	//persisto el programa reductor
-	retorno = crearProgramaYGrabarContenido(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa,
-															solicitudDeserializada->length_programa, etapa);
+	retorno = persistirPrograma(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa, etapa);
 	if(retorno == -1 || retorno == -2){
 		return retorno;
 	}

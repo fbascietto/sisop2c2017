@@ -13,10 +13,10 @@
 
 #define TAMANIO_BLOQUE 1048576 //1 MB
 #define LENGTH_RUTA_ARCHIVO_TEMP 50
-#define LENGTH_RUTA_PROGRAMA 200
+#define LENGTH_NOMBRE_PROGRAMA 200
 #define LENGTH_IP 20
 
-*Structs de comunicacion YAMA con MASTER*/
+/*Structs de comunicacion YAMA con MASTER*/
 
 	//TRANSFORMACION
 
@@ -83,7 +83,7 @@ typedef struct solicitud_almacenado_final {
 	//TRANSFORMACION
 
 typedef struct {
-	char programa_transformacion[LENGTH_RUTA_PROGRAMA];
+	char programa_transformacion[LENGTH_NOMBRE_PROGRAMA];
 	char* programa; //contenido del programa
 	uint32_t length_programa;
 	uint32_t bloque;  //bloque a aplicar programa de Transformacion
@@ -98,7 +98,7 @@ typedef struct {
 } archivo_temp;
 
 typedef struct {
-	char programa_reduccion[LENGTH_RUTA_PROGRAMA];
+	char programa_reduccion[LENGTH_NOMBRE_PROGRAMA];
 	char* programa; //contenido del programa
 	uint32_t length_programa;
 	archivo_temp* archivos_temporales;  //lista de archivos temporales
@@ -115,7 +115,7 @@ typedef struct {
 } item_programa_reduccion_global;
 
 typedef struct {
-	char programa_reduccion[LENGTH_RUTA_PROGRAMA];
+	char programa_reduccion[LENGTH_NOMBRE_PROGRAMA];
 	char* programa; //contenido del programa
 	uint32_t length_programa;
 	item_programa_reduccion_global* items_programa_reduccion_global; 		/*lista de procesos Worker con sus respectivos IP, puerto y ruta de archivo temporal de
