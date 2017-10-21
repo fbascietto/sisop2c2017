@@ -36,11 +36,15 @@ typedef struct solicitud_transformacion {
 
 	//REDUCCION LOCAL
 
+typedef struct {
+	char archivo_temp[LENGTH_RUTA_ARCHIVO_TEMP];
+} archivo_temp;
+
 typedef struct item_reduccion_local {
 	uint32_t nodo_id;		//nodo
 	char ip_worker[LENGTH_IP];
 	uint32_t puerto_worker;
-	archivo_temp* archivos_temporales_transformacion;		//Archivo temporal transformacion
+	archivo_temp* archivos_temporales_transformacion;		//archivos temporales de transformacion
 	uint32_t cantidad_archivos_temp;
 	char archivo_temporal_reduccion_local[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal reduccion local
 } item_reduccion_local;
@@ -92,10 +96,6 @@ typedef struct {
 } solicitud_programa_transformacion;
 
 	//REDUCCION LOCAL
-
-typedef struct {
-	char archivo_temp[LENGTH_RUTA_ARCHIVO_TEMP];
-} archivo_temp;
 
 typedef struct {
 	char programa_reduccion[LENGTH_NOMBRE_PROGRAMA];
