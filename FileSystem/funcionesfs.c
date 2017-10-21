@@ -153,14 +153,26 @@ void crearDirectorio(t_list* folderList, t_directory* carpetaActual, char* nombr
 
 void cambiarAdirectorio(char* nombre, t_directory* carpetaActual, t_list* folderList){
 
+	t_directory* carpetaNueva;
+
+	if(!strcmp(nombre, "..")){
+		carpetaNueva = list_get(folderList,carpetaActual->padre);
+		carpetaActual->padre = carpetaNueva->padre;
+		carpetaActual->nombre = carpetaNueva->nombre;
+		carpetaActual->index = carpetaNueva->index;
+	} else {
+
 	bool* carpetasConMismoNombre(void* parametro) {
 				t_directory* dir = (t_directory*) parametro;
 				return (strcmp(dir->nombre,nombre) == 0);
 			}
 	t_list* carpetas = list_filter(folderList,carpetasConMismoNombre);
+
+
 	int encontrado = 0;
 	int i = 0;
-	t_directory* carpetaNueva= list_get(carpetas,i);
+
+	carpetaNueva= list_get(carpetas,i);
 	switch(list_size(carpetas)){
 		case 0: printf("Directorio inexistente\n"); break;
 		case 1:
@@ -183,6 +195,7 @@ void cambiarAdirectorio(char* nombre, t_directory* carpetaActual, t_list* folder
 				} else if(++i > list_size(carpetas)){} else {printf("Directorio inexistente\n");break;}
 			}
 			break;
+		}
 	}
 }
 
@@ -618,7 +631,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 	int fd = fileno(origen);
 	struct stat fileStat;
 			if (fstat(fd, &fileStat) < 0){
-				  fprintf(stderr, "Error fstat --> %s", strerror(errno),"\n");
+				  fprintf(stderr, "Error fstat --> %s\n", strerror(errno),"\n");
 				  exit(EXIT_FAILURE);
 			}
 
@@ -784,16 +797,6 @@ void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList)
 
 	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList);
 
-	t_list * nodos_conectados;
-
-	bool criterio(void* parametro) {
-			t_nodo* relacion =
-					(t_nodo*) parametro;
-			return (relacion->socket_nodo != -1);
-		}
-
-	nodos_conectados = list_filter(nodos,criterio);
-
 	FILE * metadata;
 
 	char * line = NULL;
@@ -810,7 +813,6 @@ void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList)
 
 	char** parametros;
 
-
 	parametros = string_split(line,"=");
 	int tamArch = atoi(parametros[1]);
 	int sumaBloq = 0;
@@ -822,32 +824,24 @@ void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList)
 
 	while (!feof(metadata)) {
 
-		char** arrayBloque;
-		t_nodo* nodoValido;
+		char** arrayBloqueC0;
+		char** arrayBloqueC1;
+		t_nodo* nodoBloque;
+		int bloque;
 
 		/* SECTOR COPIA 0 */
 		getline(&line, &len, metadata);
 		parametros = string_split(line,"=");
-		arrayBloque =string_get_string_as_array(parametros[1]);
-		printf("%s", arrayBloque[0]);  // arrayBloque[0] es nombre Nodo
-		printf("%s", arrayBloque[1]); //arrayBloque[1] es bloque de ese nodo
-		// acá conecto al nodo y traigo el bloque, sumaBloq+ bytes; si falla, copiaNotAvail = 1;
-
-		nodoValido = getNodoPorNombre(arrayBloque[0],nodos_conectados);
-
-		/*
-		if(nodoValido == NULL){
-			copiaNotAvail = 1;
-		}*/ // esto va a setear el flag que indica que tengo que buscar la copia, se comenta ahora para que no entre erróneamente en el
+		arrayBloqueC0 =string_get_string_as_array(parametros[1]);
+		// arrayBloqueC0[0] es nombre Nodo donde esta la copia 0
+		bloque = atoi(arrayBloqueC0[1]); //arrayBloque[1] es bloque de ese nodo donde esta la copia 0
 
 		/* SECTOR COPIA 1 */
 		getline(&line, &len, metadata);
 		parametros = string_split(line,"=");
-		arrayBloque =string_get_string_as_array(parametros[1]);
-			if(copiaNotAvail){
-				printf("%s", arrayBloque[0]);  // arrayBloque[0] es nombre Nodo
-				printf("%s", arrayBloque[1]); //arrayBloque[1] es bloque de ese nodo
-		}
+		arrayBloqueC1 =string_get_string_as_array(parametros[1]);
+		// arrayBloqueC1[0] es nombre Nodo donde esta la copia 1
+		// arrayBloqueC1[1] es bloque de ese nodo donde esta la copia 1
 
 		/*SECTOR TAMAÑO EN BYTES */
 		getline(&line, &len, metadata);
@@ -855,6 +849,22 @@ void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList)
 		sizeBloque = atoi(parametros[1]);
 
 		/*Ya tengo el nodo y el bloque que se pide, y el tamaño que debería leer. Acá traigo bloque y hago lo que tengo que hacer, ya sea cat o cpto*/
+
+		nodoBloque = getNodoPorNombre(arrayBloqueC0[0],nodos);
+
+		unsigned char* buffer;
+		buffer = malloc(sizeBloque);
+
+		/*
+		 acá intento traer el bloque, si no puedo con C0, marco el flag copiaNotAvail y lo uso para intentar lo mismo para copia1
+
+		copiaNotAvail = leerBloque(nodoBloque, bloque, sizebloque, &buffer);
+
+		if(copiaNotAvail <= 0){ intento con copia 1 } else {blanqueo variables? que hago con buffer? }
+
+		 */
+
+
 	}
 
 	fclose(metadata);
