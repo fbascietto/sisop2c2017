@@ -110,8 +110,8 @@ void listarDirectorios(t_list* folderList, t_directory* carpetaActual){
 			}
 
 		bool* carpetasNivelActual(void* parametro) {
-		t_directory* dir = (t_directory*) parametro;
-		return (dir->padre == carpetaActual->index);
+			t_directory* dir = (t_directory*) parametro;
+			return (dir->padre == carpetaActual->index);
 		}
 
 		t_list* listado;
@@ -248,7 +248,7 @@ void *esperarConexiones(void *args) {
 }
 
 int recibirConexionDataNode(int nuevoSocket){
-	pthread_t threadEscucharConexionNodo;
+	//pthread_t threadEscucharConexionNodo;
 
 	t_nodo * nodo;
 	nodo = malloc(sizeof(t_nodo));
@@ -272,7 +272,7 @@ int recibirConexionDataNode(int nuevoSocket){
 
 	actualizarNodosBin();
 
-	int er1 = pthread_create(&threadEscucharConexionNodo,NULL,escucharConexionNodo,(void*) nuevoSocket);
+	//int er1 = pthread_create(&threadEscucharConexionNodo,NULL,escucharConexionNodo,(void*) nuevoSocket);
 
 	return nuevoSocket;
 }
@@ -640,14 +640,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 	fprintf(metadata,"%s%s%s","TAMANIO=",string_itoa((int)fileStat.st_size),"\n");
 	fprintf(metadata,"%s%s%s","TIPO=","BIN","\n"); //
 
-	t_list * nodos_conectados;
-		bool criterio(void* parametro) {
-				t_nodo* relacion =
-						(t_nodo*) parametro;
-				return (relacion->socket_nodo != -1);
-			}
 
-	nodos_conectados = list_filter(nodos,criterio);
 
 	int nodopos = 0;
 	int socketnodo;
@@ -661,7 +654,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 	while(!feof(origen)){
 		bytesRead = 0;
 		t_bitarray* t_fs_bitmap;
-		nodo = list_get(nodos_conectados,nodopos);
+		nodo = list_get(nodos,nodopos);
 		socketnodo = nodo->socket_nodo;
 		int err = enviarInt(socketnodo,ESCRIBIR_BLOQUE_NODO);
 		if(err<0){
@@ -684,7 +677,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 			fprintf(metadata,"%s%d%s%d%s","BLOQUE",iteration,"BYTES=",bytesRead, "\n");
 		}
 		nodopos++;
-		if(nodopos >= list_size(nodos_conectados)){
+		if(nodopos >= list_size(nodos)){
 			nodopos = 0;
 		}
 	  iteration++;
@@ -695,12 +688,49 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 	fclose(metadata);
 }
 
-void leerBloque(t_nodo * nodo, int bloque, int largo){
-	enviarInt(nodo->socket_nodo, LEER_BLOQUE_NODO);
+int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer){
+	int error = 0;
+	error = enviarInt(nodo->socket_nodo, LEER_BLOQUE_NODO);
+	if(error<=0){
+		return error;
+	}
+	error = enviarInt(nodo->socket_nodo, bloque);
+	if(error<=0){
+			return error;
+		}
+	error = enviarInt(nodo->socket_nodo, largo);
+	if(error<=0){
+			return error;
+	}
+	int bytesRecibidos = 0;
+	int largoArecibir = 0;
+	int err1 = 0;
+	while(bytesRecibidos<largo){
+		err1 = recibirInt(nodo->socket_nodo,&largoArecibir);
+		if(err1<=0){
+			break;
+		}
+		void * buf;
+		buf = malloc((size_t)largoArecibir);
+		err1 = recv(nodo->socket_nodo,buf,largoArecibir,NULL);
+		if(err1<=0){
+			free(buf);
+			break;
+		}
+		buffer[bytesRecibidos] = buf;
+		bytesRecibidos += err1;
+		printf("recibido");
+		//printf("%s", buf);
+		free(buf);
+	}
 
-	enviarInt(nodo->socket_nodo, bloque);
-	enviarInt(nodo->socket_nodo, largo);
-	//recibirDatosBloque(nodo);
+	if(err1<=0){
+		return err1;
+	}else{
+		printf("%s", buffer);
+		return bytesRecibidos;
+	}
+
 }
 
 void recibirDatosBloque(t_nodo * nodo){
@@ -712,10 +742,12 @@ void recibirDatosBloque(t_nodo * nodo){
 			buffer = malloc((size_t)largoArecibir);
 			bytesRecibidos += recv(nodo->socket_nodo,buffer,largoArecibir,NULL);
 			printf("recibido");
-			//printf("%s", buffer);
+			printf("%s", buffer);
 			free(buffer);
 		//}
 }
+
+
 
 int obtenerMD5Archivo(char * archivo){
 		unsigned char c[MD5_DIGEST_LENGTH];

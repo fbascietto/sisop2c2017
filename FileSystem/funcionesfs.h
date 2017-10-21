@@ -68,7 +68,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList);
 int obtenerMD5Archivo(char * archivo);
 
-void leerBloque(t_nodo * nodo, int bloque, int largo);
+int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer);
 void recibirDatosBloque(t_nodo * nodo);
 void escucharConexionNodo(void* socket);
 
