@@ -79,7 +79,7 @@ void listarDirectorios(t_list* folderList, t_directory* carpetaActual);
 void ordenoDirectorios(t_list* folderList);
 void crearDirectorio(t_list* folderList, t_directory* carpetaActual, char* nombre);
 int identificaDirectorio(char* directorio_yamafs, t_list* folderList);
-char* getRutaMetadata(char* ruta_archivo, t_list* folderList);
+char* getRutaMetadata(char* ruta_archivo, t_list* folderList, int carpeta);
 char* getNombreArchivo(char* path);
 
 /*Misc*/
