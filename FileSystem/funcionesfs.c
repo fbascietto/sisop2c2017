@@ -151,50 +151,54 @@ void crearDirectorio(t_list* folderList, t_directory* carpetaActual, char* nombr
 		fclose(fptr);
 }
 
-void cambiarAdirectorio(char* nombre, t_directory* carpetaActual, t_list* folderList){
+t_directory * cambiarAdirectorio(char* nombre, t_directory* carpetaActual, t_list* folderList){
+
+
+	bool* matcheaCarpetaConIndice(void* parametro) {
+				t_directory* dir = (t_directory*) parametro;
+				return dir->index == carpetaActual->padre;
+			}
 
 	t_directory* carpetaNueva;
+	int comparacion = strcmp(nombre, "..");
+	if(!comparacion){
+		return list_find(folderList,matcheaCarpetaConIndice);
 
-	if(!strcmp(nombre, "..")){
-		carpetaNueva = list_get(folderList,carpetaActual->padre);
-		carpetaActual->padre = carpetaNueva->padre;
-		carpetaActual->nombre = carpetaNueva->nombre;
-		carpetaActual->index = carpetaNueva->index;
 	} else {
 
-	bool* carpetasConMismoNombre(void* parametro) {
-				t_directory* dir = (t_directory*) parametro;
-				return (strcmp(dir->nombre,nombre) == 0);
-			}
-	t_list* carpetas = list_filter(folderList,carpetasConMismoNombre);
+		bool* carpetasConMismoNombre(void* parametro) {
+			t_directory* dir = (t_directory*) parametro;
+			return (strcmp(dir->nombre,nombre) == 0);
+		}
+
+		t_list* carpetas = list_filter(folderList,carpetasConMismoNombre);
 
 
-	int encontrado = 0;
-	int i = 0;
+		int encontrado = 0;
+		int i = 0;
 
-	carpetaNueva= list_get(carpetas,i);
-	switch(list_size(carpetas)){
-		case 0: printf("Directorio inexistente\n"); break;
-		case 1:
-			if(carpetaActual->index == carpetaNueva->padre ){
-				//actualizo carpetaActual
-				carpetaActual->padre = carpetaNueva->padre;
-				carpetaActual->nombre = carpetaNueva->nombre;
-				carpetaActual->index = carpetaNueva->index;
-			} else {printf("Directorio inexistente\n");}
+		carpetaNueva= list_get(carpetas,i);
+		switch(list_size(carpetas)){
+			case 0:
+				printf("Directorio inexistente\n");
+				return carpetaActual;
 			break;
-		default:
-			//recorro lista buscando carpeta con mismo padre
-			while(!encontrado){
+			case 1:
 				if(carpetaActual->index == carpetaNueva->padre ){
-					carpetaActual->padre = carpetaNueva->padre;
-					carpetaActual->nombre = carpetaNueva->nombre;
-					carpetaActual->index = carpetaNueva->index;
-					encontrado = 1;
+					return carpetaNueva;
+				} else {printf("Directorio inexistente\n");
+					return carpetaActual;}
+				break;
+			default:
+				//recorro lista buscando carpeta con mismo padre
+				while(!encontrado){
+					if(carpetaActual->index == carpetaNueva->padre ){
+						return carpetaNueva;
+						encontrado = 1;
 
-				} else if(++i > list_size(carpetas)){} else {printf("Directorio inexistente\n");break;}
-			}
-			break;
+					} else if(++i > list_size(carpetas)){} else {printf("Directorio inexistente\n");break;}
+				}
+				break;
 		}
 	}
 }
@@ -526,10 +530,10 @@ void *escucharConsola(){
 		}
 		else
 		if(!strncmp(linea, "cd", 2)) {
-			log_trace(logFS,"Consola recibe ""cpfrom""");
+			log_trace(logFS,"Consola recibe ""cd""");
 			// printf("Seleccionaste cambiar diretorio\n");
 			char ** parametros = string_split(linea, " ");
-			cambiarAdirectorio(parametros[1], carpetaActual, carpetas);
+			carpetaActual = cambiarAdirectorio(parametros[1], carpetaActual, carpetas);
 
 		}
 		else
