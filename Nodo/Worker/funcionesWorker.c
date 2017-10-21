@@ -44,17 +44,23 @@ void iniciarWorker(){
 
 int crearProgramaYGrabarContenido(char* ruta, char* contenido, int longitud_contenido, char* etapa){
 
+	FILE* f1;
 	FILE* f2;
 	//inicializo en -1 para que no pueda ser igual a la longitud excepto que complete correctamente el fwrite
 	int escritos = -1;
-	char* mensaje_de_error = malloc(100);
 
-	//creo el programa vacio en el servidor local con la ruta
+	f1 = fopen(ruta, "r");
+	if(f1 == NULL){
+		//si no esta persistido el programa aun, lo persiste
+		fclose(f1);
+		char* mensaje_de_error = malloc(100);
+
+		//creo el programa vacio en el servidor local con la ruta
 		f2 = fopen(ruta, "w");
 		if(f2==NULL){
 			sprintf(mensaje_de_error, "No se pudo crear el programa de %s\n", etapa);
 			perror(mensaje_de_error);
-			return -3;
+			return -1;
 			}
 
 		//le escribo el contenido con lo recibido por socket
@@ -62,12 +68,16 @@ int crearProgramaYGrabarContenido(char* ruta, char* contenido, int longitud_cont
 		if(escritos != longitud_contenido){
 			sprintf(mensaje_de_error, "No se pudo escribir el contenido del programa de %s\n", etapa);
 			perror(mensaje_de_error);
-			return -4;
+			return -2;
 		}
 
 		fclose(f2);
 		free(mensaje_de_error);
 
+		return 0;
+	}
+		//si ya esta persistido, no hace nada
+		fclose(f1);
 		return 0;
 
 }
@@ -80,13 +90,16 @@ void responderSolicitudT(int exit_code){
 			//enviar OK
 			break;
 		case -1:
-			//enviar ERROR de apertura de data.bin
+			//enviar ERROR de creacion de programa de transformacion
 			break;
 		case -2:
-			//enviar ERROR de lectura de data.bin
+			//enviar ERROR de escritura de programa de transformacion
 			break;
 		case -3:
-			//enviar ERROR de creacion de programa de transformacion
+			//enviar ERROR de apertura de data.bin
+			break;
+		case -4:
+			//enviar ERROR de lectura de data.bin
 			break;
 
 	}
@@ -127,6 +140,7 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
 	char* s = malloc(solicitudDeserializada->bytes_ocupados + LENGTH_RUTA_PROGRAMA + LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_EXTRA_SPRINTF);
 
+	//retorno de la funcion que persiste el programa de transformacion
 	int retorno;
 	//etapa para pasarle a la funcion
 	char* etapa = "transformacion";
@@ -134,7 +148,7 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 	//persisto el programa transformador
 	retorno = crearProgramaYGrabarContenido(solicitudDeserializada->programa_transformacion, solicitudDeserializada->programa,
 													solicitudDeserializada->length_programa, etapa);
-	if(retorno == -3 || retorno == -4){
+	if(retorno == -1 || retorno == -2){
 		free(buffer);
 		free(s);
 		return retorno;
@@ -180,6 +194,7 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 
 	int i;
 
+	//retorno de la funcion que persiste el programa de reduccion
 	int retorno;
 	//etapa para pasarle a la funcion
 	char* etapa = "reduccion_local";
@@ -187,7 +202,7 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 	//persisto el programa reductor
 	retorno = crearProgramaYGrabarContenido(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa,
 														solicitudDeserializada->length_programa, etapa);
-	if(retorno == -3 || retorno == -4){
+	if(retorno == -1 || retorno == -2){
 		return retorno;
 		}
 
@@ -203,6 +218,19 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada){
 
 	int i;
+
+	//retorno de la funcion que persiste el programa de reduccion
+	int retorno;
+	//etapa para pasarle a la funcion
+	char* etapa = "reduccion_global";
+
+	//persisto el programa reductor
+	retorno = crearProgramaYGrabarContenido(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa,
+															solicitudDeserializada->length_programa, etapa);
+	if(retorno == -1 || retorno == -2){
+		return retorno;
+	}
+
 
 	for(i=0; i<solicitudDeserializada->cantidad_item_programa_reduccion; i++){
 

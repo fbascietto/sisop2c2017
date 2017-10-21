@@ -115,6 +115,8 @@ typedef struct {
 
 typedef struct {
 	char programa_reduccion[LENGTH_RUTA_PROGRAMA];
+	char* programa; //contenido del programa
+	uint32_t length_programa;
 	item_programa_reduccion_global* items_programa_reduccion_global; 		/*lista de procesos Worker con sus respectivos IP, puerto y ruta de archivo temporal de
 																			reduccion local*/
 	uint32_t cantidad_item_programa_reduccion; 		//cantidad de elementos en dicha lista
