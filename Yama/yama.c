@@ -28,10 +28,13 @@ void main() {
 	t_esperar_conexion *esperarConexion;
 
 
+	hacerPedidoDeTransformacionYRL();
+	printf("finaliza pedido transformacion y reduccion\n");
+
 	//cargo config.txt
 	//inicializarConfigYama();
 
-	ejemploPrePlanificacion();
+	//ejemploPrePlanificacion();
 
 	esperarConexion = malloc(sizeof(t_esperar_conexion));
 

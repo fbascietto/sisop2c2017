@@ -22,29 +22,7 @@
  */
 t_list* nodosConectados;
 int valorBaseTemporal;
-int miBloque;
 
-
-typedef struct{
-	int idNodo;
-	int disponibilidad;
-	uint32_t cargaDeTrabajo;
-	uint32_t cargaDeTrabajoHistorica;
-	uint32_t cargaDeTrabajoActual;
-	t_list * bloques;
-}t_nodo;
-
-typedef struct{
-	t_nodo* nodo;
-	t_list* bloques;
-}nodoConectado;
-
-
-typedef struct {
-	t_nodo* nodo;
-	t_bloque* bloque;
-	int reduccionGlobal;
-} t_planificacion;
 
 
 

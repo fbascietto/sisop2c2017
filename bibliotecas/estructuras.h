@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define TAMANIO_BLOQUE 1048576 //1 MB
 #define LENGTH_RUTA_ARCHIVO_TEMP 50
 #define LENGTH_RUTA_PROGRAMA 200
 #define LENGTH_IP 20
@@ -21,7 +22,7 @@
 
 typedef struct item_transformacion {
 	uint32_t nodo_id;		//nodo
-	char ip_worker[20];		//IP y Puerto del Worker
+	char ip_worker[LENGTH_IP];		//IP y Puerto del Worker
 	uint32_t puerto_worker;
 	uint32_t bloque;		//bloque a aplicar programa de Transformacion
 	uint32_t bytes_ocupados;		//Bytes Ocupados
@@ -37,7 +38,7 @@ typedef struct solicitud_transformacion {
 
 typedef struct item_reduccion_local {
 	uint32_t nodo_id;		//nodo
-	char ip_worker[20];
+	char ip_worker[LENGTH_IP];
 	uint32_t puerto_worker;
 	archivo_temp* archivos_temporales_transformacion;		//Archivo temporal transformacion
 	uint32_t cantidad_archivos_temp;
@@ -53,7 +54,7 @@ typedef struct solicitud_reduccion_local {
 
 typedef struct item_reduccion_global {
 	uint32_t nodo_id;		//nodo
-	char ip_worker[20];
+	char ip_worker[LENGTH_IP];
 	uint32_t puerto_worker;
 	char archivo_temporal_reduccion_local[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal reduccion local
 } item_reduccion_global;
@@ -69,7 +70,7 @@ typedef struct solicitud_reduccion_global {
 
 typedef struct solicitud_almacenado_final {
 	uint32_t nodo_id;		//nodo
-	char ip_worker[20];
+	char ip_worker[LENGTH_IP];
 	uint32_t puerto_worker;
 	char archivo_temporal_reduccion_global[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal reduccion global
 } solicitud_almacenado_final;
@@ -83,6 +84,8 @@ typedef struct solicitud_almacenado_final {
 
 typedef struct {
 	char programa_transformacion[LENGTH_RUTA_PROGRAMA];
+	char* programa; //contenido del programa
+	uint32_t length_programa;
 	uint32_t bloque;  //bloque a aplicar programa de Transformacion
 	uint32_t bytes_ocupados;
 	char archivo_temporal[LENGTH_RUTA_ARCHIVO_TEMP]; //ruta de archivo temporal
@@ -96,6 +99,8 @@ typedef struct {
 
 typedef struct {
 	char programa_reduccion[LENGTH_RUTA_PROGRAMA];
+	char* programa; //contenido del programa
+	uint32_t length_programa;
 	archivo_temp* archivos_temporales;  //lista de archivos temporales
 	uint32_t cantidad_archivos_temp;  //cantidad de archivos temporales en dicha lista
 	char archivo_temporal_resultante[LENGTH_RUTA_ARCHIVO_TEMP];
@@ -111,6 +116,8 @@ typedef struct {
 
 typedef struct {
 	char programa_reduccion[LENGTH_RUTA_PROGRAMA];
+	char* programa; //contenido del programa
+	uint32_t length_programa;
 	item_programa_reduccion_global* items_programa_reduccion_global; 		/*lista de procesos Worker con sus respectivos IP, puerto y ruta de archivo temporal de
 																			reduccion local*/
 	uint32_t cantidad_item_programa_reduccion; 		//cantidad de elementos en dicha lista

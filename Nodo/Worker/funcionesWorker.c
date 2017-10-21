@@ -13,13 +13,12 @@
 #include <sys/types.h>
 #include "interfaceWorker.h"
 
-
+#define LENGTH_EXTRA_SPRINTF 40
 
 void iniciarWorker(){
 
 //--------------WORKER LEE ARCHIVO DE CONFIGURACION--------------------
 
-	//numeroDeArchivoTemporal = 0;   //nombrado de archivos lo hace YAMA
 
 	infoConfig = config_create("../config.txt");
 
@@ -29,7 +28,7 @@ void iniciarWorker(){
 			nombreNodo[strlen(nombreNodo)+1]='\0';
 		}
 
-		if(config_has_property(infoConfig,"NOMBRE_NODO")){
+		if(config_has_property(infoConfig,"RUTA_DATABIN")){
 			rutaNodo = config_get_string_value(infoConfig,"RUTA_DATABIN");
 			rutaNodo[strlen(rutaNodo)+1]='\0';
 		}
@@ -41,17 +40,68 @@ void iniciarWorker(){
 //---------------ESPERA CONEXIONES-------------------------------
 
 
+}
 
+int crearProgramaYGrabarContenido(char* ruta, char* contenido, int longitud_contenido, char* etapa){
+
+	FILE* f1;
+	FILE* f2;
+	//inicializo en -1 para que no pueda ser igual a la longitud excepto que complete correctamente el fwrite
+	int escritos = -1;
+
+	f1 = fopen(ruta, "r");
+	if(f1 == NULL){
+		//si no esta persistido el programa aun, lo persiste
+		fclose(f1);
+		char* mensaje_de_error = malloc(100);
+
+		//creo el programa vacio en el servidor local con la ruta
+		f2 = fopen(ruta, "w");
+		if(f2==NULL){
+			sprintf(mensaje_de_error, "No se pudo crear el programa de %s\n", etapa);
+			perror(mensaje_de_error);
+			return -1;
+			}
+
+		//le escribo el contenido con lo recibido por socket
+		escritos = fwrite(contenido, 1, longitud_contenido, f2);
+		if(escritos != longitud_contenido){
+			sprintf(mensaje_de_error, "No se pudo escribir el contenido del programa de %s\n", etapa);
+			perror(mensaje_de_error);
+			return -2;
 		}
+
+		fclose(f2);
+		free(mensaje_de_error);
+
+		return 0;
+	}
+		//si ya esta persistido, no hace nada
+		fclose(f1);
+		return 0;
+
+}
 
 void responderSolicitudT(int exit_code){
 
-	if(exit_code == 0){
-		//enviar OK
-	}else{
-		if(exit_code == -1){
-			//enviar ERROR
-		}
+	switch(exit_code){
+
+		case 0:
+			//enviar OK
+			break;
+		case -1:
+			//enviar ERROR de creacion de programa de transformacion
+			break;
+		case -2:
+			//enviar ERROR de escritura de programa de transformacion
+			break;
+		case -3:
+			//enviar ERROR de apertura de data.bin
+			break;
+		case -4:
+			//enviar ERROR de lectura de data.bin
+			break;
+
 	}
 }
 
@@ -75,15 +125,93 @@ void responderSolicitudRG(int exit_code){
 			//enviar ERROR
 		}
 	}
+
 }
 
 int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
-//TODO: realizar etapa de transformacion
+
+	//fichero para leer el data.bin
+	FILE* f1;
+	int leidos;
+	//buffer donde pongo datos que leo del bloque del data.bin
+	char* buffer = malloc(solicitudDeserializada->bytes_ocupados);
+	//puntero que va a tener la cadena de caracteres que se la pasa a la funcion system para dar permisos de ejecucion al script
+	char* p = malloc(LENGTH_RUTA_PROGRAMA +LENGTH_EXTRA_SPRINTF);
+	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
+	char* s = malloc(solicitudDeserializada->bytes_ocupados + LENGTH_RUTA_PROGRAMA + LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_EXTRA_SPRINTF);
+
+	//retorno de la funcion que persiste el programa de transformacion
+	int retorno;
+	//etapa para pasarle a la funcion
+	char* etapa = "transformacion";
+
+	//persisto el programa transformador
+	retorno = crearProgramaYGrabarContenido(solicitudDeserializada->programa_transformacion, solicitudDeserializada->programa,
+													solicitudDeserializada->length_programa, etapa);
+	if(retorno == -1 || retorno == -2){
+		free(buffer);
+		free(s);
+		return retorno;
+	}
+
+	//abro el data.bin
+	f1 = fopen (rutaNodo, "rb");
+	if (f1==NULL)
+	{
+	   perror("No se pudo abrir data.bin\n");
+	   return -1;
+	}
+
+	//me desplazo hasta el bloque que quiero leer
+	fseek(f1, TAMANIO_BLOQUE*solicitudDeserializada->bloque, SEEK_SET);
+
+	//leer bloque de archivo
+	leidos = fread(buffer, 1, solicitudDeserializada->bytes_ocupados, f1);
+	if(leidos!= solicitudDeserializada->bytes_ocupados){
+		perror("No se leyo correctamente el bloque");
+		return -2;
+	}
+
+	fclose(f1);
+
+	//le doy permisos de ejecucion al script
+	sprintf(p, "chmod +x \"%s\"", solicitudDeserializada->programa_transformacion);
+	system(p);
+	free(p);
+
+	//meto en s lo que quiero pasarle a system para que ejecute el script
+	sprintf(s, "echo %s | .\"%s\" | sort > \"%s\"", buffer, solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
+	system(s);
+	free(buffer);
+	free(s);
+
 	return 0;
+
 }
 
+
 int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
-//TODO: realizar etapa de reduccion local
+
+	int i;
+
+	//retorno de la funcion que persiste el programa de reduccion
+	int retorno;
+	//etapa para pasarle a la funcion
+	char* etapa = "reduccion_local";
+
+	//persisto el programa reductor
+	retorno = crearProgramaYGrabarContenido(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa,
+														solicitudDeserializada->length_programa, etapa);
+	if(retorno == -1 || retorno == -2){
+		return retorno;
+		}
+
+	for(i=0; i<solicitudDeserializada->cantidad_archivos_temp; i++){
+
+
+
+	}
+
 	return 0;
 }
 
@@ -91,7 +219,20 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 
 	int i;
 
-	for(i=0; i<=solicitudDeserializada->cantidad_item_programa_reduccion; i++){
+	//retorno de la funcion que persiste el programa de reduccion
+	int retorno;
+	//etapa para pasarle a la funcion
+	char* etapa = "reduccion_global";
+
+	//persisto el programa reductor
+	retorno = crearProgramaYGrabarContenido(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa,
+															solicitudDeserializada->length_programa, etapa);
+	if(retorno == -1 || retorno == -2){
+		return retorno;
+	}
+
+
+	for(i=0; i<solicitudDeserializada->cantidad_item_programa_reduccion; i++){
 
 
 

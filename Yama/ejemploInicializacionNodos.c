@@ -1,7 +1,82 @@
 #include "prePlanificacion.h"
+#include "../bibliotecas/estructuras.h"
 #include <stdio.h>
 
 //algunos ejemplos de inicializacion
+
+void hacerPedidoDeTransformacionYRL(){
+
+	char prueba[20];
+	strcpy(prueba, "/tmp/archivoTemporal");
+
+	char prueba2[20];
+	strcpy(prueba2, "/tmp/archivoTemporal2");
+
+	t_list* rutasTemporales = list_create();
+	solicitud_transformacion* solicitud;
+	t_list* planificacion = list_create();
+	t_planificacion* unaPlanificacion = malloc(sizeof(t_planificacion));
+	t_planificacion* otraPlanificacion = malloc(sizeof(t_planificacion));
+	t_nodo* nodo = malloc(sizeof(t_nodo));
+	t_list* bloques = list_create();
+	t_bloque* bloque = malloc(sizeof(t_bloque));
+
+	list_add(rutasTemporales, prueba);
+	list_add(rutasTemporales, prueba2);
+
+	bloque->bytesOcupados=999;
+	bloque->numeroBloque=10;
+
+	nodo->bloques = bloques;
+	list_add((nodo->bloques), bloque);
+	nodo->idNodo = 0;
+	strcpy(nodo->ipWorker, "127.0.0.1");
+	nodo->puerto = 5555;
+
+	unaPlanificacion->nodo = nodo;
+	unaPlanificacion->bloque = bloque;
+	unaPlanificacion->reduccionGlobal = 0;
+
+	otraPlanificacion->nodo = nodo;
+	otraPlanificacion->bloque = NULL;
+	otraPlanificacion->reduccionGlobal = 1;
+
+	list_add(planificacion, unaPlanificacion);
+	list_add(planificacion, otraPlanificacion);
+
+
+	printf("inicio pedido transformacion\n");
+
+	solicitud = obtenerSolicitudTrasnformacion(planificacion, nodo->puerto, nodo->ipWorker, rutasTemporales);
+
+	printf("termino la solicitud de transformacion\n");
+
+	item_transformacion* items;
+
+	printf("comienzo a mostrar elementos\n");
+
+	items = solicitud->items_transformacion;
+
+	printf("deberia haber 1 elemento, hay %d elemento(s)\n", solicitud->item_cantidad);
+	printf("primer elemento tiene al nodo %d, bloque %d, ip %s\n\n", items[0].nodo_id, items[0].bloque, items[0].ip_worker);
+	printf("la ruta temporal es %s\n", items[0].archivo_temporal);
+
+
+
+	char ruta3[20];
+	strcpy(ruta3, "/tmp/unaRutaTemporal");
+	solicitud_reduccion_local* solicitudRL;
+	item_reduccion_local* itemsRL;
+
+	solicitudRL = obtenerSolicitudReduccionLocal(planificacion, nodo->puerto, nodo->ipWorker, rutasTemporales, &ruta3);
+
+	itemsRL = solicitudRL->items_reduccion_local;
+
+	printf("deberia haber 1 elemento, hay %d elemento(s)\n", solicitud->item_cantidad);
+	printf("primer elemento tiene al nodo %d, ruta temporal del archivo de transformacion %s, ip %s\n\n", itemsRL[0].nodo_id, itemsRL[0].archivo_temporal_transformacion, itemsRL[0].ip_worker);
+	printf("la ruta temporal del archivo de reduccion local es %s\n", itemsRL[0].archivo_temporal_reduccion_local);
+}
+
 
 
 /*
