@@ -16,7 +16,7 @@
 #define LENGTH_RUTA_PROGRAMA 200
 #define LENGTH_IP 20
 
-*Structs de comunicacion YAMA con MASTER*/
+/*Structs de comunicacion YAMA con MASTER*/
 
 	//TRANSFORMACION
 
