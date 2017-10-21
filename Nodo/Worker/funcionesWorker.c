@@ -121,10 +121,6 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
 	FILE* f1;
 	int retorno;
-	//TODO: este char* deberia ser lo que recibo de la conexion con master (el contenido del programa de transformacion)
-	char* contenido_programa;
-	//aca le hago un malloc, pero no deberia ser necesario si lo recibo por socket
-	contenido_programa = malloc(150);
 	//buffer donde pongo datos que leo del bloque del data.bin
 	char* buffer = malloc(solicitudDeserializada->bytes_ocupados);
 	int leidos;
@@ -152,7 +148,7 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
 	fclose(f1);
 
-	retorno = crearProgramaYGrabarContenido(solicitudDeserializada->programa_transformacion, contenido_programa, etapa);
+	retorno = crearProgramaYGrabarContenido(solicitudDeserializada->programa_transformacion, solicitudDeserializada->programa, etapa);
 	if(retorno == -3 || retorno == -4){
 		free(buffer);
 		free(s);

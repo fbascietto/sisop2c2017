@@ -83,6 +83,8 @@ typedef struct solicitud_almacenado_final {
 
 typedef struct {
 	char programa_transformacion[LENGTH_RUTA_PROGRAMA];
+	char* programa; //contenido del programa
+	uint32_t length_programa;
 	uint32_t bloque;  //bloque a aplicar programa de Transformacion
 	uint32_t bytes_ocupados;
 	char archivo_temporal[LENGTH_RUTA_ARCHIVO_TEMP]; //ruta de archivo temporal
@@ -96,6 +98,8 @@ typedef struct {
 
 typedef struct {
 	char programa_reduccion[LENGTH_RUTA_PROGRAMA];
+	char* programa; //contenido del programa
+	uint32_t length_programa;
 	archivo_temp* archivos_temporales;  //lista de archivos temporales
 	uint32_t cantidad_archivos_temp;  //cantidad de archivos temporales en dicha lista
 	char archivo_temporal_resultante[LENGTH_RUTA_ARCHIVO_TEMP];
