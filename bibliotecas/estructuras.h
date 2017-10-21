@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define TAMANIO_BLOQUE 1048576
+#define TAMANIO_BLOQUE 1048576 //1 MB
 #define LENGTH_RUTA_ARCHIVO_TEMP 50
 #define LENGTH_RUTA_PROGRAMA 200
 #define LENGTH_IP 20

@@ -40,17 +40,57 @@ void iniciarWorker(){
 //---------------ESPERA CONEXIONES-------------------------------
 
 
+}
 
+int crearProgramaYGrabarContenido(char* ruta, char* contenido, char* etapa){
+
+	FILE* f2;
+	//largo (cantidad de bytes) del contenido del programa -> se utiliza para la escritura
+	int longitud = strlen(contenido);
+	//inicializo en -1 para que no pueda ser igual a la longitud excepto que complete correctamente el fwrite
+	int escritos = -1;
+	char* mensaje_de_error = malloc(100);
+
+	//creo el programa vacio en el servidor local con la ruta
+		f2 = fopen(ruta, "w");
+		if(f2==NULL){
+			sprintf(mensaje_de_error, "No se pudo crear el programa de %s\n", etapa);
+			perror(mensaje_de_error);
+			return -3;
+			}
+
+		//le escribo el contenido con lo recibido por socket
+		escritos = fwrite(contenido, 1, longitud, f2);
+		if(escritos != longitud){
+			sprintf(mensaje_de_error, "No se pudo escribir el contenido del programa de %s\n", etapa);
+			perror(mensaje_de_error);
+			return -4;
 		}
+
+		fclose(f2);
+		free(mensaje_de_error);
+
+		return 0;
+
+}
 
 void responderSolicitudT(int exit_code){
 
-	if(exit_code == 0){
-		//enviar OK
-	}else{
-		if(exit_code == -1){
-			//enviar ERROR
-		}
+	switch(exit_code){
+
+		case 0:
+			//enviar OK
+			break;
+		case -1:
+			//enviar ERROR de apertura de data.bin
+			break;
+		case -2:
+			//enviar ERROR de lectura de data.bin
+			break;
+		case -3:
+			//enviar ERROR de creacion de programa de transformacion
+			break;
+
 	}
 }
 
@@ -74,20 +114,29 @@ void responderSolicitudRG(int exit_code){
 			//enviar ERROR
 		}
 	}
+
 }
 
 int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
-	FILE *f1;
+	FILE* f1;
+	int retorno;
+	//TODO: este char* deberia ser lo que recibo de la conexion con master (el contenido del programa de transformacion)
+	char* contenido_programa;
+	//aca le hago un malloc, pero no deberia ser necesario si lo recibo por socket
+	contenido_programa = malloc(150);
+	//buffer donde pongo datos que leo del bloque del data.bin
 	char* buffer = malloc(solicitudDeserializada->bytes_ocupados);
 	int leidos;
 	char* s = malloc(solicitudDeserializada->bytes_ocupados + LENGTH_RUTA_PROGRAMA + LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_EXTRA_SPRINTF);
+	//etapa para pasarle a la funcion
+	char* etapa = "transformacion";
 
 	//abro el data.bin
 	f1 = fopen (rutaNodo, "rb");
 	if (f1==NULL)
 	{
-	   perror("No se pudo abrir data.bin");
+	   perror("No se pudo abrir data.bin\n");
 	   return -1;
 	}
 
@@ -103,14 +152,23 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
 	fclose(f1);
 
+	retorno = crearProgramaYGrabarContenido(solicitudDeserializada->programa_transformacion, contenido_programa, etapa);
+	if(retorno == -3 || retorno == -4){
+		free(buffer);
+		free(s);
+		return retorno;
+	}
+
 	//meto en el system lo que quiero que ejecute el script
-	//esto funciona asumiendo que el script esta en la maquina del worker, falta pasarlo de archivo a ruta
 	sprintf(s, "echo %s | .%s | sort > \"%s\"", buffer, solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
 	system(s);
 	free(buffer);
+	free(s);
 
 	return 0;
+
 }
+
 
 int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 
