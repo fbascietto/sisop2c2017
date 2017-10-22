@@ -92,77 +92,6 @@ int persistirPrograma(char* nombre, char* contenido, char* etapa){
 
 }
 
-void responderSolicitudT(int exit_code){
-
-	switch(exit_code){
-
-		case 0:
-			//enviar OK
-			break;
-		case -1:
-			//enviar ERROR de creacion de programa de transformacion
-			break;
-		case -2:
-			//enviar ERROR de escritura de programa de transformacion
-			break;
-		case -3:
-			//enviar ERROR de apertura de data.bin
-			break;
-		case -4:
-			//enviar ERROR de lectura de data.bin
-			break;
-
-	}
-}
-
-void responderSolicitudRL(int exit_code){
-
-	switch(exit_code){
-
-		case 0:
-			//enviar OK
-			break;
-		case -1:
-			//enviar ERROR de creacion de programa de reduccion
-			break;
-		case -2:
-			//enviar ERROR de escritura de programa de reduccion
-			break;
-		case -3:
-			//enviar ERROR de apertura de archivo temporal
-			break;
-		case -4:
-			//enviar ERROR de posicionamiento al final del archivo temporal
-			break;
-		case -5:
-			//enviar ERROR de posicionamiento al principio del archivo temporal
-			break;
-		case -6:
-			//enviar ERROR de lectura de archivo temporal
-			break;
-	}
-
-	if(exit_code == 0){
-		//enviar OK
-	}else{
-		if(exit_code == -1){
-			//enviar ERROR
-		}
-	}
-}
-
-void responderSolicitudRG(int exit_code){
-
-	if(exit_code == 0){
-		//enviar OK
-	}else{
-		if(exit_code == -1){
-			//enviar ERROR
-		}
-	}
-
-}
-
 int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
 	//fichero para leer el data.bin
@@ -225,6 +154,28 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
 }
 
+void responderSolicitudT(int exit_code){
+
+	switch(exit_code){
+
+		case 0:
+			//enviar OK
+			break;
+		case -1:
+			//enviar ERROR de creacion de programa de transformacion
+			break;
+		case -2:
+			//enviar ERROR de escritura de programa de transformacion
+			break;
+		case -3:
+			//enviar ERROR de apertura de data.bin
+			break;
+		case -4:
+			//enviar ERROR de lectura de data.bin
+			break;
+
+	}
+}
 
 int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 
@@ -291,8 +242,8 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 			return -6;
 		}
 		//modifico valor de memoria asignada para que tambien tenga la longitud del archivo
-		memoria_asignada = memoria_asignada + longitud_archivo_temporal;
-		buffer_total = realloc(buffer, memoria_asignada);
+		memoria_asignada = memoria_asignada + longitud_archivo_temporal + 1;
+		buffer_total = realloc(buffer_total, memoria_asignada);
 		strcat(buffer_total, buffer);
 
 		fclose(f1);
@@ -309,7 +260,7 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
 	char* s = malloc(strlen(buffer_total) + LENGTH_NOMBRE_PROGRAMA + LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_EXTRA_SPRINTF + 1);
 
-	sprintf(s, "echo %s | .\"/scripts/%s\" | sort > \"%s\"", buffer_total, solicitudDeserializada->programa_reduccion, solicitudDeserializada->archivo_temporal_resultante);
+	sprintf(s, "echo %s | sort | .\"/scripts/%s\" > \"%s\"", buffer_total, solicitudDeserializada->programa_reduccion, solicitudDeserializada->archivo_temporal_resultante);
 	system(s);
 
 	free(s);
@@ -317,6 +268,34 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 	free(buffer_total);
 
 	return 0;
+}
+
+void responderSolicitudRL(int exit_code){
+
+	switch(exit_code){
+
+		case 0:
+			//enviar OK
+			break;
+		case -1:
+			//enviar ERROR de creacion de programa de reduccion
+			break;
+		case -2:
+			//enviar ERROR de escritura de programa de reduccion
+			break;
+		case -3:
+			//enviar ERROR de apertura de archivo temporal
+			break;
+		case -4:
+			//enviar ERROR de posicionamiento al final del archivo temporal
+			break;
+		case -5:
+			//enviar ERROR de posicionamiento al principio del archivo temporal
+			break;
+		case -6:
+			//enviar ERROR de lectura de archivo temporal
+			break;
+	}
 }
 
 int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada){
@@ -342,6 +321,18 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 	}
 
 	return 0;
+}
+
+void responderSolicitudRG(int exit_code){
+
+	if(exit_code == 0){
+		//enviar OK
+	}else{
+		if(exit_code == -1){
+			//enviar ERROR
+		}
+	}
+
 }
 
 void enviarArchivoTemp(solicitud_enviar_archivo_temp* solicitudDeserializada){

@@ -31,6 +31,7 @@ char* rutaNodo;
 int puerto;
 
 void iniciarWorker();
+int persistirPrograma(char*, char*, char*);
 void *esperarConexionesMaster(void *);
 void recibirSolicitudMaster(int);
 void recibirSolicitudWorker(int);
