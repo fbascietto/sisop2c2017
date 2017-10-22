@@ -65,6 +65,7 @@ void escribirBitMap(int tamNodo, char* nombreNodo[10], t_bitarray* t_fs_bitmap);
 
 /*Funciones de Filesys*/
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList);
+void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList);
 void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList);
 int obtenerMD5Archivo(char * archivo);
 

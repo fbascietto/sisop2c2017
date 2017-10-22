@@ -541,7 +541,12 @@ void *escucharConsola(){
 			log_trace(logFS,"Consola recibe ""cpfrom""");
 			// printf("Seleccionaste copiar desde\n");
 			char ** parametros = string_split(linea, " ");
-			guardarArchivoLocalEnFS(parametros[1],parametros[2], carpetas);
+			char * tipo_archivo = parametros[3];
+			if(tipo_archivo != NULL && !strcmp(parametros[3],"1")){
+				guardarArchivoLocalDeTextoEnFS(parametros[1],parametros[2], carpetas);
+			}else{
+				guardarArchivoLocalEnFS(parametros[1],parametros[2], carpetas);
+			}
 
 
 		}else
@@ -584,7 +589,7 @@ void *escucharConsola(){
 			  printf("mv [path_original] [path_final] - Mueve un Archivo o Directorio.\n");
 			  printf("cat [path_archivo] - Muestra el contenido del archivo como texto plano.\n");
 			  printf("mkdir [path_dir] - Crea un directorio. Si el directorio ya existe, el comando deberá informarlo.\n");
-			  printf("cpfrom [path_archivo_origen] [directorio_yamafs] - Copiar un archivo local al yamafs, siguiendo los lineamientos en la operación Almacenar Archivo de la Interfaz del FileSystem.\n");
+			  printf("cpfrom [path_archivo_origen] [directorio_yamafs] [tipo_archivo]- Copiar un archivo local al yamafs, siguiendo los lineamientos en la operación Almacenar Archivo de la Interfaz del FileSystem. 1 para archivo de texto o 0 para binario, si no se especifica, por defecto se considera archivo binario.\n");
 			  printf("cpto [path_archivo_yamafs] [directorio_filesystem] - Copiar un archivo local al yamafs.\n");
 			  printf("cpblock [path_archivo] [nro_bloque] [id_nodo] - Crea una copia de un bloque de un archivo en el nodo dado.\n");
 			  printf("md5 [path_archivo_yamafs] - Solicitar el MD5 de un archivo en yamafs.\n");
@@ -673,6 +678,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 		nodo = list_get(nodos,nodopos);
 		socketnodo = nodo->socket_nodo;
 		int err = enviarInt(socketnodo,ESCRIBIR_BLOQUE_NODO);
+		enviarInt(socketnodo,ENVIAR_ARCHIVO_BINARIO);
 		if(err<0){
 			printf("error de conexion con el nodo %s\n", nodo->nombre_nodo);
 		}
@@ -703,6 +709,112 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 	fclose(origen);
 	fclose(metadata);
 	printf("¡Archivo guardado con éxito! Cantidad de bloques: %d\n", iteration);
+}
+
+
+
+void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList){
+
+	int carpeta = 0;
+	carpeta = identificaDirectorio(directorio_yamafs, folderList);
+
+
+	size_t bytesRead;
+
+
+	FILE* origen = fopen(path_archivo_origen, "rb");
+	int fd = fileno(origen);
+	struct stat fileStat;
+			if (fstat(fd, &fileStat) < 0){
+				  fprintf(stderr, "Error fstat --> %s\n", strerror(errno),"\n");
+				  exit(EXIT_FAILURE);
+			}
+
+	if (origen == NULL){
+			fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+
+	char* ruta_metadata = getRutaMetadata(path_archivo_origen, folderList, carpeta);
+
+	FILE* metadata = fopen(ruta_metadata,"w+");
+
+	if (metadata == NULL){
+			fprintf(stderr, "Fallo al guardar metadata en %s %s\n",metadata, strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+
+	fprintf(metadata,"%s%s",ruta_metadata,"\n");
+	fprintf(metadata,"%s%s%s","TAMANIO=",string_itoa((int)fileStat.st_size),"\n");
+	fprintf(metadata,"%s%s%s","TIPO=","TEXTO","\n"); //
+
+
+
+	int nodopos = 0;
+	int socketnodo;
+	t_nodo* nodo;
+
+
+	int iteration=0;
+	int bloque = 0;
+
+
+	char * hastaNuevaLinea;
+	hastaNuevaLinea = malloc(1024*1024);
+	while(!feof(origen)){
+		bytesRead = 0;
+		t_bitarray* t_fs_bitmap;
+		nodo = list_get(nodos,nodopos);
+		socketnodo = nodo->socket_nodo;
+		int err = enviarInt(socketnodo,ESCRIBIR_BLOQUE_NODO);
+		if(err<0){
+
+			printf("error de conexion con el nodo %s\n", nodo->nombre_nodo);
+		}
+		t_fs_bitmap = creaAbreBitmap(nodo->tamanio, nodo->nombre_nodo);
+		bloque = findFreeBloque(nodo->tamanio, t_fs_bitmap);
+		if(enviarInt(socketnodo,bloque) > 0){
+			bitarray_set_bit(t_fs_bitmap,bloque*8);
+			escribirBitMap(nodo->tamanio, nodo->nombre_nodo, t_fs_bitmap);
+
+
+			enviarInt(socketnodo,ENVIAR_ARCHIVO_TEXTO);
+			int largo= 0;
+			char * aMandar = string_new();
+			string_append(&aMandar,hastaNuevaLinea);
+			while(!feof(origen) && largo<1024*1024){
+				fgets(hastaNuevaLinea,1024*1024,origen);
+
+				largo += strlen(hastaNuevaLinea);
+
+				 if(largo>=1024*1024 || feof(origen)){
+
+					 enviarMensaje(socketnodo,aMandar);
+//					 enviarInt(socketnodo,strlen(aMandar));
+//					 send(socketnodo,aMandar,(size_t)strlen(aMandar),NULL);
+					 fprintf(metadata,"%s%d%s%s%s%d%s%s","BLOQUE",iteration,"=[",nodo->nombre_nodo, ", ", bloque, "]","\n");
+					 fprintf(metadata,"%s%d%s%d%s","BLOQUE",iteration,"BYTES=",strlen(aMandar), "\n");
+					 free(aMandar);
+					 //break;
+				 } else {
+					 string_append(&aMandar,hastaNuevaLinea);
+
+				 }
+
+			}
+
+		}else{
+			printf("nodo %s desconectado", nodo->nombre_nodo);
+		}
+		nodopos++;
+		if(nodopos >= list_size(nodos)){
+			nodopos = 0;
+		}
+	  iteration++;
+	}
+	free(hastaNuevaLinea);
+	fclose(origen);
+	fclose(metadata);
 }
 
 int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer){

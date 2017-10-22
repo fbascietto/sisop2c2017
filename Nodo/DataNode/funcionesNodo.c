@@ -140,24 +140,53 @@ void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 			exit(EXIT_FAILURE);
 		   }
 
-		int paquetesRecibidos=0;
-		int bytesRecibidos = 0;
+
 		int i = 0;
 		int j = 0;
-		while(paquetesRecibidos < 1024*1024/4096){
-			int bytesAleer = 0;
-			recibirInt(socketConn,&bytesAleer);
-			bytesRecibidos += recv(socketConn,bloqueArchivo,(size_t)bytesAleer,NULL);
-			paquetesRecibidos++;
-			for (;i<(4096)*paquetesRecibidos;i++){
-				map[i]=bloqueArchivo[j];
-				j++;
-			}
-			j=0;
-			if(bytesAleer < 4096){
+		int tipo_archivo = 0;
+		int paquetesRecibidos=0;
+		int bytesRecibidos = 0;
+		recibirInt(socketConn,&tipo_archivo);
+		switch(tipo_archivo){
+			case ENVIAR_ARCHIVO_BINARIO:
+
+				while(paquetesRecibidos < 1024*1024/4096){
+					int bytesAleer = 0;
+					recibirInt(socketConn,&bytesAleer);
+					bytesRecibidos += recv(socketConn,bloqueArchivo,(size_t)bytesAleer,NULL);
+					paquetesRecibidos++;
+					for (;i<(4096)*paquetesRecibidos;i++){
+						map[i]=bloqueArchivo[j];
+						j++;
+					}
+					j=0;
+					if(bytesAleer < 4096){
+						break;
+					}
+				}
 				break;
-			}
+
+			case ENVIAR_ARCHIVO_TEXTO:
+				//while(bytesRecibidos < 1024*1024){
+				bloqueArchivo = recibirMensaje(socketConn);
+				/*	int bytesAleer = 0;
+					recibirInt(socketConn,&bytesAleer);
+					bytesRecibidos += recv(socketConn,bloqueArchivo,(size_t)bytesAleer,NULL);*/
+					//paquetesRecibidos++;
+					for (;i<strlen(bloqueArchivo);i++){
+						map[i]=bloqueArchivo[j];
+						j++;
+					}
+					/*j=0;
+					int fin_archivo = strchr(bloqueArchivo,"\0");
+					if(fin_archivo){
+						break;
+					}*/
+
+				printf("se escribieron %d caracteres\n",strlen(bloqueArchivo));
+				break;
 		}
+
 
 		printf("se termino de escribir el bloque %d \n", bloque);
 		munmap(map,fileStat.st_size);
