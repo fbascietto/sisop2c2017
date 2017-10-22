@@ -407,6 +407,35 @@ void destroyPackage(Package* package){
 	free(package);
 }
 
+char* fileToChar(char* filename){
+	int fd;                    /* file descriptor for file to send */
+	struct stat stat_buf;      /* argument to fstat */
+	off_t offset = 0;          /* file offset */
+	/* open the file to be sent */
+	fd = open(filename, O_RDONLY);
+	if (fd == -1) {
+	  fprintf(stderr, "unable to open '%s': %s\n", filename, strerror(errno));
+	  exit(1);
+	}
+
+	/* get the size of the file to be sent */
+	fstat(fd, &stat_buf);
+
+	/* copy file using sendfile */
+	offset = 0;
+
+	size_t toRead = stat_buf.st_size;
+	char* buffer = calloc(1, toRead + 1);
+
+	int numRead = read(fd, buffer, toRead);
+	if (numRead == -1)
+		return -1;
+
+	close(fd);
+
+	return buffer;
+}
+
 int enviarMensajeSocketConLongitud(int socket, uint32_t accion, char* mensaje, uint32_t longitud){
 	Package* package = fillPackage(accion,mensaje,longitud);
 	char* serializedPkg = serializarMensaje(package);

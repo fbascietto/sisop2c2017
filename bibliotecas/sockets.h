@@ -42,6 +42,8 @@ int envioArchivo(int peer_socket, char* archivo);
 int esperarConexionesSocket(fd_set *master, int socketEscucha);
 void *recibirArchivo(int client_socket);
 
+char* fileToChar(char* fileName);
+
 //usar esta funcion para enviar un buffer.
 int enviarMensajeSocketConLongitud(int socket, uint32_t accion, char* mensaje, uint32_t longitud);
 //usar estas funciones para recibir un buffer, el resultado queda en package.

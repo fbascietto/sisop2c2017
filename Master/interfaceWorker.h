@@ -5,7 +5,7 @@
  *      Author: utnso
  */
 
-#include "../../bibliotecas/estructuras.h"
+#include "../bibliotecas/estructuras.h"
 
 #ifndef INTERFACEWORKER_H_
 #define INTERFACEWORKER_H_
@@ -30,12 +30,12 @@ archivo_temp* deserializar_archivo_temp(char* serialized);
 archivo_temp* deserializar_archivos_temporales(char* serialized, uint32_t items_cantidad);
 solicitud_programa_reduccion_local* deserializarSolicitudProgramaReduccionLocal(char* serialized);
 
-uint32_t getLong_one_item_reduccion_global(item_programa_reduccion_global* items_programa_reduccion_global);
-uint32_t getLong_items_reduccion_global(item_programa_reduccion_global* items_programa_reduccion_global, uint32_t cantidad);
+uint32_t getLong_one_item_prog_reduccion_global(item_programa_reduccion_global* items_programa_reduccion_global);
+uint32_t getLong_items_prog_reduccion_global(item_programa_reduccion_global* items_programa_reduccion_global, uint32_t cantidad);
 uint32_t getLong_SolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_global* solicitud);
 
-char* serializar_item_reduccion_global(item_programa_reduccion_global* item_reduccion_global);
-char* serializar_items_reduccion_global(item_programa_reduccion_global** items_reduccion_global, uint32_t cantidad_item);
+char* serializar_item_prog_reduccion_global(item_programa_reduccion_global* item_reduccion_global);
+char* serializar_items_prog_reduccion_global(item_programa_reduccion_global** items_reduccion_global, uint32_t cantidad_item);
 char* serializarSolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_global* solicitud);
 item_programa_reduccion_global* deserializar_item_programa_reduccion_global(char* serialized);
 solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGlobal(char* serialized);

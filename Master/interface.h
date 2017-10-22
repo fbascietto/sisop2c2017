@@ -46,7 +46,7 @@ solicitud_reduccion_local* deserializar_solicitud_reduccion_local(char* serializ
 item_reduccion_local* deserializar_items_reduccion_local(char* serialized, uint32_t items_cantidad);
 item_reduccion_local* deserializar_item_reduccion_local(char* serialized);
 
-item_reduccion_local* crearItemReduccionLocal(uint32_t nodo,char* ipWorker,uint32_t puerto_worker, char* archivoTemporalTransformacion, char* archivoTemporalReduccionLocal);
+item_reduccion_local* crearItemReduccionLocal(uint32_t nodo,char* ipWorker,uint32_t puerto_worker, char* archivoTemporalReduccionLocal);
 void agregarItemReduccionLocal(solicitud_reduccion_local* solicitudReduccionLocal, item_reduccion_local* item);
 
 void testSerializarSolicitudReduccionLocal();
@@ -65,7 +65,7 @@ solicitud_reduccion_global* deserializar_solicitud_reduccion_global(char* serial
 item_reduccion_global* deserializar_items_reduccion_global(char* serialized, uint32_t items_cantidad);
 item_reduccion_global* deserializar_item_reduccion_global(char* serialized);
 
-item_reduccion_global* crearItemReduccionGlobal(uint32_t nodo,char* ipWorker,uint32_t puerto_worker, char* archivoTemporalReduccionLocal, char* archivoTemporalReduccionGlobal, bool esEncargado);
+item_reduccion_global* crearItemReduccionGlobal(uint32_t nodo,char* ipWorker,uint32_t puerto_worker, char* archivoTemporalReduccionLocal);
 void agregarItemReduccionGlobal(solicitud_reduccion_global* solicitudReduccionGlobal, item_reduccion_global* item);
 
 void testSerializarSolicitudReduccionGlobal();

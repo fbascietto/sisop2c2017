@@ -15,6 +15,7 @@
 #define LENGTH_RUTA_ARCHIVO_TEMP 50
 #define LENGTH_NOMBRE_PROGRAMA 200
 #define LENGTH_IP 20
+#define LENGTH_RUTA_PROGRAMA 200
 
 /*Structs de comunicacion YAMA con MASTER*/
 
