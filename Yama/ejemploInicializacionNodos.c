@@ -73,7 +73,7 @@ void hacerPedidoDeTransformacionYRL(){
 	itemsRL = solicitudRL->items_reduccion_local;
 
 	printf("deberia haber 1 elemento, hay %d elemento(s)\n", solicitud->item_cantidad);
-	printf("primer elemento tiene al nodo %d, ruta temporal del archivo de transformacion %s, ip %s\n\n", itemsRL[0].nodo_id, itemsRL[0].archivo_temporal_transformacion, itemsRL[0].ip_worker);
+	printf("primer elemento tiene al nodo %d, ruta del primer archivo temporal de transformacion %s, ip %s\n\n", itemsRL[0].nodo_id, itemsRL[0].archivos_temporales_transformacion[0].archivo_temp, itemsRL[0].ip_worker);
 	printf("la ruta temporal del archivo de reduccion local es %s\n", itemsRL[0].archivo_temporal_reduccion_local);
 }
 

@@ -36,7 +36,7 @@ char* serializarSolicitudProgramaTransformacion(solicitud_programa_transformacio
 
 	int offset = 0;
 
-	serializarDato(serializedPackage,&(solicitud->ruta_programa_transformacion),sizeof(char[LENGTH_RUTA_PROGRAMA]),&offset);
+	serializarDato(serializedPackage,&(solicitud->programa_transformacion),sizeof(char[LENGTH_NOMBRE_PROGRAMA]),&offset);
 	serializarDato(serializedPackage,&(solicitud->bloque),sizeof(uint32_t),&offset);
 	serializarDato(serializedPackage,&(solicitud->bytes_ocupados),sizeof(uint32_t),&offset);
 	serializarDato(serializedPackage,&(solicitud->archivo_temporal),sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
@@ -49,7 +49,7 @@ char* serializarSolicitudProgramaTransformacion(solicitud_programa_transformacio
 solicitud_programa_transformacion* deserializarSolicitudProgramaTransformacion(char* serialized){
 	solicitud_programa_transformacion* solicitud = malloc(sizeof(solicitud_programa_transformacion));
 	int offset = 0;
-	deserializarDato(&(solicitud->ruta_programa_transformacion),serialized,sizeof(char[LENGTH_RUTA_PROGRAMA]),&offset);
+	deserializarDato(&(solicitud->programa_transformacion),serialized,sizeof(char[LENGTH_NOMBRE_PROGRAMA]),&offset);
 	deserializarDato(&(solicitud->bloque),serialized,sizeof(uint32_t),&offset);
 	deserializarDato(&(solicitud->bytes_ocupados),serialized,sizeof(uint32_t),&offset);
 	deserializarDato(&(solicitud->archivo_temporal),serialized,sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
@@ -126,7 +126,7 @@ char* serializarSolicitudProgramaReduccionLocal(solicitud_programa_reduccion_loc
 	int offset = 0;
 	int size_to_send;
 
-	serializarDato(serializedPackage,&(solicitud->ruta_programa_reduccion),sizeof(char[LENGTH_RUTA_PROGRAMA]),&offset);
+	serializarDato(serializedPackage,&(solicitud->programa_reduccion),sizeof(char[LENGTH_NOMBRE_PROGRAMA]),&offset);
 	serializarDato(serializedPackage,&(solicitud->cantidad_archivos_temp),sizeof(uint32_t),&offset);
 	serializarDato(serializedPackage,&(solicitud->archivo_temporal_resultante),sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
 	serializarDato(serializedPackage,&(solicitud->programa),sizeof(char)*solicitud->length_programa,&offset);
@@ -175,7 +175,7 @@ solicitud_programa_reduccion_local* deserializarSolicitudProgramaReduccionLocal(
 	int offset = 0;
 	deserializarDato(&(solicitud->cantidad_archivos_temp),serialized,sizeof(uint32_t),&offset);
 	deserializarDato(&(solicitud->archivo_temporal_resultante),serialized,sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
-	deserializarDato(&(solicitud->ruta_programa_reduccion),serialized,sizeof(char[LENGTH_RUTA_PROGRAMA]),&offset);
+	deserializarDato(&(solicitud->programa_reduccion),serialized,sizeof(char[LENGTH_NOMBRE_PROGRAMA]),&offset);
 	deserializarDato(&(solicitud->length_programa),serialized,sizeof(uint32_t),&offset);
 	deserializarDato(&(solicitud->programa),serialized,sizeof(char)*solicitud->length_programa,&offset);
 
@@ -261,7 +261,7 @@ char* serializarSolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_gl
 	int offset = 0;
 	int size_to_send;
 
-	serializarDato(serializedPackage,&(solicitud->ruta_programa_reduccion),sizeof(char[LENGTH_RUTA_PROGRAMA]),&offset);
+	serializarDato(serializedPackage,&(solicitud->programa_reduccion),sizeof(char[LENGTH_NOMBRE_PROGRAMA]),&offset);
 	serializarDato(serializedPackage,&(solicitud->cantidad_item_programa_reduccion),sizeof(uint32_t),&offset);
 	serializarDato(serializedPackage,&(solicitud->archivo_temporal_resultante),sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
 	serializarDato(serializedPackage,&(solicitud->programa),sizeof(char)*solicitud->length_programa,&offset);
@@ -312,7 +312,7 @@ solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGloba
 	int offset = 0;
 	deserializarDato(&(solicitud->cantidad_item_programa_reduccion),serialized,sizeof(uint32_t),&offset);
 	deserializarDato(&(solicitud->archivo_temporal_resultante),serialized,sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
-	deserializarDato(&(solicitud->ruta_programa_reduccion),serialized,sizeof(char[LENGTH_RUTA_PROGRAMA]),&offset);
+	deserializarDato(&(solicitud->programa_reduccion),serialized,sizeof(char[LENGTH_NOMBRE_PROGRAMA]),&offset);
 	deserializarDato(&(solicitud->length_programa),serialized,sizeof(uint32_t),&offset);
 	deserializarDato(&(solicitud->programa),serialized,sizeof(char)*solicitud->length_programa,&offset);
 
