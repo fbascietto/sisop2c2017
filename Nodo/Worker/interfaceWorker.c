@@ -22,7 +22,7 @@ uint32_t getLong_SolicitudProgramaTransformacion(solicitud_programa_transformaci
 
 	total_size += sizeof(uint32_t)*2;//campo bloque y bytes_ocupados
 	total_size += sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]);
-	total_size += sizeof(char[LENGTH_RUTA_PROGRAMA]);
+	total_size += sizeof(char[LENGTH_NOMBRE_PROGRAMA]);
 	total_size += sizeof(char)*solicitud->length_programa; //campo programa
 	total_size += sizeof(uint32_t);//campo length_programa
 
@@ -80,7 +80,7 @@ uint32_t getLong_SolicitudProgramaReduccionLocal(solicitud_programa_reduccion_lo
 
 	uint32_t size_items = getLong_archivos_temporales(solicitud->archivos_temporales,solicitud->cantidad_archivos_temp);
 	total_size += sizeof(uint32_t)*2;//campo cantidad_archivos_temp y size_items
-	total_size += sizeof(char[LENGTH_RUTA_PROGRAMA]);
+	total_size += sizeof(char[LENGTH_NOMBRE_PROGRAMA]);
 	total_size += sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]);
 	total_size += size_items;
 	total_size += sizeof(char)*solicitud->length_programa; //campo programa
@@ -213,7 +213,7 @@ uint32_t getLong_SolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_g
 
 	uint32_t size_items = getLong_items_reduccion_global(solicitud->items_programa_reduccion_global,solicitud->cantidad_item_programa_reduccion);
 	total_size += sizeof(uint32_t);//campo cantidad_item_programa_reduccion
-	total_size += sizeof(char[LENGTH_RUTA_PROGRAMA]);
+	total_size += sizeof(char[LENGTH_NOMBRE_PROGRAMA]);
 	total_size += sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]);
 	total_size += size_items;
 	total_size += sizeof(char)*solicitud->length_programa; //campo programa
