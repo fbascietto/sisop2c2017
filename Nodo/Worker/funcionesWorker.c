@@ -52,7 +52,7 @@ int persistirPrograma(char* nombre, char* contenido, char* etapa){
 	int escritos = -1;
 
 	//creo ruta para crear el archivo TODO: SE DEBE CREAR /scripts PREVIAMENTE AL LEVANTAR LA VM "mkdir scripts"
-	char* ruta;
+	char* ruta = malloc(strlen(nombre) + LENGTH_EXTRA_SPRINTF);
 	sprintf(ruta, "/scripts/%s", nombre);
 
 	f1 = fopen(ruta, "r");
@@ -81,13 +81,23 @@ int persistirPrograma(char* nombre, char* contenido, char* etapa){
 		}
 
 		fclose(f2);
+
+		//puntero que va a tener la cadena de caracteres que se la pasa a la funcion system para dar permisos de ejecucion al script
+		char* p = malloc(strlen(ruta) + LENGTH_EXTRA_SPRINTF);
+
+		//le doy permisos de ejecucion al script
+		sprintf(p, "chmod 777 \"%s\"", ruta);
+		system(p);
+		free(p);
+
 		free(mensaje_de_error);
+		free(ruta);
 
 		return 0;
 	}
 		//si ya esta persistido, no hace nada
 		fclose(f1);
-		printf("Ya estaba persistido\n");
+		free(ruta);
 		return 0;
 
 }
@@ -132,14 +142,6 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 	}
 
 	fclose(f1);
-
-	//puntero que va a tener la cadena de caracteres que se la pasa a la funcion system para dar permisos de ejecucion al script
-	char* p = malloc(LENGTH_NOMBRE_PROGRAMA +LENGTH_EXTRA_SPRINTF);
-
-	//le doy permisos de ejecucion al script
-	sprintf(p, "chmod 777 \"/scripts/%s\"", solicitudDeserializada->programa_transformacion);
-	system(p);
-	free(p);
 
 	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
 	char* s = malloc(solicitudDeserializada->bytes_ocupados + LENGTH_NOMBRE_PROGRAMA + LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_EXTRA_SPRINTF + 1);
@@ -248,14 +250,6 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 
 		fclose(f1);
 	}
-
-	//puntero que va a tener la cadena de caracteres que se la pasa a la funcion system para dar permisos de ejecucion al script
-	char* p = malloc(solicitudDeserializada->programa_reduccion + LENGTH_EXTRA_SPRINTF);
-
-	//le doy permisos de ejecucion al script
-	sprintf(p, "chmod 777 \"/scripts/%s\"", solicitudDeserializada->programa_reduccion);
-	system(p);
-	free(p);
 
 	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
 	char* s = malloc(strlen(buffer_total) + LENGTH_NOMBRE_PROGRAMA + LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_EXTRA_SPRINTF + 1);
@@ -379,23 +373,43 @@ void recibirSolicitudMaster(int nuevoSocket){
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
 	printf("codigo de mensaje: %d\n",	package->msgCode);
 	int exit_code;
-	pid_t pid = fork();
-	if(pid == 0){
-		//proceso hijo continua con la solicitud
+	//pid para usarlo luego en el fork
+	pid_t pid;
+//	if(pid == 0){
+//		//proceso hijo continua con la solicitud
 		switch(package->msgCode){
 			case ACCION_TRANSFORMACION:
 				; //empty statement. Es solucion a un error que genera el lenguaje C
+				pid = fork();
+				if(pid == 0){
 				solicitud_programa_transformacion* solicitudTDeserializada =
 							deserializarSolicitudProgramaTransformacion(package->message);
 				exit_code = transformacion(solicitudTDeserializada);
 				responderSolicitudT(exit_code);
+				exit(0);
+				}else{
+					if(pid < 0){
+						//cuando no pudo crear el hijo
+						perror("No se ha podido crear el proceso hijo\n");
+					}
+				}
+
 				break;
 			case ACCION_REDUCCION_LOCAL:
 				; //empty statement. Es solucion a un error que genera el lenguaje C
+				pid = fork();
+				if(pid == 0){
 				solicitud_programa_reduccion_local* solicitudRLDeserializada =
 							deserializarSolicitudProgramaReduccionLocal(package->message);
 				exit_code = reduccionLocal(solicitudRLDeserializada);
 				responderSolicitudRL(exit_code);
+				exit(0);
+				}else{
+					if(pid < 0){
+						//cuando no pudo crear el hijo
+						perror("No se ha podido crear el proceso hijo\n");
+					}
+				}
 				break;
 			case ACCION_REDUCCION_GLOBAL:
 				; //empty statement. Es solucion a un error que genera el lenguaje C
@@ -405,16 +419,16 @@ void recibirSolicitudMaster(int nuevoSocket){
 				responderSolicitudRG(exit_code);
 				break;
 		}
-		exit(0);
-	}else{
-		if(pid < 0){
-			//cuando no pudo crear el hijo
-			perror("No se ha podido crear el proceso hijo\n");
-		}else{
-			//lo que haria el padre si es que necesitamos que haga algo
-		}
-
-	}
+//		exit(0);
+//	}else{
+//		if(pid < 0){
+//			//cuando no pudo crear el hijo
+//			perror("No se ha podido crear el proceso hijo\n");
+//		}else{
+//			//lo que haria el padre si es que necesitamos que haga algo
+//		}
+//
+//	}
 }
 
 void recibirSolicitudWorker(int nuevoSocket){
