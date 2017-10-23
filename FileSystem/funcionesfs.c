@@ -846,7 +846,7 @@ int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer){
 			free(buf);
 			break;
 		}
-		buffer[bytesRecibidos] = buf;
+		string_append(&buffer,buf);
 		bytesRecibidos += err1;
 		printf("recibido");
 		//printf("%s", buf);
@@ -969,8 +969,9 @@ void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList)
 
 		nodoBloque = getNodoPorNombre(arrayBloqueC0[0],nodos);
 
-		unsigned char* buffer;
-		buffer = malloc(sizeBloque);
+		unsigned char* buffer = string_new();
+		//buffer = malloc(sizeBloque);
+
 
 		/*
 		 acá intento traer el bloque, si no puedo con C0, marco el flag copiaNotAvail y lo uso para intentar lo mismo para copia1
