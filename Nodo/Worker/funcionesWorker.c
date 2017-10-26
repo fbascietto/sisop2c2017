@@ -148,7 +148,12 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
 	//meto en s lo que quiero pasarle a system para que ejecute el script
 	sprintf(s, "echo %s | .\"/scripts/%s\" | sort > \"%s\"", buffer, solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
-	system(s);
+	retorno = system(s);
+		if(retorno == -1){
+			perror("No se pudo ejecutar la llamada system()\n");
+			return -5;
+		}
+
 	free(buffer);
 	free(s);
 
@@ -174,6 +179,9 @@ void responderSolicitudT(int exit_code){
 			break;
 		case -4:
 			//enviar ERROR de lectura de data.bin
+			break;
+		case -5:
+			//enviar ERROR de llamada system()
 			break;
 
 	}
@@ -234,7 +242,7 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 			return -5;
 		}
 
-		buffer = malloc(longitud_archivo_temporal + 1);
+		buffer = realloc(buffer, longitud_archivo_temporal + 1);
 		//leo archivo y lo pongo en el buffer
 		leidos = fread(buffer, 1, longitud_archivo_temporal, f1);
 		if(leidos != longitud_archivo_temporal){
@@ -255,7 +263,11 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 	char* s = malloc(strlen(buffer_total) + LENGTH_NOMBRE_PROGRAMA + LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_EXTRA_SPRINTF + 1);
 
 	sprintf(s, "echo %s | sort | .\"/scripts/%s\" > \"%s\"", buffer_total, solicitudDeserializada->programa_reduccion, solicitudDeserializada->archivo_temporal_resultante);
-	system(s);
+	retorno = system(s);
+	if(retorno == -1){
+		perror("No se pudo ejecutar la llamada system()\n");
+		return -7;
+	}
 
 	free(s);
 	free(buffer);
@@ -288,6 +300,9 @@ void responderSolicitudRL(int exit_code){
 			break;
 		case -6:
 			//enviar ERROR de lectura de archivo temporal
+			break;
+		case -7:
+			//enviar ERROR de llamada system()
 			break;
 	}
 }
