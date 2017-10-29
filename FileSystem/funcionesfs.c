@@ -788,12 +788,24 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 				largo += strlen(hastaNuevaLinea);
 
 				 if(largo>=1024*1024 || feof(origen)){
+					 int largoAMandar = strlen(aMandar);
+					 enviarInt(socketnodo,largoAMandar);
+					 int enviado = 0;
+					 while(enviado < largoAMandar){
+						 char buff[4096];
+						 int i = 0;
+						 for(;i<4096 && (enviado + i < largoAMandar) ;i++){
+							 buff[i] = aMandar[enviado + i];
+						 }
 
-					 enviarMensaje(socketnodo,aMandar);
+						 enviarInt(socketnodo,i);
+						 enviado += send(socketnodo,buff,(size_t)i,NULL);
+					 }
+//					 enviarMensaje(socketnodo,aMandar);
 //					 enviarInt(socketnodo,strlen(aMandar));
 //					 send(socketnodo,aMandar,(size_t)strlen(aMandar),NULL);
 					 fprintf(metadata,"%s%d%s%s%s%d%s%s","BLOQUE",iteration,"=[",nodo->nombre_nodo, ", ", bloque, "]","\n");
-					 fprintf(metadata,"%s%d%s%d%s","BLOQUE",iteration,"BYTES=",strlen(aMandar), "\n");
+					 fprintf(metadata,"%s%d%s%d%s","BLOQUE",iteration,"BYTES=",largoAMandar, "\n");
 					 free(aMandar);
 					 //break;
 				 } else {
@@ -846,7 +858,7 @@ int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer){
 			free(buf);
 			break;
 		}
-		string_append(&buffer,buf);
+		buffer[bytesRecibidos] = buf;
 		bytesRecibidos += err1;
 		printf("recibido");
 		//printf("%s", buf);
@@ -969,9 +981,8 @@ void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList)
 
 		nodoBloque = getNodoPorNombre(arrayBloqueC0[0],nodos);
 
-		unsigned char* buffer = string_new();
-		//buffer = malloc(sizeBloque);
-
+		unsigned char* buffer;
+		buffer = malloc(sizeBloque);
 
 		/*
 		 acá intento traer el bloque, si no puedo con C0, marco el flag copiaNotAvail y lo uso para intentar lo mismo para copia1
