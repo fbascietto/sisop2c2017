@@ -17,27 +17,27 @@
 
 void iniciarWorker(){
 
-//--------------WORKER LEE ARCHIVO DE CONFIGURACION--------------------
+	//--------------WORKER LEE ARCHIVO DE CONFIGURACION--------------------
 
 
 	infoConfig = config_create("../config.txt");
 
 
-		if(config_has_property(infoConfig,"NOMBRE_NODO")){
-			nombreNodo = config_get_string_value(infoConfig,"NOMBRE_NODO");
-			nombreNodo[strlen(nombreNodo)+1]='\0';
-		}
+	if(config_has_property(infoConfig,"NOMBRE_NODO")){
+		nombreNodo = config_get_string_value(infoConfig,"NOMBRE_NODO");
+		nombreNodo[strlen(nombreNodo)+1]='\0';
+	}
 
-		if(config_has_property(infoConfig,"RUTA_DATABIN")){
-			rutaNodo = config_get_string_value(infoConfig,"RUTA_DATABIN");
-			rutaNodo[strlen(rutaNodo)+1]='\0';
-		}
+	if(config_has_property(infoConfig,"RUTA_DATABIN")){
+		rutaNodo = config_get_string_value(infoConfig,"RUTA_DATABIN");
+		rutaNodo[strlen(rutaNodo)+1]='\0';
+	}
 
-		if(config_has_property(infoConfig, "PUERTO_WORKER")){
-			puerto = config_get_int_value(infoConfig, "PUERTO_WORKER");
-		}
+	if(config_has_property(infoConfig, "PUERTO_WORKER")){
+		puerto = config_get_int_value(infoConfig, "PUERTO_WORKER");
+	}
 
-//---------------ESPERA CONEXIONES-------------------------------
+	//---------------ESPERA CONEXIONES-------------------------------
 
 
 }
@@ -69,7 +69,7 @@ int persistirPrograma(char* nombre, char* contenido, char* etapa){
 			perror(mensaje_de_error);
 			free(mensaje_de_error);
 			return -1;
-			}
+		}
 
 		//le escribo el contenido con lo recibido por socket
 		escritos = fwrite(contenido, 1, longitud_contenido, f2);
@@ -95,10 +95,10 @@ int persistirPrograma(char* nombre, char* contenido, char* etapa){
 
 		return 0;
 	}
-		//si ya esta persistido, no hace nada
-		fclose(f1);
-		free(ruta);
-		return 0;
+	//si ya esta persistido, no hace nada
+	fclose(f1);
+	free(ruta);
+	return 0;
 
 }
 
@@ -123,8 +123,8 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 	f1 = fopen (rutaNodo, "rb");
 	if (f1==NULL)
 	{
-	   perror("No se pudo abrir data.bin\n");
-	   return -3;
+		perror("No se pudo abrir data.bin\n");
+		return -3;
 	}
 
 	//me desplazo hasta el bloque que quiero leer
@@ -149,10 +149,10 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 	//meto en s lo que quiero pasarle a system para que ejecute el script
 	sprintf(s, "echo %s | .\"/scripts/%s\" | sort > \"%s\"", buffer, solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
 	retorno = system(s);
-		if(retorno == -1){
-			perror("No se pudo ejecutar la llamada system()\n");
-			return -5;
-		}
+	if(retorno == -1){
+		perror("No se pudo ejecutar la llamada system()\n");
+		return -5;
+	}
 
 	free(buffer);
 	free(s);
@@ -165,24 +165,24 @@ void responderSolicitudT(int exit_code){
 
 	switch(exit_code){
 
-		case 0:
-			//enviar OK
-			break;
-		case -1:
-			//enviar ERROR de creacion de programa de transformacion
-			break;
-		case -2:
-			//enviar ERROR de escritura de programa de transformacion
-			break;
-		case -3:
-			//enviar ERROR de apertura de data.bin
-			break;
-		case -4:
-			//enviar ERROR de lectura de data.bin
-			break;
-		case -5:
-			//enviar ERROR de llamada system()
-			break;
+	case 0:
+		//enviar OK
+		break;
+	case -1:
+		//enviar ERROR de creacion de programa de transformacion
+		break;
+	case -2:
+		//enviar ERROR de escritura de programa de transformacion
+		break;
+	case -3:
+		//enviar ERROR de apertura de data.bin
+		break;
+	case -4:
+		//enviar ERROR de lectura de data.bin
+		break;
+	case -5:
+		//enviar ERROR de llamada system()
+		break;
 
 	}
 }
@@ -209,7 +209,7 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 	retorno = persistirPrograma(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa, etapa);
 	if(retorno == -1 || retorno == -2){
 		return retorno;
-		}
+	}
 
 	//para guardar el contenido de todos los archivos
 	char* buffer_total = malloc(memoria_asignada);
@@ -219,9 +219,9 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 		//abro el archivo temporal de transformacion
 		f1 = fopen(solicitudDeserializada->archivos_temporales[i].archivo_temp, "r");
 		if (f1==NULL){
-		   perror("No se pudo abrir el archivo temporal\n");
-		   free(buffer_total);
-		   return -3;
+			perror("No se pudo abrir el archivo temporal\n");
+			free(buffer_total);
+			return -3;
 		}
 
 
@@ -280,30 +280,30 @@ void responderSolicitudRL(int exit_code){
 
 	switch(exit_code){
 
-		case 0:
-			//enviar OK
-			break;
-		case -1:
-			//enviar ERROR de creacion de programa de reduccion
-			break;
-		case -2:
-			//enviar ERROR de escritura de programa de reduccion
-			break;
-		case -3:
-			//enviar ERROR de apertura de archivo temporal
-			break;
-		case -4:
-			//enviar ERROR de posicionamiento al final del archivo temporal
-			break;
-		case -5:
-			//enviar ERROR de posicionamiento al principio del archivo temporal
-			break;
-		case -6:
-			//enviar ERROR de lectura de archivo temporal
-			break;
-		case -7:
-			//enviar ERROR de llamada system()
-			break;
+	case 0:
+		//enviar OK
+		break;
+	case -1:
+		//enviar ERROR de creacion de programa de reduccion
+		break;
+	case -2:
+		//enviar ERROR de escritura de programa de reduccion
+		break;
+	case -3:
+		//enviar ERROR de apertura de archivo temporal
+		break;
+	case -4:
+		//enviar ERROR de posicionamiento al final del archivo temporal
+		break;
+	case -5:
+		//enviar ERROR de posicionamiento al principio del archivo temporal
+		break;
+	case -6:
+		//enviar ERROR de lectura de archivo temporal
+		break;
+	case -7:
+		//enviar ERROR de llamada system()
+		break;
 	}
 }
 
@@ -361,26 +361,26 @@ void *esperarConexionesMaster(void *args) {
 	// ---------------ME QUEDO ESPERANDO UNA CONEXION NUEVA--------------
 
 
-		while(1){
-			int nuevoSocket = -1;
+	while(1){
+		int nuevoSocket = -1;
 
-			nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,argumentos->socketEscucha);
+		nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,argumentos->socketEscucha);
 
-			if (nuevoSocket != -1) {
-				//log_trace(logSockets,"Nuevo Socket!");
-				printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
-				int cliente;
-				recibirInt(nuevoSocket,&cliente);
-				switch(cliente){
-					case PROCESO_MASTER:
-						recibirSolicitudMaster(nuevoSocket);
-						break;
-					case PROCESO_WORKER:
-						recibirSolicitudWorker(nuevoSocket);
-						break;
-				}
+		if (nuevoSocket != -1) {
+			//log_trace(logSockets,"Nuevo Socket!");
+			printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
+			int cliente;
+			recibirInt(nuevoSocket,&cliente);
+			switch(cliente){
+			case PROCESO_MASTER:
+				recibirSolicitudMaster(nuevoSocket);
+				break;
+			case PROCESO_WORKER:
+				recibirSolicitudWorker(nuevoSocket);
+				break;
 			}
 		}
+	}
 }
 
 void recibirSolicitudMaster(int nuevoSocket){
@@ -390,60 +390,60 @@ void recibirSolicitudMaster(int nuevoSocket){
 	int exit_code;
 	//pid para usarlo luego en el fork
 	pid_t pid;
-//	if(pid == 0){
-//		//proceso hijo continua con la solicitud
-		switch(package->msgCode){
-			case ACCION_TRANSFORMACION:
-				; //empty statement. Es solucion a un error que genera el lenguaje C
-				pid = fork();
-				if(pid == 0){
-				solicitud_programa_transformacion* solicitudTDeserializada =
-							deserializarSolicitudProgramaTransformacion(package->message);
-				exit_code = transformacion(solicitudTDeserializada);
-				responderSolicitudT(exit_code);
-				exit(0);
-				}else{
-					if(pid < 0){
-						//cuando no pudo crear el hijo
-						perror("No se ha podido crear el proceso hijo\n");
-					}
-				}
-
-				break;
-			case ACCION_REDUCCION_LOCAL:
-				; //empty statement. Es solucion a un error que genera el lenguaje C
-				pid = fork();
-				if(pid == 0){
-				solicitud_programa_reduccion_local* solicitudRLDeserializada =
-							deserializarSolicitudProgramaReduccionLocal(package->message);
-				exit_code = reduccionLocal(solicitudRLDeserializada);
-				responderSolicitudRL(exit_code);
-				exit(0);
-				}else{
-					if(pid < 0){
-						//cuando no pudo crear el hijo
-						perror("No se ha podido crear el proceso hijo\n");
-					}
-				}
-				break;
-			case ACCION_REDUCCION_GLOBAL:
-				; //empty statement. Es solucion a un error que genera el lenguaje C
-				solicitud_programa_reduccion_global* solicitudRGDeserializada =
-							deserializarSolicitudProgramaReduccionGlobal(package->message);
-				exit_code = reduccionGlobal(solicitudRGDeserializada);
-				responderSolicitudRG(exit_code);
-				break;
+	//	if(pid == 0){
+	//		//proceso hijo continua con la solicitud
+	switch(package->msgCode){
+	case ACCION_TRANSFORMACION:
+		; //empty statement. Es solucion a un error que genera el lenguaje C
+		pid = fork();
+		if(pid == 0){
+			solicitud_programa_transformacion* solicitudTDeserializada =
+					deserializarSolicitudProgramaTransformacion(package->message);
+			exit_code = transformacion(solicitudTDeserializada);
+			responderSolicitudT(exit_code);
+			exit(0);
+		}else{
+			if(pid < 0){
+				//cuando no pudo crear el hijo
+				perror("No se ha podido crear el proceso hijo\n");
+			}
 		}
-//		exit(0);
-//	}else{
-//		if(pid < 0){
-//			//cuando no pudo crear el hijo
-//			perror("No se ha podido crear el proceso hijo\n");
-//		}else{
-//			//lo que haria el padre si es que necesitamos que haga algo
-//		}
-//
-//	}
+
+		break;
+	case ACCION_REDUCCION_LOCAL:
+		; //empty statement. Es solucion a un error que genera el lenguaje C
+		pid = fork();
+		if(pid == 0){
+			solicitud_programa_reduccion_local* solicitudRLDeserializada =
+					deserializarSolicitudProgramaReduccionLocal(package->message);
+			exit_code = reduccionLocal(solicitudRLDeserializada);
+			responderSolicitudRL(exit_code);
+			exit(0);
+		}else{
+			if(pid < 0){
+				//cuando no pudo crear el hijo
+				perror("No se ha podido crear el proceso hijo\n");
+			}
+		}
+		break;
+	case ACCION_REDUCCION_GLOBAL:
+		; //empty statement. Es solucion a un error que genera el lenguaje C
+		solicitud_programa_reduccion_global* solicitudRGDeserializada =
+				deserializarSolicitudProgramaReduccionGlobal(package->message);
+		exit_code = reduccionGlobal(solicitudRGDeserializada);
+		responderSolicitudRG(exit_code);
+		break;
+	}
+	//		exit(0);
+	//	}else{
+	//		if(pid < 0){
+	//			//cuando no pudo crear el hijo
+	//			perror("No se ha podido crear el proceso hijo\n");
+	//		}else{
+	//			//lo que haria el padre si es que necesitamos que haga algo
+	//		}
+	//
+	//	}
 }
 
 void recibirSolicitudWorker(int nuevoSocket){
@@ -452,18 +452,18 @@ void recibirSolicitudWorker(int nuevoSocket){
 	printf("codigo de mensaje: %d\n", package->msgCode);
 	int exit_code;
 	switch(package->msgCode){
-		case ACCION_ENVIAR_ARCHIVO_TEMP_DE_RL:
-			; //empty statement. Es solucion a un error que genera el lenguaje C
-			solicitud_enviar_archivo_temp* solicitudEATDeserializada =
-						deserializarSolicitudEnviarArchivoTemp(package->message);
-			enviarArchivoTemp(solicitudEATDeserializada);
-			break;
-		case ACCION_LEER_ARCHIVO_TEMP_DE_RL:
-			; //empty statement. Es solucion a un error que genera el lenguaje C
-			solicitud_leer_archivo_temp* solicitudLATDeserializada =
-						deserializarSolicitudLeerArchivoTemp(package->message);
-			leerArchivoTemp(solicitudLATDeserializada);
-			break;
+	case ACCION_ENVIAR_ARCHIVO_TEMP_DE_RL:
+		; //empty statement. Es solucion a un error que genera el lenguaje C
+		solicitud_enviar_archivo_temp* solicitudEATDeserializada =
+				deserializarSolicitudEnviarArchivoTemp(package->message);
+		enviarArchivoTemp(solicitudEATDeserializada);
+		break;
+	case ACCION_LEER_ARCHIVO_TEMP_DE_RL:
+		; //empty statement. Es solucion a un error que genera el lenguaje C
+		solicitud_leer_archivo_temp* solicitudLATDeserializada =
+				deserializarSolicitudLeerArchivoTemp(package->message);
+		leerArchivoTemp(solicitudLATDeserializada);
+		break;
 
 
 	}

@@ -19,25 +19,25 @@ void main() {
 	iniciarWorker();
 
 	int socketEscucha;
-		fd_set fdSocketsEscucha;
-		FD_ZERO(&fdSocketsEscucha);
+	fd_set fdSocketsEscucha;
+	FD_ZERO(&fdSocketsEscucha);
 
 
-		socketEscucha= escuchar(4002);
-		FD_SET(socketEscucha, &fdSocketsEscucha);
+	socketEscucha= escuchar(4002);
+	FD_SET(socketEscucha, &fdSocketsEscucha);
 
 
-		t_esperar_conexion *esperarConexion;
+	t_esperar_conexion *esperarConexion;
 
-		esperarConexion = malloc(sizeof(t_esperar_conexion));
+	esperarConexion = malloc(sizeof(t_esperar_conexion));
 
-		esperarConexion->fdSocketEscucha = fdSocketsEscucha;
-		esperarConexion->socketEscucha = socketEscucha;
+	esperarConexion->fdSocketEscucha = fdSocketsEscucha;
+	esperarConexion->socketEscucha = socketEscucha;
 
-		while(1){
+	while(1){
 
-			esperarConexionesMaster((void*) esperarConexion);
+		esperarConexionesMaster((void*) esperarConexion);
 
-		}
+	}
 
 }
