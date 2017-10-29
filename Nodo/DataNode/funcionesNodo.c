@@ -143,9 +143,11 @@ void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 
 		int i = 0;
 		int j = 0;
+		int largoMensaje = 0;
 		int tipo_archivo = 0;
 		int paquetesRecibidos=0;
 		int bytesRecibidos = 0;
+		int recibido = 0;
 		recibirInt(socketConn,&tipo_archivo);
 		switch(tipo_archivo){
 			case ENVIAR_ARCHIVO_BINARIO:
@@ -153,13 +155,17 @@ void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 				while(paquetesRecibidos < 1024*1024/4096){
 					int bytesAleer = 0;
 					recibirInt(socketConn,&bytesAleer);
-					bytesRecibidos += recv(socketConn,bloqueArchivo,(size_t)bytesAleer,NULL);
-					paquetesRecibidos++;
-					for (;i<(4096)*paquetesRecibidos;i++){
-						map[i]=bloqueArchivo[j];
-						j++;
+					while(bytesRecibidos<bytesAleer){
+						bytesRecibidos += recv(socketConn,bloqueArchivo,(size_t)bytesAleer-bytesRecibidos,NULL);
+						for (;i<(4096)*paquetesRecibidos;i++){
+							map[i]=bloqueArchivo[j];
+							j++;
+						}
+						j=0;
 					}
-					j=0;
+					bytesRecibidos = 0;
+					paquetesRecibidos++;
+
 					if(bytesAleer < 4096){
 						break;
 					}
@@ -168,22 +174,35 @@ void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 
 			case ENVIAR_ARCHIVO_TEXTO:
 				//while(bytesRecibidos < 1024*1024){
-				bloqueArchivo = recibirMensaje(socketConn);
-				/*	int bytesAleer = 0;
+
+				recibirInt(socketConn,&largoMensaje);
+
+				while(recibido<largoMensaje){
+					int bytesAleer = 0;
 					recibirInt(socketConn,&bytesAleer);
-					bytesRecibidos += recv(socketConn,bloqueArchivo,(size_t)bytesAleer,NULL);*/
-					//paquetesRecibidos++;
-					for (;i<strlen(bloqueArchivo);i++){
-						map[i]=bloqueArchivo[j];
-						j++;
+					while(bytesRecibidos<bytesAleer){
+						bytesRecibidos += recv(socketConn,bloqueArchivo,(size_t)bytesAleer-bytesRecibidos,NULL);
+						for (;j<strlen(bloqueArchivo);j++){
+								map[i]=bloqueArchivo[j];
+								i++;
+						}
+						j=0;
 					}
-					/*j=0;
+					recibido += bytesRecibidos;
+					bytesRecibidos = 0;
+
+
+				}
+				//bloqueArchivo = recibirMensaje(socketConn);
+				//paquetesRecibidos++;
+
+					/*
 					int fin_archivo = strchr(bloqueArchivo,"\0");
 					if(fin_archivo){
 						break;
 					}*/
 
-				printf("se escribieron %d caracteres\n",strlen(bloqueArchivo));
+				printf("se escribieron %d caracteres\n",recibido);
 				break;
 		}
 
@@ -228,7 +247,7 @@ int leerBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 				  exit(EXIT_FAILURE);
 			}
 
-			map = (unsigned char*) mmap(NULL, fileStat.st_size /*/(fileStat.st_size/(1024*1024))*/ , PROT_READ | PROT_WRITE, MAP_SHARED, data, sizeof(unsigned char)*bloque*(1024*1024));
+			map = (unsigned char*) mmap(NULL, fileStat.st_size /*/(fileStat.st_size/(1024*1024))*/ , PROT_READ, MAP_SHARED, data, sizeof(unsigned char)*bloque*(1024*1024));
 			if (map == MAP_FAILED){
 				close(data);
 				perror("Error en el mapeo del data.bin.\n");
