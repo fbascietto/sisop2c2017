@@ -16,7 +16,11 @@
 
 void main() {
 
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log* worker_Log = log_create("logWorker.txt", "WORKER", 1, level);
+
 	iniciarWorker();
+	log_trace(worker_Log, "Lectura de archivo de configuracion");
 
 	int socketEscucha;
 	fd_set fdSocketsEscucha;
@@ -33,6 +37,8 @@ void main() {
 
 	esperarConexion->fdSocketEscucha = fdSocketsEscucha;
 	esperarConexion->socketEscucha = socketEscucha;
+
+	log_trace(worker_Log, "Creacion socket para conexion con Master");
 
 	while(1){
 

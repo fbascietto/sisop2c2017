@@ -13,7 +13,6 @@
 #include <sys/types.h>
 #include "interfaceWorker.h"
 
-#define LENGTH_EXTRA_SPRINTF 100
 
 void iniciarWorker(){
 
@@ -44,6 +43,14 @@ void iniciarWorker(){
 
 int persistirPrograma(char* nombre, char* contenido, char* etapa){
 
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+
+	char* mensaje_de_log = malloc(100);
+
+	int retorno;
 	FILE* f1;
 	FILE* f2;
 	//longitud del contenido del programa
@@ -59,27 +66,28 @@ int persistirPrograma(char* nombre, char* contenido, char* etapa){
 	if(f1 == NULL){
 		//si no esta persistido el programa aun, lo persiste
 		fclose(f1);
-		char* mensaje_de_error = malloc(100);
 
 		//creo el programa vacio en el servidor local con la ruta
 		f2 = fopen(ruta, "w");
 		free(ruta);
 		if(f2==NULL){
-			sprintf(mensaje_de_error, "No se pudo crear el programa de %s\n", etapa);
-			perror(mensaje_de_error);
-			free(mensaje_de_error);
+			sprintf(mensaje_de_log, "No se pudo persistir el programa de %s", etapa);
+			log_trace(worker_error_log, mensaje_de_log);
+			free(mensaje_de_log);
 			return -1;
 		}
 
 		//le escribo el contenido con lo recibido por socket
 		escritos = fwrite(contenido, 1, longitud_contenido, f2);
 		if(escritos != longitud_contenido){
-			sprintf(mensaje_de_error, "No se pudo escribir el contenido del programa de %s\n", etapa);
-			perror(mensaje_de_error);
-			free(mensaje_de_error);
+			sprintf(mensaje_de_log, "No se pudo escribir el contenido del programa de %s", etapa);
+			log_trace(worker_error_log, mensaje_de_log);
+			free(mensaje_de_log);
 			return -2;
 		}
 
+		sprintf(mensaje_de_log, "Programa de %s persistido", etapa);
+		log_trace(worker_log, mensaje_de_log);
 		fclose(f2);
 
 		//puntero que va a tener la cadena de caracteres que se la pasa a la funcion system para dar permisos de ejecucion al script
@@ -87,10 +95,20 @@ int persistirPrograma(char* nombre, char* contenido, char* etapa){
 
 		//le doy permisos de ejecucion al script
 		sprintf(p, "chmod 777 \"%s\"", ruta);
-		system(p);
+		retorno = system(p);
+		if(retorno == -1){
+
+			sprintf(mensaje_de_log, "No se pudo dar los permisos de ejecucion al programa de %s", etapa);
+			log_trace(worker_error_log, mensaje_de_log);
+			free(mensaje_de_log);
+			free(ruta);
+			return -10;
+		}
+		sprintf(mensaje_de_log, "Permisos de ejecucion dados al programa de %s", etapa);
+		log_trace(worker_log, mensaje_de_log);
 		free(p);
 
-		free(mensaje_de_error);
+		free(mensaje_de_log);
 		free(ruta);
 
 		return 0;
@@ -98,11 +116,17 @@ int persistirPrograma(char* nombre, char* contenido, char* etapa){
 	//si ya esta persistido, no hace nada
 	fclose(f1);
 	free(ruta);
+	free(mensaje_de_log);
 	return 0;
 
 }
 
 int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
+
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
 	//fichero para leer el data.bin
 	FILE* f1;
@@ -115,7 +139,7 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
 	//persisto el programa transformador
 	retorno = persistirPrograma(solicitudDeserializada->programa_transformacion, solicitudDeserializada->programa, etapa);
-	if(retorno == -1 || retorno == -2){
+	if(retorno == -1 || retorno == -2 || retorno == -10){
 		return retorno;
 	}
 
@@ -123,9 +147,11 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 	f1 = fopen (rutaNodo, "rb");
 	if (f1==NULL)
 	{
-		perror("No se pudo abrir data.bin\n");
+		log_trace(worker_error_log, "No se pudo abrir data.bin");
 		return -3;
 	}
+
+	log_trace(worker_log, "Archivo data.bin abierto");
 
 	//me desplazo hasta el bloque que quiero leer
 	fseek(f1, TAMANIO_BLOQUE*solicitudDeserializada->bloque, SEEK_SET);
@@ -136,10 +162,12 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 	//leer bloque de archivo
 	leidos = fread(buffer, 1, solicitudDeserializada->bytes_ocupados, f1);
 	if(leidos!= solicitudDeserializada->bytes_ocupados){
-		perror("No se leyo correctamente el bloque");
+		log_trace(worker_error_log, "No se leyo correctamente el bloque");
 		free(buffer);
 		return -4;
 	}
+
+	log_trace(worker_log, "Bloque leido");
 
 	fclose(f1);
 
@@ -150,12 +178,14 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 	sprintf(s, "echo %s | .\"/scripts/%s\" | sort > \"%s\"", buffer, solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
 	retorno = system(s);
 	if(retorno == -1){
-		perror("No se pudo ejecutar la llamada system()\n");
-		return -5;
+		log_trace(worker_error_log, "No se pudo realizar la transformacion");
+		return -10;
 	}
 
 	free(buffer);
 	free(s);
+
+	log_trace(worker_log, "Transformacion finalizada");
 
 	return 0;
 
@@ -180,7 +210,7 @@ void responderSolicitudT(int exit_code){
 	case -4:
 		//enviar ERROR de lectura de data.bin
 		break;
-	case -5:
+	case -10:
 		//enviar ERROR de llamada system()
 		break;
 
@@ -188,6 +218,11 @@ void responderSolicitudT(int exit_code){
 }
 
 int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
+
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
 	//entero para iterar array
 	int i;
@@ -207,7 +242,7 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 
 	//persisto el programa reductor
 	retorno = persistirPrograma(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa, etapa);
-	if(retorno == -1 || retorno == -2){
+	if(retorno == -1 || retorno == -2 || retorno == -10){
 		return retorno;
 	}
 
@@ -219,7 +254,7 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 		//abro el archivo temporal de transformacion
 		f1 = fopen(solicitudDeserializada->archivos_temporales[i].archivo_temp, "r");
 		if (f1==NULL){
-			perror("No se pudo abrir el archivo temporal\n");
+			log_trace(worker_error_log, "No se pudo abrir el archivo temporal");
 			free(buffer_total);
 			return -3;
 		}
@@ -228,7 +263,7 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 		//me posiciono al final del archivo
 		retorno = fseek(f1, 0, SEEK_END);
 		if(retorno!=0){
-			perror("No se pudo posicionar al final del archivo temporal\n");
+			log_trace(worker_error_log, "No se pudo posicional al final del archivo temporal");
 			free(buffer_total);
 			return -4;
 		}
@@ -237,7 +272,7 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 		//me posiciono al principio del archivo para poder leer
 		retorno = fseek(f1, 0, SEEK_SET);
 		if(retorno!=0){
-			perror("No se pudo posicionar al principio del archivo temporal\n");
+			log_trace(worker_error_log, "No se pudo posicional al principio del archivo temporal");
 			free(buffer_total);
 			return -5;
 		}
@@ -246,7 +281,7 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 		//leo archivo y lo pongo en el buffer
 		leidos = fread(buffer, 1, longitud_archivo_temporal, f1);
 		if(leidos != longitud_archivo_temporal){
-			perror("No se leyo correctamente el archivo temporal\n");
+			log_trace(worker_error_log, "No se leyo correctamente el archivo temporal");
 			free(buffer);
 			free(buffer_total);
 			return -6;
@@ -265,13 +300,15 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 	sprintf(s, "echo %s | sort | .\"/scripts/%s\" > \"%s\"", buffer_total, solicitudDeserializada->programa_reduccion, solicitudDeserializada->archivo_temporal_resultante);
 	retorno = system(s);
 	if(retorno == -1){
-		perror("No se pudo ejecutar la llamada system()\n");
-		return -7;
+		log_trace(worker_error_log, "No se pudo realizar la reduccion local");
+		return -10;
 	}
 
 	free(s);
 	free(buffer);
 	free(buffer_total);
+
+	log_trace(worker_log, "Reduccion local finalizada");
 
 	return 0;
 }
@@ -301,7 +338,7 @@ void responderSolicitudRL(int exit_code){
 	case -6:
 		//enviar ERROR de lectura de archivo temporal
 		break;
-	case -7:
+	case -10:
 		//enviar ERROR de llamada system()
 		break;
 	}
@@ -318,7 +355,7 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 
 	//persisto el programa reductor
 	retorno = persistirPrograma(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa, etapa);
-	if(retorno == -1 || retorno == -2){
+	if(retorno == -1 || retorno == -2 || retorno == -10){
 		return retorno;
 	}
 
@@ -356,7 +393,10 @@ void *esperarConexionesMaster(void *args) {
 
 	t_esperar_conexion* argumentos = (t_esperar_conexion*) args;
 
-	printf("Esperando conexiones en Worker...\n");
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+
+	log_trace(worker_log, "Esperando conexiones de Master");
 
 	// ---------------ME QUEDO ESPERANDO UNA CONEXION NUEVA--------------
 
@@ -367,15 +407,15 @@ void *esperarConexionesMaster(void *args) {
 		nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,argumentos->socketEscucha);
 
 		if (nuevoSocket != -1) {
-			//log_trace(logSockets,"Nuevo Socket!");
-			printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
 			int cliente;
 			recibirInt(nuevoSocket,&cliente);
 			switch(cliente){
 			case PROCESO_MASTER:
+				log_trace(worker_log, "Nueva conexion de Master recibida!");
 				recibirSolicitudMaster(nuevoSocket);
 				break;
 			case PROCESO_WORKER:
+				log_trace(worker_log, "Nueva conexion de un Worker recibida!");
 				recibirSolicitudWorker(nuevoSocket);
 				break;
 			}
@@ -384,9 +424,15 @@ void *esperarConexionesMaster(void *args) {
 }
 
 void recibirSolicitudMaster(int nuevoSocket){
+
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
-	printf("codigo de mensaje: %d\n",	package->msgCode);
+
 	int exit_code;
 	//pid para usarlo luego en el fork
 	pid_t pid;
@@ -395,8 +441,10 @@ void recibirSolicitudMaster(int nuevoSocket){
 	switch(package->msgCode){
 	case ACCION_TRANSFORMACION:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
+		log_trace(worker_log, "Solicitud de transformacion recibida");
 		pid = fork();
 		if(pid == 0){
+			log_trace(worker_log, "Comienzo de transformacion");
 			solicitud_programa_transformacion* solicitudTDeserializada =
 					deserializarSolicitudProgramaTransformacion(package->message);
 			exit_code = transformacion(solicitudTDeserializada);
@@ -405,15 +453,17 @@ void recibirSolicitudMaster(int nuevoSocket){
 		}else{
 			if(pid < 0){
 				//cuando no pudo crear el hijo
-				perror("No se ha podido crear el proceso hijo\n");
+				log_trace(worker_error_log, "No se ha podido crear el proceso hijo");
 			}
 		}
 
 		break;
 	case ACCION_REDUCCION_LOCAL:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
+		log_trace(worker_log, "Solicitud de reduccion local recibida");
 		pid = fork();
 		if(pid == 0){
+			log_trace(worker_log, "Comienzo de reduccion local");
 			solicitud_programa_reduccion_local* solicitudRLDeserializada =
 					deserializarSolicitudProgramaReduccionLocal(package->message);
 			exit_code = reduccionLocal(solicitudRLDeserializada);
@@ -422,12 +472,14 @@ void recibirSolicitudMaster(int nuevoSocket){
 		}else{
 			if(pid < 0){
 				//cuando no pudo crear el hijo
-				perror("No se ha podido crear el proceso hijo\n");
+				log_trace(worker_error_log, "No se ha podido crear el proceso hijo");
 			}
 		}
 		break;
 	case ACCION_REDUCCION_GLOBAL:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
+		log_trace(worker_log, "Solicitud de reduccion global recibida");
+		log_trace(worker_log, "Comienzo de reduccion global");
 		solicitud_programa_reduccion_global* solicitudRGDeserializada =
 				deserializarSolicitudProgramaReduccionGlobal(package->message);
 		exit_code = reduccionGlobal(solicitudRGDeserializada);
@@ -447,9 +499,14 @@ void recibirSolicitudMaster(int nuevoSocket){
 }
 
 void recibirSolicitudWorker(int nuevoSocket){
+
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
-	printf("codigo de mensaje: %d\n", package->msgCode);
 	int exit_code;
 	switch(package->msgCode){
 	case ACCION_ENVIAR_ARCHIVO_TEMP_DE_RL:

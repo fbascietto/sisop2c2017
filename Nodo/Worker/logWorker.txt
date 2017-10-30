@@ -1,0 +1,4 @@
+[TRACE] 20:17:54:105 WORKER/(2650:2650): Lectura de archivo de configuracion
+[TRACE] 20:36:12:208 WORKER/(2790:2790): Lectura de archivo de configuracion
+[TRACE] 20:36:12:214 WORKER/(2790:2790): Creacion socket para conexion con Master
+[TRACE] 20:36:12:214 WORKER/(2790:2790): Esperando conexiones de Master

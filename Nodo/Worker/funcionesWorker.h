@@ -20,10 +20,13 @@
 #ifndef FUNCIONESWORKER_H_
 #define FUNCIONESWORKER_H_
 
+#define LENGTH_EXTRA_SPRINTF 100
+
 typedef struct {
 	int socketEscucha;
 	fd_set fdSocketEscucha;
 } t_esperar_conexion;
+
 
 t_config* infoConfig;
 char* nombreNodo;
