@@ -191,12 +191,18 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
 }
 
-void responderSolicitudT(int exit_code){
+void responderSolicitudT(int socket, int exit_code){
+
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
 	switch(exit_code){
 
 	case 0:
-		//enviar OK
+		log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de transformacion a Master");
+		enviarMensajeSocketConLongitud(socket, TRANSFORMACION_OK, NULL, 0);
 		break;
 	case -1:
 		//enviar ERROR de creacion de programa de transformacion
@@ -313,12 +319,18 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 	return 0;
 }
 
-void responderSolicitudRL(int exit_code){
+void responderSolicitudRL(int socket, int exit_code){
+
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
 	switch(exit_code){
 
 	case 0:
-		//enviar OK
+		log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de reduccion local a Master");
+		enviarMensajeSocketConLongitud(socket, REDUCCION_LOCAL_OK, NULL, 0);
 		break;
 	case -1:
 		//enviar ERROR de creacion de programa de reduccion
@@ -369,14 +381,19 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 	return 0;
 }
 
-void responderSolicitudRG(int exit_code){
+void responderSolicitudRG(int socket, int exit_code){
 
-	if(exit_code == 0){
-		//enviar OK
-	}else{
-		if(exit_code == -1){
-			//enviar ERROR
-		}
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+
+	switch(exit_code){
+
+	case 0:
+		log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de reduccion global a Master");
+		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_OK, NULL, 0);
+		break;
 	}
 
 }
@@ -448,7 +465,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 			solicitud_programa_transformacion* solicitudTDeserializada =
 					deserializarSolicitudProgramaTransformacion(package->message);
 			exit_code = transformacion(solicitudTDeserializada);
-			responderSolicitudT(exit_code);
+			responderSolicitudT(nuevoSocket, exit_code);
 			exit(0);
 		}else{
 			if(pid < 0){
@@ -467,7 +484,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 			solicitud_programa_reduccion_local* solicitudRLDeserializada =
 					deserializarSolicitudProgramaReduccionLocal(package->message);
 			exit_code = reduccionLocal(solicitudRLDeserializada);
-			responderSolicitudRL(exit_code);
+			responderSolicitudRL(nuevoSocket, exit_code);
 			exit(0);
 		}else{
 			if(pid < 0){
@@ -483,7 +500,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 		solicitud_programa_reduccion_global* solicitudRGDeserializada =
 				deserializarSolicitudProgramaReduccionGlobal(package->message);
 		exit_code = reduccionGlobal(solicitudRGDeserializada);
-		responderSolicitudRG(exit_code);
+		responderSolicitudRG(nuevoSocket, exit_code);
 		break;
 	}
 	//		exit(0);

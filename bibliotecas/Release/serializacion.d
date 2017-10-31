@@ -1,1 +1,0 @@
-serializacion.d: ../serializacion.c
