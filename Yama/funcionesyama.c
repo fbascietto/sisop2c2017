@@ -105,9 +105,9 @@ solicitud_transformacion* obtenerSolicitudTrasnformacionMock(char* message){
 }
 
 solicitud_reduccion_local* obtenerSolicitudReduccionLocalMock(char* message){
-	item_reduccion_local* item1 = crearItemReduccionLocal(1,"127.0.0.1",8080,"/tmp/Master1-temp38","/tmp/Master1-temp38");
-	item_reduccion_local* item2 = crearItemReduccionLocal(12,"127.23.0.1",0101,"/tmp/Master1-temp39","/tmp/Master1-Worker1");
-	item_reduccion_local* item3 = crearItemReduccionLocal(137,"187.0.56.1",9090,"/tmp/Master1-temp44","/tmp/Master1-Worker2");
+	item_reduccion_local* item1 = crearItemReduccionLocal(1,"127.0.0.1",8080,"/tmp/Master1-temp38");
+	item_reduccion_local* item2 = crearItemReduccionLocal(12,"127.23.0.1",0101,"/tmp/Master1-Worker1");
+	item_reduccion_local* item3 = crearItemReduccionLocal(137,"187.0.56.1",9090,"/tmp/Master1-Worker2");
 
 	solicitud_reduccion_local* solicitudReduccionLocal = malloc(sizeof(solicitud_reduccion_local));
 
@@ -123,9 +123,10 @@ solicitud_reduccion_local* obtenerSolicitudReduccionLocalMock(char* message){
 }
 
 solicitud_reduccion_global* obtenerSolicitudReduccionGlobalMock(char* message){
-	item_reduccion_global* item1 = crearItemReduccionGlobal(1,"127.0.0.1",8080,"/tmp/Master1-temp38","/tmp/Master1-temp38",true);
-	item_reduccion_global* item2 = crearItemReduccionGlobal(12,"127.23.0.1",0101,"/tmp/Master1-temp39","/tmp/Master1-Worker1",false);
-	item_reduccion_global* item3 = crearItemReduccionGlobal(137,"187.0.56.1",9090,"/tmp/Master1-temp44","/tmp/Master1-Worker2",false);
+
+	item_reduccion_global* item1 = crearItemReduccionGlobal(1,"127.0.0.1",8080,"/tmp/Master1-temp38");
+	item_reduccion_global* item2 = crearItemReduccionGlobal(12,"127.23.0.1",0101,"/tmp/Master1-temp39");
+	item_reduccion_global* item3 = crearItemReduccionGlobal(137,"187.0.56.1",9090,"/tmp/Master1-temp44");
 
 	solicitud_reduccion_global* solicitudReduccionGlobal = malloc(sizeof(solicitud_reduccion_global));
 
