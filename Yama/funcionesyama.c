@@ -15,25 +15,25 @@ void *recibirMensajeMaster(void *args){
 	int nuevoSocket = argumentos->socketCliente;
 	free(args);
 	while(1){
-	Package* package = createPackage();
-	int leidos = recieve_and_deserialize(package, nuevoSocket);
-	printf("codigo de mensaje: %d\n",	package->msgCode);
+		Package* package = createPackage();
+		int leidos = recieve_and_deserialize(package, nuevoSocket);
+		printf("codigo de mensaje: %d\n",	package->msgCode);
 		switch(package->msgCode){
-			case ACCION_PROCESAR_ARCHIVO:
-				procesarSolicitudArchivoMaster(nuevoSocket, package->message_long, package->message);
-				break;
-			case RESULTADO_TRANSFORMACION:
-				procesarResultadoTransformacion(nuevoSocket, package->message_long, package->message);
-				break;
-			case RESULTADO_REDUCCION_LOCAL:
-				procesarResultadoReduccionLocal(nuevoSocket, package->message_long, package->message);
-				break;
-			case RESULTADO_REDUCCION_GLOBAL:
-				procesarResultadoReduccionGlobal(nuevoSocket, package->message_long, package->message);
-				break;
-			case RESULTADO_ALMACENADO_FINAL:
-				procesarResultadoAlmacenadoFinal(nuevoSocket, package->message_long, package->message);
-				break;
+		case ACCION_PROCESAR_ARCHIVO:
+			procesarSolicitudArchivoMaster(nuevoSocket, package->message_long, package->message);
+			break;
+		case RESULTADO_TRANSFORMACION:
+			procesarResultadoTransformacion(nuevoSocket, package->message_long, package->message);
+			break;
+		case RESULTADO_REDUCCION_LOCAL:
+			procesarResultadoReduccionLocal(nuevoSocket, package->message_long, package->message);
+			break;
+		case RESULTADO_REDUCCION_GLOBAL:
+			procesarResultadoReduccionGlobal(nuevoSocket, package->message_long, package->message);
+			break;
+		case RESULTADO_ALMACENADO_FINAL:
+			procesarResultadoAlmacenadoFinal(nuevoSocket, package->message_long, package->message);
+			break;
 		}
 	}
 }
@@ -47,7 +47,7 @@ void *esperarConexionMaster(void *args) {
 	// ---------------ME QUEDO ESPERANDO UNA CONEXION NUEVA--------------
 
 
-		/*int nuevoSocket;
+	/*int nuevoSocket;
 
 		nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,
 				argumentos->socketEscucha);
@@ -57,31 +57,31 @@ void *esperarConexionMaster(void *args) {
 
 		}*/
 
-		while(1){
-			//TODO: Recibir instrucciones master y crear thread por cada una
-			int nuevoSocket = -1;
+	while(1){
+		//TODO: Recibir instrucciones master y crear thread por cada una
+		int nuevoSocket = -1;
 
-			nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,argumentos->socketEscucha);
+		nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,argumentos->socketEscucha);
 
-			if (nuevoSocket != -1) {
-				//log_trace(logSockets,"Nuevo Socket!");
-				printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
-				int cliente;
-				recibirInt(nuevoSocket,&cliente);
-				switch(cliente){
-				//TODO: iniciar un hilo para manejar cliente
-					case PROCESO_MASTER:
-						while(1){
-							pthread_t threadSolicitudesMaster;
-							t_esperar_mensaje *tEsperarMensaje = malloc(sizeof(t_esperar_mensaje));
-							tEsperarMensaje->socketCliente = nuevoSocket;
-							int er1 = pthread_create(&threadSolicitudesMaster, NULL,recibirMensajeMaster,(void*) tEsperarMensaje);
-							pthread_join(threadSolicitudesMaster, NULL);
-						}
-						break;
+		if (nuevoSocket != -1) {
+			//log_trace(logSockets,"Nuevo Socket!");
+			printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
+			int cliente;
+			recibirInt(nuevoSocket,&cliente);
+			switch(cliente){
+			//TODO: iniciar un hilo para manejar cliente
+			case PROCESO_MASTER:
+				while(1){
+					pthread_t threadSolicitudesMaster;
+					t_esperar_mensaje *tEsperarMensaje = malloc(sizeof(t_esperar_mensaje));
+					tEsperarMensaje->socketCliente = nuevoSocket;
+					int er1 = pthread_create(&threadSolicitudesMaster, NULL,recibirMensajeMaster,(void*) tEsperarMensaje);
+					pthread_join(threadSolicitudesMaster, NULL);
 				}
+				break;
 			}
 		}
+	}
 }
 
 
@@ -149,101 +149,127 @@ solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinalMock(char* message){
 	return solicitud;
 }
 
-solicitud_transformacion* obtenerSolicitudTrasnformacion(t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasTemporales){
+
+/*
+ * TO DO
+ * no son la version final
+ */
+solicitud_transformacion* obtenerSolicitudTrasnformacion(t_job* job){//t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasTemporales){
 	int i;
-	t_planificacion* unaPlanificacion;
+	t_estado* unEstado;
 	char* rutaArchivoTemporal;
-	int tamanioListaPlanificacion = list_size(planificacion);
+	int tamanioJob = list_size(job->estadosJob);
 
 	// menos 1 porque esta el de reduccion global en la planificacion
 	solicitud_transformacion* solicitud = malloc(sizeof(solicitud_transformacion));
-	solicitud->items_transformacion = realloc(solicitud->items_transformacion,sizeof(item_transformacion)*(tamanioListaPlanificacion - 1));
+	item_transformacion* item = malloc(sizeof(item_transformacion));
 
+	for(i=0; i<tamanioJob ;i++){
+		unEstado = list_get(job->estadosJob, i);
 
-	for(i=0; i<tamanioListaPlanificacion;i++){
-		unaPlanificacion = list_get(planificacion, i);
-
-		if(unaPlanificacion->reduccionGlobal==0){
-			rutaArchivoTemporal = list_get(rutasTemporales, i);
-			solicitud->items_transformacion[i].nodo_id = unaPlanificacion->nodo->idNodo;
-			solicitud->items_transformacion[i].bloque = unaPlanificacion->bloque->numeroBloque;
-			solicitud->items_transformacion[i].bytes_ocupados = unaPlanificacion->bloque->bytesOcupados;
-			solicitud->items_transformacion[i].puerto_worker = puerto_worker;
-			strcpy(solicitud->items_transformacion[i].ip_worker, ip_worker);
-			strcpy(solicitud->items_transformacion[i].archivo_temporal, rutaArchivoTemporal);
-
-			solicitud->item_cantidad++;
+		if(strcmp(unEstado->etapa, "transformacion")==0){
+			item = crearItemTransformacion(unEstado->nodoPlanificado->nodo->idNodo,
+					unEstado->nodoPlanificado->nodo->ipWorker,
+					unEstado->nodoPlanificado->nodo->puerto,
+					unEstado->nodoPlanificado->bloque->numeroBloque,
+					unEstado->nodoPlanificado->bloque->bytesOcupados,
+					unEstado->archivoTemporal);
+			agregarItemTransformacion(solicitud, item);
 		}
 	}
 	return solicitud;
 	//return obtenerSolicitudTrasnformacionMock(message);
 }
 
-solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasTransformacionTemporales, char* rutaReduccion){
+solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job){ // t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasTransformacionTemporales, char* rutaReduccion){
 
 	int i;
-	t_planificacion* unaPlanificacion;
-	char* rutaArchivoTransformacionTemporal;
-	int tamanioListaPlanificacion = list_size(planificacion);
+	int j;
+	int k;
+	t_estado* unEstado;
+	t_estado* estadoAux;
+	archivo_temp* listaRutasTransformacion;
+	char* rutaArchivoTemporal;
+	int tamanioJob = list_size(job->estadosJob);
 
-	// menos 1 porque esta el de reduccion global en la planificacion
 	solicitud_reduccion_local* solicitud = malloc(sizeof(solicitud_reduccion_local));
-	solicitud->items_reduccion_local = realloc(solicitud->items_reduccion_local,sizeof(item_reduccion_local)*(tamanioListaPlanificacion - 1));
+	item_reduccion_local* item = malloc(sizeof(item_reduccion_local));
 
+	for(i=0; i<tamanioJob ;i++){
+		unEstado = list_get(job->estadosJob, i);
+		if(strcmp(unEstado->etapa, "reduccion local")==0){
+			k=0;
+			for(j=0; j < tamanioJob; j++){
+				estadoAux = list_get(job->estadosJob, j);
+				if(strcmp(estadoAux->etapa, "transformacion") == 0){
+					listaRutasTransformacion = realloc(listaRutasTransformacion, sizeof(archivo_temp) * (k+1));
+					strcpy(listaRutasTransformacion[k].archivo_temp, estadoAux->archivoTemporal);
+					k++;
+				}
+			}
+			item = crearItemReduccionLocal(unEstado->nodoPlanificado->nodo->idNodo,
+					unEstado->nodoPlanificado->nodo->ipWorker,
+					unEstado->nodoPlanificado->nodo->puerto,
+					unEstado->archivoTemporal);
+			item->archivos_temporales_transformacion = listaRutasTransformacion;
+			agregarItemReduccionLocal(solicitud, item);
 
-	for(i=0; i<tamanioListaPlanificacion;i++){
-		unaPlanificacion = list_get(planificacion, i);
-		if(unaPlanificacion->reduccionGlobal==0){
-			rutaArchivoTransformacionTemporal = list_get(rutasTransformacionTemporales, i);
-			solicitud->items_reduccion_local[i].nodo_id = unaPlanificacion->nodo->idNodo;
-			strcpy(solicitud->items_reduccion_local[i].ip_worker, ip_worker);
-			solicitud->items_reduccion_local[i].puerto_worker = puerto_worker;
-			strcpy(solicitud->items_reduccion_local[i].archivo_temporal_transformacion, rutaArchivoTransformacionTemporal);
-			strcpy(solicitud->items_reduccion_local[i].archivo_temporal_reduccion_local, rutaReduccion);
-			solicitud->item_cantidad++;
 		}
 	}
 	return solicitud;
 	//return obtenerSolicitudReduccionLocalMock(message);
 }
 
-solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasRedLocalTemporales, char* rutaReduccionGlobal){
+solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job){ //t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasRedLocalTemporales, char* rutaReduccionGlobal){
 
-		int i;
-		char* rutaArchivoRedLocalTemporal;
-		t_planificacion* unaPlanificacion;
-		int tamanioListaPlanificacion = list_size(planificacion);
+	int i;
+	t_estado* unEstado;
+	char* rutaArchivoTemporal;
+	int tamanioJob = list_size(job->estadosJob);
 
-		solicitud_reduccion_global* solicitud = malloc(sizeof(solicitud_reduccion_global));
-		solicitud->items_reduccion_global = realloc(solicitud->items_reduccion_global,sizeof(item_reduccion_local) * tamanioListaPlanificacion);
+	solicitud_reduccion_global* solicitud = malloc(sizeof(solicitud_reduccion_global));
+	item_reduccion_global* item = malloc(sizeof(item_reduccion_global));
 
+	for(i=0; i<tamanioJob ;i++){
+		unEstado = list_get(job->estadosJob, i);
+		if(strcmp(unEstado->etapa, "reduccion local")==0){
 
-		for(i=0; i<list_size(planificacion);i++){
-			unaPlanificacion = list_get(planificacion, i);
-			rutaArchivoRedLocalTemporal = list_get(rutasRedLocalTemporales, i);
-				solicitud->items_reduccion_global[i].nodo_id = unaPlanificacion->nodo->idNodo;
-				strcpy(solicitud->items_reduccion_global[i].ip_worker, ip_worker);
-				solicitud->items_reduccion_global[i].puerto_worker = puerto_worker;
-				strcpy(solicitud->items_reduccion_global[i].archivo_temporal_reduccion_local, rutaArchivoRedLocalTemporal);
-				solicitud->item_cantidad++;
-			if(unaPlanificacion->reduccionGlobal!=0){
-				solicitud->items_reduccion_global[i].esEncargado = true;
-				strcpy(solicitud->items_reduccion_global[i].archivo_temporal_reduccion_global, rutaReduccionGlobal);
-			} else{
-				solicitud->items_reduccion_global[i].esEncargado = false;
-			}
+		item = crearItemReduccionGlobal(unEstado->nodoPlanificado->nodo->idNodo,
+				unEstado->nodoPlanificado->nodo->ipWorker,
+				unEstado->nodoPlanificado->nodo->puerto,
+				unEstado->archivoTemporal);
+			agregarItemReduccionGlobal(solicitud, item);
+		} else if (strcmp(unEstado->etapa, "reduccion global") == 0){
+
+			item = crearItemReduccionGlobal(unEstado->nodoPlanificado->nodo->idNodo,
+							unEstado->nodoPlanificado->nodo->ipWorker,
+							unEstado->nodoPlanificado->nodo->puerto,
+							NULL);
+			strcpy(solicitud->archivo_temporal_reduccion_global, item->archivo_temporal_reduccion_local);
+			solicitud->encargado_reduccion_global = item;
 		}
-		return solicitud;
-	//return obtenerSolicitudReduccionGlobalMock(message);
+	}
+	return solicitud;
 }
 
-solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_nodo* nodoEncargado, int puerto_worker, char* ip_worker, char* rutaReduccionGlobal){
+solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_job* job){ //t_nodo* nodoEncargado, int puerto_worker, char* ip_worker, char* rutaReduccionGlobal){
+
+	int i;
+	t_estado* unEstado;
+	char* rutaArchivoTemporal;
+	int tamanioJob = list_size(job->estadosJob);
 
 	solicitud_almacenado_final* solicitud = malloc(sizeof(solicitud_almacenado_final));
-	solicitud->nodo_id = nodoEncargado->idNodo;
-	solicitud->puerto_worker = 5555;
-	strcpy(solicitud->ip_worker, ip_worker);
-	strcpy(solicitud->archivo_temporal_reduccion_global, rutaReduccionGlobal);
+
+	for(i=0; i<tamanioJob ;i++){
+		unEstado = list_get(job->estadosJob, i);
+		if (strcmp(unEstado->etapa, "reduccion global") == 0){
+			solicitud->nodo_id = unEstado->nodoPlanificado->nodo->idNodo;
+			solicitud->puerto_worker = unEstado->nodoPlanificado->nodo->puerto;
+			strcpy(solicitud->ip_worker, unEstado->nodoPlanificado->nodo->ipWorker);
+			strcpy(solicitud->archivo_temporal_reduccion_global, unEstado->archivoTemporal);
+		}
+	}
 
 
 	return solicitud;
@@ -295,14 +321,14 @@ void procesarSolicitudArchivoMaster(int nuevoSocket, uint32_t message_long, char
 
 
 void procesarSolicitudMaster(nuevoSocket){
-    int protocolo;
+	int protocolo;
 	recibirInt(nuevoSocket,&protocolo);
 	switch(protocolo){
-		case ENVIAR_ARCHIVO_TEXTO:
-			printf("Se recibio instruccion para recibir archivo de texto\n");
-			recibirArchivo(nuevoSocket);
-			break;
-		}
+	case ENVIAR_ARCHIVO_TEXTO:
+		printf("Se recibio instruccion para recibir archivo de texto\n");
+		recibirArchivo(nuevoSocket);
+		break;
+	}
 }
 
 
@@ -312,8 +338,9 @@ void procesarSolicitudMaster(nuevoSocket){
  * nombre del archivo es un simple contador que siempre aumenta
  * por cada vez que pase por la funcion
  */
-char* generarRutaTemporal(char* ruta){
+char* generarRutaTemporal(){
 	rutaGlobal++;
+	char ruta[50];
 	sprintf(ruta, "/tmp/%d", rutaGlobal);
 	return ruta;
 }

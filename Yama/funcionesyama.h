@@ -43,7 +43,6 @@ typedef struct{
 }t_bloque;
 
 
-
 typedef struct{
 	int idNodo;
 	int disponibilidad;
@@ -55,11 +54,6 @@ typedef struct{
 	int puerto;
 }t_nodo;
 
-typedef struct{
-	t_nodo* nodo;
-	t_list* bloques;
-}nodoConectado;
-
 
 typedef struct {
 	t_nodo* nodo;
@@ -67,14 +61,28 @@ typedef struct {
 	int reduccionGlobal;
 } t_planificacion;
 
+
+typedef struct{
+	t_planificacion* nodoPlanificado;
+	char* archivoTemporal;
+	char* estado;
+	char* etapa;
+} t_estado;
+
+typedef struct{
+	t_list* estadosJob;
+	int idJob;
+	int idMaster;
+}t_job;
+
 void *esperarConexionMaster(void *args);
 void inicializarConfigYama();
 void hacerPedidoDeTransformacionYRL();
 
-solicitud_transformacion* obtenerSolicitudTrasnformacion(t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasTemporales);
-solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasTransformacionTemporales, char* rutaReduccion);
-solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasRedLocalTemporales, char* rutaReduccionGlobal);
-solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_nodo* nodoEncargado, int puerto_worker, char* ip_worker, char* rutaReduccionGlobal);
+solicitud_transformacion* obtenerSolicitudTrasnformacion(t_job* job);
+solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job);
+solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job);
+solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_job* job);
 
 
 #endif /* YAMA_FUNCIONESYAMA_H_ */

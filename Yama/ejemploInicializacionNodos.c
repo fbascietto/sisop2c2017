@@ -2,8 +2,7 @@
 #include "../bibliotecas/estructuras.h"
 #include <stdio.h>
 
-//algunos ejemplos de inicializacion
-
+// TO-DO
 void hacerPedidoDeTransformacionYRL(){
 
 	char prueba[20];
@@ -47,7 +46,7 @@ void hacerPedidoDeTransformacionYRL(){
 
 	printf("inicio pedido transformacion\n");
 
-	solicitud = obtenerSolicitudTrasnformacion(planificacion, nodo->puerto, nodo->ipWorker, rutasTemporales);
+	//solicitud = obtenerSolicitudTrasnformacion(planificacion, nodo->puerto, nodo->ipWorker, rutasTemporales);
 
 	printf("termino la solicitud de transformacion\n");
 
@@ -68,7 +67,7 @@ void hacerPedidoDeTransformacionYRL(){
 	solicitud_reduccion_local* solicitudRL;
 	item_reduccion_local* itemsRL;
 
-	solicitudRL = obtenerSolicitudReduccionLocal(planificacion, nodo->puerto, nodo->ipWorker, rutasTemporales, &ruta3);
+	//solicitudRL = obtenerSolicitudReduccionLocal(planificacion, nodo->puerto, nodo->ipWorker, rutasTemporales, &ruta3);
 
 	itemsRL = solicitudRL->items_reduccion_local;
 
