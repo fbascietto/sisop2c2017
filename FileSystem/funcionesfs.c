@@ -285,7 +285,18 @@ int recibirConexionDataNode(int nuevoSocket){
 	printf("Cuenta con %d bloques en total.\n", nodo->tamanio/(1024*1024));
 
 	creaAbreBitmap(nodo->tamanio,nodo->nombre_nodo);
-	list_add(nodos,nodo);
+	/*int i;
+	int encontrado = 0;
+	for(i = 0; i<list_size(nodos);i++){
+		t_nodo * nodo_en_lista = nodos[0];
+		if(nodo_en_lista->nombre_nodo == nodo->nombre_nodo) {
+			nodo_en_lista->socket_nodo = nodo->socket_nodo;
+			nodo_en_lista->espacioLibre = nodo->espacioLibre;
+			encontrado = 1;
+		}
+
+	}
+	if(encontrado == 0)*/ list_add(nodos,nodo);
 
 	actualizarNodosBin();
 
@@ -628,13 +639,9 @@ char* getRutaMetadata(char* ruta_archivo, t_list* folderList, int carpeta){
 
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList){
 
-	int carpeta = 0;
+	/*int carpeta = 0;
 	carpeta = identificaDirectorio(directorio_yamafs, folderList);
-
-	void* buffer;
-	size_t bytesRead;
-	buffer = malloc(sizeof(char)*4096);
-
+*/
 	FILE* origen = fopen(path_archivo_origen, "rb");
 	int fd = fileno(origen);
 	struct stat fileStat;
@@ -648,7 +655,9 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 			exit(EXIT_FAILURE);
 		}
 
-	char* ruta_metadata = getRutaMetadata(path_archivo_origen, folderList, carpeta);
+
+	FILE * metadata = crearMetadata(path_archivo_origen, directorio_yamafs, folderList, "BIN", (int)fileStat.st_size);
+/*	char* ruta_metadata = getRutaMetadata(path_archivo_origen, folderList, carpeta);
 
 	FILE* metadata = fopen(ruta_metadata,"w+");
 
@@ -659,7 +668,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 
 	fprintf(metadata,"%s%s",ruta_metadata,"\n");
 	fprintf(metadata,"%s%s%s","TAMANIO=",string_itoa((int)fileStat.st_size),"\n");
-	fprintf(metadata,"%s%s%s","TIPO=","BIN","\n"); //
+	fprintf(metadata,"%s%s%s","TIPO=","BIN","\n");*/
 
 
 
@@ -671,6 +680,10 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 	int iteration=0;
 	int bloque = 0;
 
+	void* buffer;
+	size_t bytesRead;
+	buffer = malloc(sizeof(char)*1024*1024);
+
 
 	while(!feof(origen)){
 		bytesRead = 0;
@@ -678,7 +691,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 		nodo = list_get(nodos,nodopos);
 		socketnodo = nodo->socket_nodo;
 		int err = enviarInt(socketnodo,ESCRIBIR_BLOQUE_NODO);
-		enviarInt(socketnodo,ENVIAR_ARCHIVO_BINARIO);
+		//enviarInt(socketnodo,ENVIAR_ARCHIVO_BINARIO);
 		if(err<0){
 			printf("error de conexion con el nodo %s\n", nodo->nombre_nodo);
 		}
@@ -687,14 +700,10 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 		if(enviarInt(socketnodo,bloque) > 0){
 			bitarray_set_bit(t_fs_bitmap,bloque*8);
 			escribirBitMap(nodo->tamanio, nodo->nombre_nodo, t_fs_bitmap);
+			int leido = fread(buffer, 1, sizeof(char)*1024*1024, origen);
+			bytesRead += leido;
 
-
-			while(!feof(origen) && bytesRead<1024*1024){
-			  int leido = fread(buffer, 1, sizeof(char)*4096, origen);
-			  bytesRead += leido;
-			  enviarInt(socketnodo,leido);
-			  send(socketnodo,buffer,(size_t)leido,NULL);
-			}
+			escribirBloque(socketnodo, bloque, buffer, leido);
 			fprintf(metadata,"%s%d%s%s%s%d%s%s","BLOQUE",iteration,"=[",nodo->nombre_nodo, ", ", bloque, "]","\n");
 			fprintf(metadata,"%s%d%s%d%s","BLOQUE",iteration,"BYTES=",bytesRead, "\n");
 		}
@@ -712,14 +721,58 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 }
 
 
+int escribirBloque(int socketnodo, int bloque, void * buffer, int largoAMandar){
 
-void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList){
+	 enviarInt(socketnodo,largoAMandar);
+	 int enviado = 0;
+	 while(enviado < largoAMandar){
+		 int err = 0;
 
+		 int i = largoAMandar - enviado;
+		 if(i>=4096){
+			 i = 4096;
+		 }
+
+		 enviarInt(socketnodo,i);
+		 err = send(socketnodo,buffer+enviado,(size_t)sizeof(char)*i,NULL);
+		 if(err <= 0){
+			 return -1;
+		 }else {
+			 enviado += err;
+		 }
+	 }
+	return enviado;
+}
+
+
+FILE * crearMetadata(char * destino, char* directorio_yamafs, t_list* folderList, char* tipo, int tamanio){
 	int carpeta = 0;
 	carpeta = identificaDirectorio(directorio_yamafs, folderList);
 
+	char* ruta_metadata = getRutaMetadata(destino, folderList, carpeta);
 
-	size_t bytesRead;
+		FILE* metadata = fopen(ruta_metadata,"w+");
+
+		if (metadata == NULL){
+				fprintf(stderr, "Fallo al guardar metadata en %s %s\n",metadata, strerror(errno));
+				//exit(EXIT_FAILURE);
+			}
+
+		fprintf(metadata,"%s%s",ruta_metadata,"\n");
+		fprintf(metadata,"%s%s%s","TAMANIO=",string_itoa(tamanio),"\n");
+		fprintf(metadata,"%s%s%s","TIPO=",tipo,"\n");
+
+		return metadata;
+
+}
+
+void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList){
+/*
+	int carpeta = 0;
+	carpeta = identificaDirectorio(directorio_yamafs, folderList);
+*/
+
+	//size_t bytesRead;
 
 
 	FILE* origen = fopen(path_archivo_origen, "rb");
@@ -735,7 +788,9 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 			exit(EXIT_FAILURE);
 		}
 
-	char* ruta_metadata = getRutaMetadata(path_archivo_origen, folderList, carpeta);
+	FILE * metadata = crearMetadata(path_archivo_origen, directorio_yamafs, folderList, "TEXTO", (int)fileStat.st_size);
+
+	/*char* ruta_metadata = getRutaMetadata(path_archivo_origen, folderList, carpeta);
 
 	FILE* metadata = fopen(ruta_metadata,"w+");
 
@@ -746,8 +801,8 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 
 	fprintf(metadata,"%s%s",ruta_metadata,"\n");
 	fprintf(metadata,"%s%s%s","TAMANIO=",string_itoa((int)fileStat.st_size),"\n");
-	fprintf(metadata,"%s%s%s","TIPO=","TEXTO","\n"); //
-
+	fprintf(metadata,"%s%s%s","TIPO=","TEXTO","\n");
+*/
 
 
 	int nodopos = 0;
@@ -762,7 +817,7 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 	char * hastaNuevaLinea;
 	hastaNuevaLinea = malloc(1024*1024);
 	while(!feof(origen)){
-		bytesRead = 0;
+
 		t_bitarray* t_fs_bitmap;
 		nodo = list_get(nodos,nodopos);
 		socketnodo = nodo->socket_nodo;
@@ -777,8 +832,7 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 			bitarray_set_bit(t_fs_bitmap,bloque*8);
 			escribirBitMap(nodo->tamanio, nodo->nombre_nodo, t_fs_bitmap);
 
-
-			enviarInt(socketnodo,ENVIAR_ARCHIVO_TEXTO);
+			//enviarInt(socketnodo,ENVIAR_ARCHIVO_TEXTO);
 			int largo= 0;
 			char * aMandar = string_new();
 			string_append(&aMandar,hastaNuevaLinea);
@@ -789,7 +843,8 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 
 				 if(largo>=1024*1024 || feof(origen)){
 					 int largoAMandar = strlen(aMandar);
-					 enviarInt(socketnodo,largoAMandar);
+					 escribirBloque(socketnodo, bloque, aMandar, largoAMandar);
+					 /*enviarInt(socketnodo,largoAMandar);
 					 int enviado = 0;
 					 while(enviado < largoAMandar){
 						 char buff[4096];
@@ -800,17 +855,14 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 
 						 enviarInt(socketnodo,i);
 						 enviado += send(socketnodo,buff,(size_t)i,NULL);
-					 }
-//					 enviarMensaje(socketnodo,aMandar);
-//					 enviarInt(socketnodo,strlen(aMandar));
-//					 send(socketnodo,aMandar,(size_t)strlen(aMandar),NULL);
+					 }*/
+
 					 fprintf(metadata,"%s%d%s%s%s%d%s%s","BLOQUE",iteration,"=[",nodo->nombre_nodo, ", ", bloque, "]","\n");
 					 fprintf(metadata,"%s%d%s%d%s","BLOQUE",iteration,"BYTES=",largoAMandar, "\n");
 					 free(aMandar);
 					 //break;
 				 } else {
 					 string_append(&aMandar,hastaNuevaLinea);
-
 				 }
 
 			}
@@ -827,7 +879,9 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 	free(hastaNuevaLinea);
 	fclose(origen);
 	fclose(metadata);
+	printf("¡Archivo guardado con éxito! Cantidad de bloques: %d\n", iteration);
 }
+
 
 int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer){
 	int error = 0;
@@ -950,6 +1004,7 @@ void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList)
 
     //linea de TIPO, todavía no hace nada particular
     getline(&line, &len, metadata);
+    FILE * destino = fopen(archivoABuscar,"wb");
 
 	while (!feof(metadata)) {
 
@@ -989,6 +1044,7 @@ void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList)
 		*/
 
 		copiaNotAvail = leerBloque(nodoBloque, bloque, sizeBloque, buffer);
+		fprintf(destino,"%s",buffer);
 
 		/*
 		if(copiaNotAvail <= 0){
@@ -999,10 +1055,10 @@ void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList)
 	}
 
 	fclose(metadata);
-
+	fclose(destino);
 	if (line){
 	   free(line);}
-	exit(EXIT_SUCCESS);
+	//exit(EXIT_SUCCESS);
 }
 
 char* replace_char(char* str, char find, char replace){

@@ -69,10 +69,11 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList);
 int obtenerMD5Archivo(char * archivo);
 
+int escribirBloque(int socketnodo, int bloque, void * buffer, int largoAMandar);
 int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer);
 void recibirDatosBloque(t_nodo * nodo);
 void escucharConexionNodo(void* socket);
-
+FILE * crearMetadata(char * destino, char* directorio_yamafs, t_list* folderList, char* tipo, int tamanio);
 
 /*Funciones de directorio.dat*/
 t_list* inicializarDirectorios();

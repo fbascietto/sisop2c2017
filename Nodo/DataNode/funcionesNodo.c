@@ -115,13 +115,16 @@ void iniciarDataNode(){
 }
 
 
-void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
+int esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 
 	unsigned char* map;
-	map = malloc(sizeof(unsigned char)*(1024*1024));
+	//map = malloc(sizeof(unsigned char)*(1024*1024));
 	int bloque;
 	int err = recibirInt(socketConn, &bloque);
-	if(err>0){
+	if(err<=0){
+		return -1;
+
+	}
 		printf("se recibio solicitud para escribir el bloque %d \n", bloque);
 		char * bloqueArchivo;
 		bloqueArchivo = malloc((size_t)4096);
@@ -148,32 +151,6 @@ void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 		int paquetesRecibidos=0;
 		int bytesRecibidos = 0;
 		int recibido = 0;
-		recibirInt(socketConn,&tipo_archivo);
-		switch(tipo_archivo){
-			case ENVIAR_ARCHIVO_BINARIO:
-
-				while(paquetesRecibidos < 1024*1024/4096){
-					int bytesAleer = 0;
-					recibirInt(socketConn,&bytesAleer);
-					while(bytesRecibidos<bytesAleer){
-						bytesRecibidos += recv(socketConn,bloqueArchivo,(size_t)bytesAleer-bytesRecibidos,NULL);
-						for (;i<(4096)*paquetesRecibidos;i++){
-							map[i]=bloqueArchivo[j];
-							j++;
-						}
-						j=0;
-					}
-					bytesRecibidos = 0;
-					paquetesRecibidos++;
-
-					if(bytesAleer < 4096){
-						break;
-					}
-				}
-				break;
-
-			case ENVIAR_ARCHIVO_TEXTO:
-				//while(bytesRecibidos < 1024*1024){
 
 				recibirInt(socketConn,&largoMensaje);
 
@@ -203,16 +180,13 @@ void esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 					}*/
 
 				printf("se escribieron %d caracteres\n",recibido);
-				break;
-		}
-
 
 		printf("se termino de escribir el bloque %d \n", bloque);
 		munmap(map,fileStat.st_size);
 		// free(map);
 		free(bloqueArchivo);
 		close(data);
-	}
+	return recibido;
 }
 
 
