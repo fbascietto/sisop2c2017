@@ -885,7 +885,7 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 }
 
 
-int traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList){
+int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList){
 
 	int carpeta = identificaDirectorio(archivoABuscar, folderList);
 	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
@@ -914,9 +914,17 @@ int traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList){
 
     //linea de TIPO, todavía no hace nada particular
     getline(&line, &len, metadata);
-    FILE * destino = fopen(archivoABuscar,"wb+");
+    char * pathObjetivo = string_new();
+    if(directorio != NULL){
+		string_append(&pathObjetivo,directorio);
+		if(!string_ends_with(directorio, "/")){
+			string_append(&pathObjetivo,"/");
+		}
+    }
+    string_append(&pathObjetivo,archivoABuscar);
+    FILE * destino = fopen(pathObjetivo,"wb+");
     if(destino == NULL){
-    	printf("problema al recopilar archivo %s", archivoABuscar);
+    	printf("problema al recopilar archivo %s", pathObjetivo);
     	return -1;
     }
 
