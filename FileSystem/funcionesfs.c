@@ -210,21 +210,23 @@ int identificaDirectorio(char* directorio_yamafs, t_list* folderList){
 
 	if(!string_starts_with(directorio_yamafs,"yamafs:")){
 		return -1;
-		}
-	else {
+	}
+
 	int i = 0;
 	char* ruta;
 	ruta = replace_str(directorio_yamafs,"yamafs:","");
 	char** arrayString = string_split(ruta,"/");
 	while (arrayString[i]!= NULL){
 		if((strchr(arrayString[i],'.') != NULL) && (arrayString[i+1] == NULL)){ //ignoro el componente "archivo" de la ruta, considero el fin cuando lo recibí
+
 			break;
 		}
 		carpetaActual = cambiarAdirectorio(arrayString[i],carpetaActual,folderList);
 		i++;
 	}
+	strcpy(directorio_yamafs,arrayString[i-1]);
 	return carpetaActual->index;
-	}
+
 }
 
 void *esperarConexiones(void *args) {
@@ -883,99 +885,7 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 }
 
 
-int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer){
-	int error = 0;
-	error = enviarInt(nodo->socket_nodo, LEER_BLOQUE_NODO);
-	if(error<=0){
-		return error;
-	}
-	error = enviarInt(nodo->socket_nodo, bloque);
-	if(error<=0){
-			return error;
-		}
-	error = enviarInt(nodo->socket_nodo, largo);
-	if(error<=0){
-			return error;
-	}
-	int bytesRecibidos = 0;
-	int largoArecibir = 0;
-	int err1 = 0;
-	while(bytesRecibidos<largo){
-		err1 = recibirInt(nodo->socket_nodo,&largoArecibir);
-		if(err1<=0){
-			break;
-		}
-		void * buf;
-		buf = malloc((size_t)largoArecibir);
-		err1 = recv(nodo->socket_nodo,buf,largoArecibir,NULL);
-		if(err1<=0){
-			free(buf);
-			break;
-		}
-		buffer[bytesRecibidos] = buf;
-		bytesRecibidos += err1;
-		printf("recibido");
-		//printf("%s", buf);
-		free(buf);
-	}
-
-	if(err1<=0){
-		return err1;
-	}else{
-		printf("%s", buffer);
-		return bytesRecibidos;
-	}
-
-}
-
-void recibirDatosBloque(t_nodo * nodo){
-	int bytesRecibidos = 0;
-	int largoArecibir = 0;
-		//while(bytesRecibidos<largo){
-			recibirInt(nodo->socket_nodo,&largoArecibir);
-			void * buffer;
-			buffer = malloc((size_t)largoArecibir);
-			bytesRecibidos += recv(nodo->socket_nodo,buffer,largoArecibir,NULL);
-			printf("recibido");
-			printf("%s", buffer);
-			free(buffer);
-		//}
-}
-
-
-
-int obtenerMD5Archivo(char * archivo){
-		unsigned char c[MD5_DIGEST_LENGTH];
-
-	    int i;
-	    FILE *inFile = fopen (archivo, "rb");
-	    MD5_CTX mdContext;
-	    int bytes;
-	    unsigned char data[1024];
-
-	    if (inFile == NULL) {
-	        printf ("%s can't be opened.\n", archivo);
-	        return -1;
-	    } else {
-
-			if(MD5_Init (&mdContext)<0){
-				return -1;
-			}
-				while ((bytes = fread (data, 1, 1024, inFile)) != 0){
-					if(	MD5_Update (&mdContext, data, bytes) < 0){
-						return -1;
-					}
-				}
-				if(MD5_Final (c,&mdContext)<0) return -1;
-				for(i = 0; i < MD5_DIGEST_LENGTH; i++) printf("%02x", c[i]);
-				printf (" %s\n", archivo);
-				fclose (inFile);
-	    }
-
-	    return 1;
-}
-
-void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList){
+int traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList){
 
 	int carpeta = identificaDirectorio(archivoABuscar, folderList);
 	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
@@ -1004,7 +914,11 @@ void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList)
 
     //linea de TIPO, todavía no hace nada particular
     getline(&line, &len, metadata);
-    FILE * destino = fopen(archivoABuscar,"wb");
+    FILE * destino = fopen(archivoABuscar,"wb+");
+    if(destino == NULL){
+    	printf("problema al recopilar archivo %s", archivoABuscar);
+    	return -1;
+    }
 
 	while (!feof(metadata)) {
 
@@ -1046,10 +960,10 @@ void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList)
 		copiaNotAvail = leerBloque(nodoBloque, bloque, sizeBloque, buffer);
 		fprintf(destino,"%s",buffer);
 
-		/*
-		if(copiaNotAvail <= 0){
 
-		} */
+		if(copiaNotAvail <= 0){
+			return copiaNotAvail;
+		}
 
 		free(buffer);
 	}
@@ -1058,8 +972,102 @@ void traerArchivoDeFs(char* archivoABuscar, void* parametro, t_list* folderList)
 	fclose(destino);
 	if (line){
 	   free(line);}
-	//exit(EXIT_SUCCESS);
+	return 1;
 }
+
+
+
+int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer){
+	int error = 0;
+	error = enviarInt(nodo->socket_nodo, LEER_BLOQUE_NODO);
+	if(error<=0){
+		return error;
+	}
+	error = enviarInt(nodo->socket_nodo, bloque);
+	if(error<=0){
+			return error;
+		}
+	error = enviarInt(nodo->socket_nodo, largo);
+	if(error<=0){
+			return error;
+	}
+	int recibido = 0;
+	int bytesRecibidos = 0;
+	int i = 0;
+	int j = 0;
+
+	while(recibido<largo){
+			int bytesAleer = 0;
+			recibirInt(nodo->socket_nodo,&bytesAleer);
+			unsigned char * buff;
+			buff = malloc((size_t)bytesAleer);
+			while(bytesRecibidos<bytesAleer){
+				int rec =  recv(nodo->socket_nodo,buff,(size_t)bytesAleer-bytesRecibidos,NULL);
+				bytesRecibidos += rec;
+				for (;j<rec;j++){
+					buffer[i]=buff[j];
+					i++;
+				}
+				j=0;
+			}
+			free(buff);
+			recibido += bytesRecibidos;
+			bytesRecibidos = 0;
+
+	}
+
+		//printf("%s", buffer);
+		return bytesRecibidos;
+
+}
+
+void recibirDatosBloque(t_nodo * nodo){
+	int bytesRecibidos = 0;
+	int largoArecibir = 0;
+		//while(bytesRecibidos<largo){
+			recibirInt(nodo->socket_nodo,&largoArecibir);
+			void * buffer;
+			buffer = malloc((size_t)largoArecibir);
+			bytesRecibidos += recv(nodo->socket_nodo,buffer,largoArecibir,NULL);
+			printf("recibido");
+			printf("%s", buffer);
+		//	free(buffer);
+		//}
+}
+
+
+
+int obtenerMD5Archivo(char * archivo){
+		unsigned char c[MD5_DIGEST_LENGTH];
+
+	    int i;
+	    FILE *inFile = fopen (archivo, "rb");
+	    MD5_CTX mdContext;
+	    int bytes;
+	    unsigned char data[1024];
+
+	    if (inFile == NULL) {
+	        printf ("%s can't be opened.\n", archivo);
+	        return -1;
+	    } else {
+
+			if(MD5_Init (&mdContext)<0){
+				return -1;
+			}
+				while ((bytes = fread (data, 1, 1024, inFile)) != 0){
+					if(	MD5_Update (&mdContext, data, bytes) < 0){
+						return -1;
+					}
+				}
+				if(MD5_Final (c,&mdContext)<0) return -1;
+				for(i = 0; i < MD5_DIGEST_LENGTH; i++) printf("%02x", c[i]);
+				printf (" %s\n", archivo);
+				fclose (inFile);
+	    }
+
+	    return 1;
+}
+
 
 char* replace_char(char* str, char find, char replace){
     char *current_pos = strchr(str,find);

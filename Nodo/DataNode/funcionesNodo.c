@@ -238,7 +238,7 @@ int leerBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 
 			int bytes_totales_leidos = 0;
 			int bytes_leidos = 0;
-			enviarInt(socketConn, LEER_BLOQUE_NODO);
+			//enviarInt(socketConn, LEER_BLOQUE_NODO);
 			while(bytes_totales_leidos < bytesAleer){
 				unsigned char * buffer;
 				buffer = malloc((size_t)4096);
@@ -248,7 +248,10 @@ int leerBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 					bytes_leidos++;
 				}
 				enviarInt(socketConn,bytes_leidos);
-				send(socketConn,buffer,(size_t) bytes_leidos,NULL);
+				int bytes_leidos_eviados = 0;
+				while(bytes_leidos_eviados<bytes_leidos){
+					bytes_leidos_eviados += send(socketConn,buffer+bytes_leidos_eviados,(size_t) bytes_leidos-bytes_leidos_eviados,NULL);
+				}
 					/*free(buffer);
 					printf("error de conexion con el fs");
 					return -1;
