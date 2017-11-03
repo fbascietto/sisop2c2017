@@ -52,6 +52,7 @@ t_list* inicializarDirectorios(){
 
 		FILE *fptr;
 	    t_directory *folders;
+
 	    int nuevo = 0;
 
 	    fptr = fopen("./metadata/directorios.dat", "r");
@@ -615,7 +616,7 @@ void *escucharConsola(){
 			  printf("cat [path_archivo] - Muestra el contenido del archivo como texto plano.\n");
 			  printf("mkdir [path_dir] - Crea un directorio. Si el directorio ya existe, el comando deberá informarlo.\n");
 			  printf("cpfrom [path_archivo_origen] [directorio_yamafs] [tipo_archivo]- Copiar un archivo local al yamafs, siguiendo los lineamientos en la operación Almacenar Archivo de la Interfaz del FileSystem. 1 para archivo de texto o 0 para binario, si no se especifica, por defecto se considera archivo binario.\n");
-			  printf("cpto [path_archivo_yamafs] [directorio_filesystem] - Copiar un archivo local al yamafs.\n");
+			  printf("cpto [path_archivo_yamafs] [directorio_filesystem] - Copiar un archivo local desde el yamafs.\n");
 			  printf("cpblock [path_archivo] [nro_bloque] [id_nodo] - Crea una copia de un bloque de un archivo en el nodo dado.\n");
 			  printf("md5 [path_archivo_yamafs] - Solicitar el MD5 de un archivo en yamafs.\n");
 			  printf("ls [path_directorio] - Lista los archivos de un directorio.\n");
@@ -856,13 +857,12 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 			int largo= 0;
 			char * aMandar = string_new();
 			string_append(&aMandar,hastaNuevaLinea);
-			largo += strlen(hastaNuevaLinea);
 			while(!feof(origen) && largo<1024*1024){
 				fgets(hastaNuevaLinea,1024*1024,origen);
 
 				largo += strlen(hastaNuevaLinea);
 
-				 if(largo>1024*1024 || feof(origen)){
+				 if(largo>=1024*1024 || feof(origen)){
 					 int largoAMandar = strlen(aMandar);
 					 escribirBloque(socketnodo, bloque, aMandar, largoAMandar);
 					 /*enviarInt(socketnodo,largoAMandar);
@@ -918,6 +918,9 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList)
 	if (metadata == NULL){
 		exit(EXIT_FAILURE);}
 
+	t_list *listaBloques;
+	listaBloques = list_create();
+
 	//linea de la ruta
 	getline(&line, &len, metadata);
 	//linea de tamaño
@@ -927,76 +930,73 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList)
 
 	parametros = string_split(line,"=");
 	int tamArch = atoi(parametros[1]);
-	int sumaBloq = 0;
+
     int copiaNotAvail = 0;
-    int sizeBloque = 0;
 
     //linea de TIPO, todavía no hace nada particular
     getline(&line, &len, metadata);
 
-    char * pathObjetivo = string_new();
-    if(directorio != NULL){
-		string_append(&pathObjetivo,directorio);
-		if(!string_ends_with(directorio, "/")){
-			string_append(&pathObjetivo,"/");
-		}
-    }
-    string_append(&pathObjetivo,archivoABuscar);
-    FILE * destino = fopen(pathObjetivo,"wb+");
-    if(destino == NULL){
-    	printf("problema al recopilar archivo %s", pathObjetivo);
-    	return -1;
-    }
-
 	while (!feof(metadata)) {
 
-		char** arrayBloqueC0;
-		char** arrayBloqueC1;
-		t_nodo* nodoBloque;
+//		char** arrayBloqueC0;
+//		char** arrayBloqueC1;
+//		t_nodo* nodoBloque;
+
 		int bloque;
+
+		t_bloque* currentBloque;
+		currentBloque = malloc(sizeof(t_directory));
 
 		/* SECTOR COPIA 0 */
 		getline(&line, &len, metadata);
 		parametros = string_split(line,"=");
-		arrayBloqueC0 =string_get_string_as_array(parametros[1]);
-		// arrayBloqueC0[0] es nombre Nodo donde esta la copia 0
-		bloque = atoi(arrayBloqueC0[1]); //arrayBloque[1] es bloque de ese nodo donde esta la copia 0
+		currentBloque->bloque = atoi(replace_char(replace_char(parametros[0],"BLOQUE", ""),"COPIA0", ""));
+		strcpy(currentBloque->Copia0, parametros[1]);// string_get_string_as_array(parametros[1]);
+
 
 		/* SECTOR COPIA 1
 		getline(&line, &len, metadata);
 		parametros = string_split(line,"=");
-		arrayBloqueC1 =string_get_string_as_array(parametros[1]);
-		// arrayBloqueC1[0] es nombre Nodo donde esta la copia 1
-		// arrayBloqueC1[1] es bloque de ese nodo donde esta la copia 1 */
+		strcpy(currentBloque->Copia1, parametros[1]);// string_get_string_as_array(parametros[1]); */
+
+
+		// currentBloque->Copia0 donde esta la copia 0, formato "[NOMBRENODO, NUMEROBLOQUE]"
+		// currentBloque->Copia1 donde esta la copia 1, formato "[NOMBRENODO, NUMEROBLOQUE]"
 
 		/*SECTOR TAMAÑO EN BYTES */
 		getline(&line, &len, metadata);
 		parametros = string_split(line,"=");
-		sizeBloque = atoi(parametros[1]);
+		currentBloque->tamanio_bloque = atoi(parametros[1]);
 
-		/*Ya tengo el nodo y el bloque que se pide, y el tamaño que debería leer. Acá traigo bloque y hago lo que tengo que hacer, ya sea cat o cpto*/
-
-		nodoBloque = getNodoPorNombre(arrayBloqueC0[0],nodos);
-
-		unsigned char* buffer;
-		buffer = malloc(sizeBloque);
-
-		/*
-		 acá intento traer el bloque, si no puedo con C0, marco el flag copiaNotAvail y lo uso para intentar lo mismo para copia1
-		*/
-
-		copiaNotAvail = leerBloque(nodoBloque, bloque, sizeBloque, buffer);
-		fprintf(destino,"%s",buffer);
-
+		/*Ya tengo el nodo y el bit donde esta el bloque, de dos fuentes distintas, y el tamaño que debería leer. Agrego todo a la lista*/
+		list_add(listaBloques, currentBloque);
 
 		if(copiaNotAvail <= 0){
 			return copiaNotAvail;
 		}
 
-		free(buffer);
 	}
 
 	fclose(metadata);
+
+	char * pathObjetivo = string_new();
+	    if(directorio != NULL){
+			string_append(&pathObjetivo,directorio);
+			if(!string_ends_with(directorio, "/")){
+				string_append(&pathObjetivo,"/");
+			}
+	    }
+
+	    string_append(&pathObjetivo,archivoABuscar);
+	    FILE * destino = fopen(pathObjetivo,"wb+");
+	    if(destino == NULL){
+	    	printf("problema al recopilar archivo %s", pathObjetivo);
+	    	return -1;
+	    }
+
+	/* TODO: ACA TENGO QUE RECORRER LA LISTA QUE ARME CON BLOQUES, TRAYENDO TODO EN ORDEN E IMPRIMIÉNDOLO EN "DESTINO"
+	 * ACTUALMENTE DESTINO ES LA RUTA DONDE SE ESTÁ EJECUTANDO EL FS */
+
 	fclose(destino);
 
 	if (line){

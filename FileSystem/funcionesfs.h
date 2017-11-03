@@ -48,6 +48,13 @@ typedef struct {
   int espacioLibre;
 } t_nodo;
 
+typedef struct {
+	int bloque;
+	char* Copia0;
+	char* Copia1;
+	int tamanio_bloque;
+} t_bloque;
+
 pthread_mutex_t mx_nodobin;
 
 void *escucharConsola();
