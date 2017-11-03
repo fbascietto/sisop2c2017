@@ -10,6 +10,8 @@
 #include "../bibliotecas/serializacion.c"
 #include <openssl/md5.h>
 
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
 
 void levantarNodos(int clean){
 
@@ -103,7 +105,7 @@ void listarDirectorios(t_list* folderList, t_directory* carpetaActual){
 
 		void* imprimoCarpetas(void* parametro){
 				t_directory* carpeta = (t_directory*) parametro;
-				printf("%s ", carpeta->nombre);
+				printf(ANSI_COLOR_CYAN "%s " ANSI_COLOR_RESET, carpeta->nombre);
 			}
 
 		bool* carpetasNivelActual(void* parametro) {
@@ -115,8 +117,8 @@ void listarDirectorios(t_list* folderList, t_directory* carpetaActual){
 		listado = list_filter(folderList, carpetasNivelActual);
 
 		list_iterate(listado,imprimoCarpetas);
+		printf("");
 
-		printf("\n");
 }
 
 void ordenoDirectorios(t_list* folderList){
@@ -178,7 +180,9 @@ t_directory * cambiarAdirectorio(char* nombre, t_directory* carpetaActual, t_lis
 		carpetaNueva= list_get(carpetas,i);
 		switch(list_size(carpetas)){
 			case 0:
-				printf("Directorio inexistente\n");
+				if((strchr(nombre,'.') != NULL)){
+				} else {printf("Directorio inexistente\n");
+				}
 				return carpetaActual;
 			break;
 			/*case 1:
@@ -217,10 +221,10 @@ int identificaDirectorio(char* directorio_yamafs, t_list* folderList){
 	ruta = replace_str(directorio_yamafs,"yamafs:","");
 	char** arrayString = string_split(ruta,"/");
 	while (arrayString[i]!= NULL){
-		if((strchr(arrayString[i],'.') != NULL) && (arrayString[i+1] == NULL)){ //ignoro el componente "archivo" de la ruta, considero el fin cuando lo recibí
+		/*if((strchr(arrayString[i],'.') != NULL) && (arrayString[i+1] == NULL)){ //ignoro el componente "archivo" de la ruta, considero el fin cuando lo recibí
 
 			break;
-		}
+		}*/
 		carpetaActual = cambiarAdirectorio(arrayString[i],carpetaActual,folderList);
 		i++;
 	}
@@ -287,6 +291,7 @@ int recibirConexionDataNode(int nuevoSocket){
 	printf("Cuenta con %d bloques en total.\n", nodo->tamanio/(1024*1024));
 
 	creaAbreBitmap(nodo->tamanio,nodo->nombre_nodo);
+
 	/*int i;
 	int encontrado = 0;
 	for(i = 0; i<list_size(nodos);i++){
@@ -424,7 +429,6 @@ void deserializar_a_nodo(void* serializado, t_nodo *nodo){
 	deserializar_a_int(serializado, &nodo->tamanio,&offset);
 	deserializar_a_int(serializado, &nodo->espacioLibre,&offset);
 	deserializar_a_string(serializado, nodo->nombre_nodo, sizeof(char[10]),&offset);
-
 }
 
 void actualizarNodosBin(){
@@ -585,12 +589,20 @@ void *escucharConsola(){
 			log_trace(logFS,"Consola recibe ""ls""");
 
 			listarDirectorios(carpetas, carpetaActual);
+			char* ruta =string_new();
+			string_append(&ruta, "ls metadata/archivos/");
+			string_append(&ruta, string_itoa(carpetaActual->index));
+			string_append(&ruta, " | tr '\n' ' '");
+			system(ruta);
+			printf("\n");
 			//printf("Seleccionaste ver directorios y archivos\n");
 
 		}else
 		if(!strncmp(linea, "info", 4)) {
 			log_trace(logFS,"Consola recibe ""info""");
-			printf("Seleccionaste obtener informacion\n");
+			//printf("Seleccionaste obtener informacion\n");
+			char ** parametros = string_split(linea, " ");
+			imprimeMetadata(parametros[1], carpetas);
 
 		}else
 		if(!strncmp(linea, "help",4)) {
@@ -642,10 +654,12 @@ char* getRutaMetadata(char* ruta_archivo, t_list* folderList, int carpeta){
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList){
 
 	/*int carpeta = 0;
-	carpeta = identificaDirectorio(directorio_yamafs, folderList);
-*/
+	carpeta = identificaDirectorio(directorio_yamafs, folderList);*/
+
+
 	FILE* origen = fopen(path_archivo_origen, "rb");
 	int fd = fileno(origen);
+
 	struct stat fileStat;
 			if (fstat(fd, &fileStat) < 0){
 				  fprintf(stderr, "Error fstat --> %s\n", strerror(errno),"\n");
@@ -659,6 +673,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 
 
 	FILE * metadata = crearMetadata(path_archivo_origen, directorio_yamafs, folderList, "BIN", (int)fileStat.st_size);
+
 /*	char* ruta_metadata = getRutaMetadata(path_archivo_origen, folderList, carpeta);
 
 	FILE* metadata = fopen(ruta_metadata,"w+");
@@ -713,6 +728,9 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 		if(nodopos >= list_size(nodos)){
 			nodopos = 0;
 		}
+
+
+
 	  iteration++;
 	}
 
@@ -915,6 +933,7 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList)
 
     //linea de TIPO, todavía no hace nada particular
     getline(&line, &len, metadata);
+
     char * pathObjetivo = string_new();
     if(directorio != NULL){
 		string_append(&pathObjetivo,directorio);
@@ -979,11 +998,11 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList)
 
 	fclose(metadata);
 	fclose(destino);
+
 	if (line){
 	   free(line);}
 	return 1;
 }
-
 
 
 int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer){
@@ -1075,6 +1094,31 @@ int obtenerMD5Archivo(char * archivo){
 	    }
 
 	    return 1;
+}
+
+void * imprimeMetadata(char* rutaEnYamafs, t_list* folderList){
+
+	int carpeta = identificaDirectorio(rutaEnYamafs, folderList);
+	char* ruta_metadata = getRutaMetadata(rutaEnYamafs,folderList, carpeta);
+
+	FILE * metadata;
+
+	char * line = NULL;
+	size_t len = 0;
+
+	metadata = fopen(ruta_metadata,"r");
+
+	do {
+		getline(&line, &len, metadata);
+		if(feof(metadata)){break;};
+		printf("%s", line);
+	} while (!feof(metadata));
+
+	fclose(metadata);
+
+	if (line){
+	   free(line);}
+
 }
 
 

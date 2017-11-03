@@ -68,6 +68,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList);
 int traerArchivoDeFs(char* archivoABuscar, char* parametro, t_list* folderList);
 int obtenerMD5Archivo(char * archivo);
+void * imprimeMetadata(char* rutaEnYamafs, t_list* folderList);
 
 int escribirBloque(int socketnodo, int bloque, void * buffer, int largoAMandar);
 int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer);
