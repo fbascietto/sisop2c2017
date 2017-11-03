@@ -1,6 +1,7 @@
 #include "funcionesyama.h"
 #include "prePlanificacion.h"
 #include "../bibliotecas/protocolo.h"
+#include "../bibliotecas/estructuras.h"
 
 
 
@@ -155,10 +156,9 @@ solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinalMock(char* message){
  * TO DO
  * no son la version final
  */
-solicitud_transformacion* obtenerSolicitudTrasnformacion(t_job* job){//t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasTemporales){
+solicitud_transformacion* obtenerSolicitudTrasnformacion(t_job* job){
 	int i;
 	t_estado* unEstado;
-	char* rutaArchivoTemporal;
 	int tamanioJob = list_size(job->estadosJob);
 
 	// menos 1 porque esta el de reduccion global en la planificacion
@@ -190,7 +190,6 @@ solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job){ // t_list
 	t_estado* unEstado;
 	t_estado* estadoAux;
 	archivo_temp* listaRutasTransformacion;
-	char* rutaArchivoTemporal;
 	int tamanioJob = list_size(job->estadosJob);
 
 	solicitud_reduccion_local* solicitud = malloc(sizeof(solicitud_reduccion_local));
@@ -225,7 +224,6 @@ solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job){ //t_lis
 
 	int i;
 	t_estado* unEstado;
-	char* rutaArchivoTemporal;
 	int tamanioJob = list_size(job->estadosJob);
 
 	solicitud_reduccion_global* solicitud = malloc(sizeof(solicitud_reduccion_global));
@@ -257,7 +255,6 @@ solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_job* job){ //t_nod
 
 	int i;
 	t_estado* unEstado;
-	char* rutaArchivoTemporal;
 	int tamanioJob = list_size(job->estadosJob);
 
 	solicitud_almacenado_final* solicitud = malloc(sizeof(solicitud_almacenado_final));
@@ -341,7 +338,7 @@ void procesarSolicitudMaster(nuevoSocket){
  */
 char* generarRutaTemporal(){
 	rutaGlobal++;
-	char ruta[50];
+	char* ruta = malloc(LENGTH_RUTA_ARCHIVO_TEMP);
 	sprintf(ruta, "/tmp/%d", rutaGlobal);
 	return ruta;
 }

@@ -359,40 +359,58 @@ t_list* replanificacion(t_list* listaNodos, int nodoFallado, t_list* bloques, in
 
 
 void estadisticas(void* unaPlanif){
-	t_planificacion* unaPlanificacion = (t_planificacion*) unaPlanif;
-	if(unaPlanificacion->reduccionGlobal == 0){
+	t_estado* unaPlanificacion = (t_estado*) unaPlanif;
+	if(unaPlanificacion->nodoPlanificado->reduccionGlobal == 0){
 		printf("bloque: %d nodo: %d cargaDeTrabajoActual: %d \n",
-			unaPlanificacion->bloque->numeroBloque, unaPlanificacion->nodo->idNodo, unaPlanificacion->nodo->cargaDeTrabajoActual);
+			unaPlanificacion->nodoPlanificado->bloque->numeroBloque,
+			unaPlanificacion->nodoPlanificado->nodo->idNodo,
+			unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajoActual);
 	}else{
 		printf("nodo de reduccion final: %d con una cargaDeTrabajoActual: %d \n",
-			unaPlanificacion->nodo->idNodo, unaPlanificacion->nodo->cargaDeTrabajoActual);
+			unaPlanificacion->nodoPlanificado->nodo->idNodo,
+			unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajoActual);
 	}
 
 }
 
-/*
+bool quitarReduccionLocal(void* estado){
+	t_estado* unEstado = (t_estado*) estado;
+	if (strcmp(unEstado->etapa, "reduccion local") == 0){
+		return false;
+	}else{
+		return true;
+	}
+}
+
+/**
+ * todo
  * recibe una planificacion
  * y restaura todos los valores de
  * las cargas de trabajo
  */
-void terminarJob(t_list* planificacion){
+void terminarJob(t_job* job){
 	printf("finalizando job, mostrando estadisticas (pueden repetirse los nodos)\n\n");
-	int tamanioPlanificacion = list_size(planificacion);
+	t_list* estados = list_filter(job->estadosJob, quitarReduccionLocal);
+
+	int tamanioPlanificacion = list_size(estados);
 	int i;
-	t_planificacion* unaPlanificacion;
+	t_estado* unaPlanificacion;
+
+
 
 	for(i=0; i<tamanioPlanificacion; i++){
-		unaPlanificacion = list_get(planificacion, i);
-		if(unaPlanificacion->reduccionGlobal == 0){
-			unaPlanificacion->nodo->cargaDeTrabajo--;
+		unaPlanificacion = list_get(estados, i);
+		if(unaPlanificacion->nodoPlanificado->reduccionGlobal == 0){
+			unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajo--;
 		}	else{
-			unaPlanificacion->nodo->cargaDeTrabajo -= unaPlanificacion->reduccionGlobal;
+			unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajo -= unaPlanificacion->nodoPlanificado->reduccionGlobal;
 		}
-		unaPlanificacion->nodo->disponibilidad++;
+		unaPlanificacion->nodoPlanificado->nodo->disponibilidad++;
 	}
-	list_iterate(planificacion,estadisticas);
-	list_destroy(planificacion);
-	printf("planificacion finalizada exitosamente\n");
+	list_iterate(estados,estadisticas);
+	list_destroy(estados);
+	free(job);
+	printf("job finalizado exitosamente\n");
 }
 
 

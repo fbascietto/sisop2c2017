@@ -14,13 +14,9 @@
 #include <stdint.h>
 #include <commons/collections/list.h>
 #include "funcionesyama.h"
+#include "../bibliotecas/estructuras.h"
 
-/*
- * nodosConectados son todos los nodos que se conectaron
- * al filesystem en el orden que les corresponde.
- * Si alguno nuevo se conecta en algun momento, le corresponde el ultimo lugar
- */
-t_list* nodosConectados;
+
 int valorBaseTemporal;
 
 

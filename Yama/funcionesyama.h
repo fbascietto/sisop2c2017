@@ -7,6 +7,7 @@
 
 #include <sys/socket.h>
 #include <commons/config.h>
+#include <string.h>
 #include <commons/collections/list.h>
 #include "../bibliotecas/sockets.h"
 #include "../bibliotecas/protocolo.h"
@@ -29,6 +30,23 @@ char* algoritmoBalanceo;
 uint32_t nombreRutaTemporal;
 uint32_t rutaGlobal;
 
+
+/*
+ * nodosConectados son todos los nodos que se conectaron
+ * cada nodo sera de la forma t_nodo
+ * Si alguno nuevo se conecta en algun momento, le corresponde el ultimo lugar
+ */
+t_list* nodosConectados;
+
+/**
+ * jobs son todos los jobs hechos
+ * dentro cada elemento sera un t_job*
+ * queda a definir si al terminar el job debe eliminarse
+ * de la lista por un tema de espacio
+ */
+t_list* jobsActivos;
+
+t_list* jobsFinalizados;
 
 
 typedef struct {
@@ -73,6 +91,8 @@ typedef struct{
 	t_list* estadosJob;
 	int idJob;
 	int idMaster;
+	int transformaciones;
+	int reduccionesLocales;
 }t_job;
 
 void *esperarConexionMaster(void *args);

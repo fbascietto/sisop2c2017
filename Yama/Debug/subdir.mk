@@ -7,6 +7,7 @@ C_SRCS += \
 ../ejemploInicializacionNodos.c \
 ../funcionesyama.c \
 ../interface.c \
+../job.c \
 ../prePlanificacion.c \
 ../yama.c 
 
@@ -14,6 +15,7 @@ OBJS += \
 ./ejemploInicializacionNodos.o \
 ./funcionesyama.o \
 ./interface.o \
+./job.o \
 ./prePlanificacion.o \
 ./yama.o 
 
@@ -21,6 +23,7 @@ C_DEPS += \
 ./ejemploInicializacionNodos.d \
 ./funcionesyama.d \
 ./interface.d \
+./job.d \
 ./prePlanificacion.d \
 ./yama.d 
 
