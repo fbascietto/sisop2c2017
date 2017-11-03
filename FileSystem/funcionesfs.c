@@ -838,12 +838,13 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 			int largo= 0;
 			char * aMandar = string_new();
 			string_append(&aMandar,hastaNuevaLinea);
+			largo += strlen(hastaNuevaLinea);
 			while(!feof(origen) && largo<1024*1024){
 				fgets(hastaNuevaLinea,1024*1024,origen);
 
 				largo += strlen(hastaNuevaLinea);
 
-				 if(largo>=1024*1024 || feof(origen)){
+				 if(largo>1024*1024 || feof(origen)){
 					 int largoAMandar = strlen(aMandar);
 					 escribirBloque(socketnodo, bloque, aMandar, largoAMandar);
 					 /*enviarInt(socketnodo,largoAMandar);
