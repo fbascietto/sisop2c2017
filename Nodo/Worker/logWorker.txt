@@ -2,3 +2,21 @@
 [TRACE] 20:36:12:208 WORKER/(2790:2790): Lectura de archivo de configuracion
 [TRACE] 20:36:12:214 WORKER/(2790:2790): Creacion socket para conexion con Master
 [TRACE] 20:36:12:214 WORKER/(2790:2790): Esperando conexiones de Master
+[TRACE] 10:37:15:892 WORKER/(2821:2821): Lectura de archivo de configuracion
+[TRACE] 10:37:15:909 WORKER/(2821:2821): Creacion socket para conexion con Master
+[TRACE] 10:37:15:909 WORKER/(2821:2821): Esperando conexiones de Master
+[TRACE] 11:10:06:640 WORKER/(3506:3506): Programa de testing persistido
+[TRACE] 11:10:06:668 WORKER/(3506:3506): Permisos de ejecucion dados al programa de testing
+[TRACE] 11:11:58:515 WORKER/(3606:3606): Programa de testing persistido
+[TRACE] 11:11:58:517 WORKER/(3606:3606): Permisos de ejecucion dados al programa de testing
+[TRACE] 11:14:14:865 WORKER/(3693:3693): Programa de testing persistido
+[TRACE] 11:14:14:868 WORKER/(3693:3693): Permisos de ejecucion dados al programa de testing
+[TRACE] 11:17:12:93 WORKER/(3803:3803): Programa de testing persistido
+[TRACE] 11:17:12:97 WORKER/(3803:3803): Permisos de ejecucion dados al programa de testing
+[TRACE] 11:22:51:615 WORKER/(4025:4025): Programa de testing persistido
+[TRACE] 11:22:51:617 WORKER/(4025:4025): Permisos de ejecucion dados al programa de testing
+[TRACE] 11:27:06:484 WORKER/(4128:4128): Programa de testing persistido
+[TRACE] 11:27:06:486 WORKER/(4128:4128): Permisos de ejecucion dados al programa de testing
+[TRACE] 11:27:06:486 WORKER/(4128:4128): Lectura de archivo de configuracion
+[TRACE] 11:27:06:486 WORKER/(4128:4128): Creacion socket para conexion con Master
+[TRACE] 11:27:06:486 WORKER/(4128:4128): Esperando conexiones de Master
