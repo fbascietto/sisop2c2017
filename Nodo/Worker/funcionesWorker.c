@@ -105,10 +105,12 @@ int persistirPrograma(char* nombre, char* contenido){
 			free(ruta);
 			return -10;
 		}
-		sprintf(mensaje_de_log, "Permisos de ejecucion dados a %s", nombre);
-		log_trace(worker_log, mensaje_de_log);
-		free(p);
+		if(retorno != -1){
+			sprintf(mensaje_de_log, "Permisos de ejecucion dados a %s", nombre);
+			log_trace(worker_log, mensaje_de_log);
+		}
 
+		free(p);
 		free(mensaje_de_log);
 
 		return 0;
@@ -216,6 +218,10 @@ void responderSolicitudT(int socket, int exit_code){
 		break;
 	case -10:
 		//enviar ERROR de llamada system()
+		break;
+	case -5:
+		log_trace(worker_error_log, "Se envia aviso de error en etapa de transformacion de un bloque a Master");
+		enviarMensajeSocketConLongitud(socket, TRANSFORMACION_ERROR, NULL, 0);
 		break;
 
 	}
@@ -349,6 +355,10 @@ void responderSolicitudRL(int socket, int exit_code){
 	case -10:
 		//enviar ERROR de llamada system()
 		break;
+	case -7:
+		log_trace(worker_error_log, "Se envia aviso de error en etapa de reduccion local a Master");
+		enviarMensajeSocketConLongitud(socket, REDUCCION_LOCAL_ERROR, NULL, 0);
+		break;
 	}
 }
 
@@ -387,6 +397,10 @@ void responderSolicitudRG(int socket, int exit_code){
 	case 0:
 		log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de reduccion global a Master");
 		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_OK, NULL, 0);
+		break;
+	case -1:
+		log_trace(worker_error_log, "Se envia aviso de error en etapa de reduccion global a Master");
+		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_ERROR, NULL, 0);
 		break;
 	}
 
