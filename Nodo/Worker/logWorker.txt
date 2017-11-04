@@ -20,3 +20,22 @@
 [TRACE] 11:27:06:486 WORKER/(4128:4128): Lectura de archivo de configuracion
 [TRACE] 11:27:06:486 WORKER/(4128:4128): Creacion socket para conexion con Master
 [TRACE] 11:27:06:486 WORKER/(4128:4128): Esperando conexiones de Master
+[TRACE] 14:26:58:470 WORKER/(10655:10655): Lectura de archivo de configuracion
+[TRACE] 14:26:58:487 WORKER/(10655:10655): Creacion socket para conexion con Master
+[TRACE] 14:26:58:487 WORKER/(10655:10655): Esperando conexiones de Master
+[ERROR] 14:34:25:382 WORKER/(10832:10832): El directorio scripts no pude crearse porque ya existia
+[TRACE] 14:34:25:397 WORKER/(10832:10832): Lectura de archivo de configuracion
+[TRACE] 14:34:25:397 WORKER/(10832:10832): Creacion socket para conexion con Master
+[TRACE] 14:34:25:402 WORKER/(10832:10832): Esperando conexiones de Master
+[TRACE] 14:34:58:527 WORKER/(10854:10854): Se crea el directorio scripts
+[TRACE] 14:34:58:527 WORKER/(10854:10854): Lectura de archivo de configuracion
+[TRACE] 14:34:58:527 WORKER/(10854:10854): Creacion socket para conexion con Master
+[TRACE] 14:34:58:528 WORKER/(10854:10854): Esperando conexiones de Master
+[ERROR] 15:04:39:99 WORKER/(11437:11437): El directorio scripts no pude crearse porque ya existia
+[TRACE] 15:04:39:123 WORKER/(11437:11437): Lectura de archivo de configuracion
+[TRACE] 15:04:39:124 WORKER/(11437:11437): Creacion socket para conexion con Master
+[TRACE] 15:04:39:124 WORKER/(11437:11437): Esperando conexiones de Master
+[TRACE] 15:05:00:177 WORKER/(11455:11455): Se crea el directorio scripts
+[TRACE] 15:05:00:178 WORKER/(11455:11455): Lectura de archivo de configuracion
+[TRACE] 15:05:00:178 WORKER/(11455:11455): Creacion socket para conexion con Master
+[TRACE] 15:05:00:179 WORKER/(11455:11455): Esperando conexiones de Master

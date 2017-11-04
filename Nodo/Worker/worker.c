@@ -16,14 +16,26 @@
 
 void main() {
 
-	t_log_level level = LOG_LEVEL_TRACE;
-	t_log* worker_Log = log_create("logWorker.txt", "WORKER", 1, level);
+	int retorno_mkdir;
 
-	mkdir("scripts", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* worker_log_error = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+
+
+	//creo directorio de scripts
+	retorno_mkdir = mkdir("scripts", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	if(retorno_mkdir == 0){
+		log_trace(worker_log, "Se crea el directorio scripts");
+	}else{
+		log_error(worker_log_error, "El directorio scripts no pude crearse porque ya existia");
+	}
+
 	/*testeo de la funcion de persistencia de programas.OK
 	persistirPrograma("test", "contenido de prueba", "testing");*/
 	iniciarWorker();
-	log_trace(worker_Log, "Lectura de archivo de configuracion");
+	log_trace(worker_log, "Lectura de archivo de configuracion");
 
 	int socketEscucha;
 	fd_set fdSocketsEscucha;
@@ -41,7 +53,7 @@ void main() {
 	esperarConexion->fdSocketEscucha = fdSocketsEscucha;
 	esperarConexion->socketEscucha = socketEscucha;
 
-	log_trace(worker_Log, "Creacion socket para conexion con Master");
+	log_trace(worker_log, "Creacion socket para conexion con Master");
 
 	while(1){
 
