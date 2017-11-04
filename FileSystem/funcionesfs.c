@@ -219,7 +219,7 @@ int identificaDirectorio(char* directorio_yamafs, t_list* folderList){
 
 	int i = 0;
 	char* ruta;
-	ruta = replace_str(directorio_yamafs,"yamafs:","");
+	ruta = string_substring_from(directorio_yamafs,7);
 	char** arrayString = string_split(ruta,"/");
 	while (arrayString[i]!= NULL){
 		/*if((strchr(arrayString[i],'.') != NULL) && (arrayString[i+1] == NULL)){ //ignoro el componente "archivo" de la ruta, considero el fin cuando lo recibí
@@ -229,6 +229,8 @@ int identificaDirectorio(char* directorio_yamafs, t_list* folderList){
 		carpetaActual = cambiarAdirectorio(arrayString[i],carpetaActual,folderList);
 		i++;
 	}
+	free(ruta);
+	free(arrayString);
 	strcpy(directorio_yamafs,arrayString[i-1]);
 	return carpetaActual->index;
 
@@ -584,7 +586,16 @@ void *escucharConsola(){
 			log_trace(logFS,"Consola recibe ""md5""");
 			printf("Seleccionaste obtener md5\n");
 			char ** parametros = string_split(linea, " ");
-			obtenerMD5Archivo(parametros[1]);
+			char * archivo = string_new();
+			string_append(&archivo,parametros[1]);
+			if(string_starts_with(archivo,"yamafs:")){
+				traerArchivoDeFs(archivo,NULL,carpetas);
+				obtenerMD5Archivo(archivo);
+				remove(archivo);
+			}else{
+				obtenerMD5Archivo(archivo);
+			}
+			free(archivo);
 		}else
 		if(!strncmp(linea, "ls", 2)) {
 			log_trace(logFS,"Consola recibe ""ls""");
@@ -975,6 +986,7 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList)
 			return copiaNotAvail;
 		}
 
+
 	}
 
 	fclose(metadata);
@@ -997,8 +1009,9 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList)
 	/* TODO: ACA TENGO QUE RECORRER LA LISTA QUE ARME CON BLOQUES, TRAYENDO TODO EN ORDEN E IMPRIMIÉNDOLO EN "DESTINO"
 	 * ACTUALMENTE DESTINO ES LA RUTA DONDE SE ESTÁ EJECUTANDO EL FS */
 
+	free(pathObjetivo);
 	fclose(destino);
-
+	free(ruta_metadata);
 	if (line){
 	   free(line);}
 	return 1;
