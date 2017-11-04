@@ -230,8 +230,8 @@ int identificaDirectorio(char* directorio_yamafs, t_list* folderList){
 		i++;
 	}
 	free(ruta);
-	free(arrayString);
 	strcpy(directorio_yamafs,arrayString[i-1]);
+	free(arrayString);
 	return carpetaActual->index;
 
 }
@@ -588,7 +588,7 @@ void *escucharConsola(){
 			char ** parametros = string_split(linea, " ");
 			char * archivo = string_new();
 			string_append(&archivo,parametros[1]);
-			if(string_starts_with(archivo,"yamafs:")){
+			if(string_starts_with(parametros[1],"yamafs:")){
 				traerArchivoDeFs(archivo,NULL,carpetas);
 				obtenerMD5Archivo(archivo);
 				remove(archivo);
@@ -643,23 +643,15 @@ void *escucharConsola(){
 }
 
 char* getNombreArchivo(char* path){
-	int i = 0;
-	char** arrayString = string_split(path,"/");
-		while (arrayString[i]!= NULL){
-			i++;
-		}
-	return arrayString[i-1];
+	int lastSlash = strrchr(path, '/');
+	return string_substring_from(path, lastSlash + 1);
 }
 
 char* getRutaMetadata(char* ruta_archivo, t_list* folderList, int carpeta){
+	char *fileName = getNombreArchivo(ruta_archivo);
+	char* ruta_metadata = string_from_format("./metadata/archivos/%d/%s", carpeta, fileName);
 
-	char* ruta_metadata = string_new();
-
-	string_append(&ruta_metadata, "./metadata/archivos/");
-	string_append(&ruta_metadata, string_itoa(carpeta));
-	string_append(&ruta_metadata, "/");
-	string_append(&ruta_metadata, getNombreArchivo(ruta_archivo));
-
+	free(fileName);
 	return ruta_metadata;
 }
 
@@ -667,7 +659,6 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 
 	/*int carpeta = 0;
 	carpeta = identificaDirectorio(directorio_yamafs, folderList);*/
-
 
 	FILE* origen = fopen(path_archivo_origen, "rb");
 	int fd = fileno(origen);
@@ -920,76 +911,6 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList)
 	int carpeta = identificaDirectorio(archivoABuscar, folderList);
 	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
 
-	FILE * metadata;
-
-	char * line = NULL;
-	size_t len = 0;
-
-	metadata = fopen(ruta_metadata,"r");
-	if (metadata == NULL){
-		exit(EXIT_FAILURE);}
-
-	t_list *listaBloques;
-	listaBloques = list_create();
-
-	//linea de la ruta
-	getline(&line, &len, metadata);
-	//linea de tamaño
-	getline(&line, &len, metadata);
-
-	char** parametros;
-
-	parametros = string_split(line,"=");
-	int tamArch = atoi(parametros[1]);
-
-    int copiaNotAvail = 0;
-
-    //linea de TIPO, todavía no hace nada particular
-    getline(&line, &len, metadata);
-
-	while (!feof(metadata)) {
-
-//		char** arrayBloqueC0;
-//		char** arrayBloqueC1;
-//		t_nodo* nodoBloque;
-
-		int bloque;
-
-		t_bloque* currentBloque;
-		currentBloque = malloc(sizeof(t_directory));
-
-		/* SECTOR COPIA 0 */
-		getline(&line, &len, metadata);
-		parametros = string_split(line,"=");
-		currentBloque->bloque = atoi(replace_char(replace_char(parametros[0],"BLOQUE", ""),"COPIA0", ""));
-		strcpy(currentBloque->Copia0, parametros[1]);// string_get_string_as_array(parametros[1]);
-
-
-		/* SECTOR COPIA 1
-		getline(&line, &len, metadata);
-		parametros = string_split(line,"=");
-		strcpy(currentBloque->Copia1, parametros[1]);// string_get_string_as_array(parametros[1]); */
-
-
-		// currentBloque->Copia0 donde esta la copia 0, formato "[NOMBRENODO, NUMEROBLOQUE]"
-		// currentBloque->Copia1 donde esta la copia 1, formato "[NOMBRENODO, NUMEROBLOQUE]"
-
-		/*SECTOR TAMAÑO EN BYTES */
-		getline(&line, &len, metadata);
-		parametros = string_split(line,"=");
-		currentBloque->tamanio_bloque = atoi(parametros[1]);
-
-		/*Ya tengo el nodo y el bit donde esta el bloque, de dos fuentes distintas, y el tamaño que debería leer. Agrego todo a la lista*/
-		list_add(listaBloques, currentBloque);
-
-		if(copiaNotAvail <= 0){
-			return copiaNotAvail;
-		}
-
-
-	}
-
-	fclose(metadata);
 
 	char * pathObjetivo = string_new();
 	    if(directorio != NULL){
@@ -1006,17 +927,123 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList)
 	    	return -1;
 	    }
 
-	/* TODO: ACA TENGO QUE RECORRER LA LISTA QUE ARME CON BLOQUES, TRAYENDO TODO EN ORDEN E IMPRIMIÉNDOLO EN "DESTINO"
-	 * ACTUALMENTE DESTINO ES LA RUTA DONDE SE ESTÁ EJECUTANDO EL FS */
+	    t_list * lista_bloques = obtener_lista_metadata(ruta_metadata);
+
+	    int i = 0;
+	    for(;i<list_size(lista_bloques);i++){
+
+	    	t_bloque* bloque = list_get(lista_bloques,i);
+	    	char ** parametros1 = string_get_string_as_array(bloque->Copia0);
+	    	t_nodo * nodo = getNodoPorNombre(parametros1[1],nodos);
+	    	unsigned char * buffer;
+	    	buffer = malloc((size_t)(bloque->tamanio_bloque));
+	    	if(leerBloque(nodo,atoi(parametros1[2]),bloque->tamanio_bloque,buffer)<=0){
+	    		char ** parametros2 = string_get_string_as_array(bloque->Copia1);
+	    		t_nodo * nodo = getNodoPorNombre(parametros2[1],nodos);
+	    		free(parametros1);
+	    		if(leerBloque(nodo,atoi(parametros2[2]),bloque->tamanio_bloque,buffer)<=0){
+	    			free(parametros2);
+	    			printf("no se puede recuperar 1 o mas bloques");
+	    			return -1;
+	    		}
+	    		free(parametros2);
+	    	}else{
+	    		free(parametros1);
+	    	}
+	    	fprintf(destino,"%s",buffer);
+	    	free(buffer);
+	    }
+
+
+
+	    void carpetasNivelActual(void* parametro) {
+	     t_directory* dir = (t_directory*) parametro;
+	     free(parametro);
+	    }
+
+
+
+	list_destroy_and_destroy_elements(lista_bloques,carpetasNivelActual);
 
 	free(pathObjetivo);
 	fclose(destino);
 	free(ruta_metadata);
-	if (line){
-	   free(line);}
+
 	return 1;
 }
 
+t_list * obtener_lista_metadata(char * ruta_metadata){
+
+	FILE * metadata;
+
+			char * line = NULL;
+			size_t len = 0;
+
+		metadata = fopen(ruta_metadata,"r");
+		if (metadata == NULL){
+			exit(EXIT_FAILURE);}
+
+
+
+
+	t_list *listaBloques;
+		listaBloques = list_create();
+
+		//linea de la ruta
+		getline(&line, &len, metadata);
+		//linea de tamaño
+		getline(&line, &len, metadata);
+
+		char** parametros;
+
+		parametros = string_split(line,"=");
+		int tamArch = atoi(parametros[1]);
+	    int copiaNotAvail = 0;
+
+	    //linea de TIPO, todavía no hace nada particular
+	    getline(&line, &len, metadata);
+
+		while (!feof(metadata)) {
+
+	//		char** arrayBloqueC0;
+	//		char** arrayBloqueC1;
+	//		t_nodo* nodoBloque;
+
+			int bloque;
+
+			t_bloque* currentBloque;
+			currentBloque = malloc(sizeof(t_directory));
+
+			/* SECTOR COPIA 0 */
+			getline(&line, &len, metadata);
+			parametros = string_split(line,"=");
+			currentBloque->bloque = atoi(replace_char(replace_char(parametros[0],"BLOQUE", ""),"COPIA0", ""));
+			strcpy(currentBloque->Copia0, parametros[1]);// string_get_string_as_array(parametros[1]);
+
+			/* SECTOR COPIA 1
+			getline(&line, &len, metadata);
+			parametros = string_split(line,"=");
+			strcpy(currentBloque->Copia1, parametros[1]);// string_get_string_as_array(parametros[1]); */
+
+
+			// currentBloque->Copia0 donde esta la copia 0, formato "[NOMBRENODO, NUMEROBLOQUE]"
+			// currentBloque->Copia1 donde esta la copia 1, formato "[NOMBRENODO, NUMEROBLOQUE]"
+
+			/*SECTOR TAMAÑO EN BYTES */
+			getline(&line, &len, metadata);
+			parametros = string_split(line,"=");
+			currentBloque->tamanio_bloque = atoi(parametros[1]);
+
+			/*Ya tengo el nodo y el bit donde esta el bloque, de dos fuentes distintas, y el tamaño que debería leer. Agrego todo a la lista*/
+			list_add(listaBloques, currentBloque);
+
+		}
+
+		fclose(metadata);
+		if(line) free(line);
+
+		return listaBloques;
+}
 
 int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer){
 	int error = 0;
