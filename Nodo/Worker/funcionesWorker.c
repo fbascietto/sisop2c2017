@@ -41,7 +41,7 @@ void iniciarWorker(){
 
 }
 
-int persistirPrograma(char* nombre, char* contenido, char* etapa){
+int persistirPrograma(char* nombre, char* contenido){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
@@ -58,21 +58,20 @@ int persistirPrograma(char* nombre, char* contenido, char* etapa){
 	//inicializo en -1 para que no pueda ser igual a la longitud excepto que complete correctamente el fwrite
 	int escritos = -1;
 
-	//creo ruta para crear el archivo TODO: SE DEBE CREAR /scripts PREVIAMENTE AL LEVANTAR LA VM "mkdir scripts"
+	//creo ruta para crear el archivo
 	char* ruta = malloc(strlen(nombre) + LENGTH_EXTRA_SPRINTF);
-	sprintf(ruta, "/scripts/%s", nombre);
+	sprintf(ruta, "scripts/%s", nombre);
 
 	f1 = fopen(ruta, "r");
 	if(f1 == NULL){
 		//si no esta persistido el programa aun, lo persiste
-		fclose(f1);
 
 		//creo el programa vacio en el servidor local con la ruta
 		f2 = fopen(ruta, "w");
-		free(ruta);
 		if(f2==NULL){
-			sprintf(mensaje_de_log, "No se pudo persistir el programa de %s", etapa);
+			sprintf(mensaje_de_log, "No se pudo persistir %s", nombre);
 			log_trace(worker_error_log, mensaje_de_log);
+			free(ruta);
 			free(mensaje_de_log);
 			return -1;
 		}
@@ -80,13 +79,14 @@ int persistirPrograma(char* nombre, char* contenido, char* etapa){
 		//le escribo el contenido con lo recibido por socket
 		escritos = fwrite(contenido, 1, longitud_contenido, f2);
 		if(escritos != longitud_contenido){
-			sprintf(mensaje_de_log, "No se pudo escribir el contenido del programa de %s", etapa);
+			sprintf(mensaje_de_log, "No se pudo escribir el contenido de %s", nombre);
 			log_trace(worker_error_log, mensaje_de_log);
+			free(ruta);
 			free(mensaje_de_log);
 			return -2;
 		}
 
-		sprintf(mensaje_de_log, "Programa de %s persistido", etapa);
+		sprintf(mensaje_de_log, "Programa %s persistido", nombre);
 		log_trace(worker_log, mensaje_de_log);
 		fclose(f2);
 
@@ -95,21 +95,21 @@ int persistirPrograma(char* nombre, char* contenido, char* etapa){
 
 		//le doy permisos de ejecucion al script
 		sprintf(p, "chmod 777 \"%s\"", ruta);
+		free(ruta);
 		retorno = system(p);
 		if(retorno == -1){
 
-			sprintf(mensaje_de_log, "No se pudo dar los permisos de ejecucion al programa de %s", etapa);
+			sprintf(mensaje_de_log, "No se pudo dar los permisos de ejecucion a %s", nombre);
 			log_trace(worker_error_log, mensaje_de_log);
 			free(mensaje_de_log);
 			free(ruta);
 			return -10;
 		}
-		sprintf(mensaje_de_log, "Permisos de ejecucion dados al programa de %s", etapa);
+		sprintf(mensaje_de_log, "Permisos de ejecucion dados a %s", nombre);
 		log_trace(worker_log, mensaje_de_log);
 		free(p);
 
 		free(mensaje_de_log);
-		free(ruta);
 
 		return 0;
 	}
@@ -134,11 +134,9 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
 
 	//retorno de la funcion que persiste el programa de transformacion
 	int retorno;
-	//etapa para pasarle a la funcion
-	char* etapa = "transformacion";
 
 	//persisto el programa transformador
-	retorno = persistirPrograma(solicitudDeserializada->programa_transformacion, solicitudDeserializada->programa, etapa);
+	retorno = persistirPrograma(solicitudDeserializada->programa_transformacion, solicitudDeserializada->programa);
 	if(retorno == -1 || retorno == -2 || retorno == -10){
 		return retorno;
 	}
@@ -201,7 +199,7 @@ void responderSolicitudT(int socket, int exit_code){
 	switch(exit_code){
 
 	case 0:
-		log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de transformacion a Master");
+		log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Master");
 		enviarMensajeSocketConLongitud(socket, TRANSFORMACION_OK, NULL, 0);
 		break;
 	case -1:
@@ -243,11 +241,9 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 
 	//retorno de la funcion que persiste el programa de reduccion
 	int retorno;
-	//etapa para pasarle a la funcion
-	char* etapa = "reduccion_local";
 
 	//persisto el programa reductor
-	retorno = persistirPrograma(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa, etapa);
+	retorno = persistirPrograma(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa);
 	if(retorno == -1 || retorno == -2 || retorno == -10){
 		return retorno;
 	}
@@ -362,11 +358,9 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 
 	//retorno de la funcion que persiste el programa de reduccion
 	int retorno;
-	//etapa para pasarle a la funcion
-	char* etapa = "reduccion_global";
 
 	//persisto el programa reductor
-	retorno = persistirPrograma(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa, etapa);
+	retorno = persistirPrograma(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa);
 	if(retorno == -1 || retorno == -2 || retorno == -10){
 		return retorno;
 	}

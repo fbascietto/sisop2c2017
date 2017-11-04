@@ -19,6 +19,9 @@ void main() {
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log* worker_Log = log_create("logWorker.txt", "WORKER", 1, level);
 
+	mkdir("scripts", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	/*testeo de la funcion de persistencia de programas.OK
+	persistirPrograma("test", "contenido de prueba", "testing");*/
 	iniciarWorker();
 	log_trace(worker_Log, "Lectura de archivo de configuracion");
 
@@ -27,7 +30,7 @@ void main() {
 	FD_ZERO(&fdSocketsEscucha);
 
 
-	socketEscucha= escuchar(4002);
+	socketEscucha= escuchar(puerto);
 	FD_SET(socketEscucha, &fdSocketsEscucha);
 
 
