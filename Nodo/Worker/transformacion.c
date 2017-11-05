@@ -5,9 +5,13 @@
  *      Author: utnso
  */
 
-#include "transformacion.h"
+#include "etapas.h"
+#include <commons/log.h>
+#include "../../bibliotecas/sockets.c"
+#include "../../bibliotecas/sockets.h"
+#include "../../bibliotecas/protocolo.h"
 
-int transformacion(solicitud_programa_transformacion* solicitudDeserializada){
+int transformacion(solicitud_programa_transformacion* solicitudDeserializada, char* rutaNodo){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;

@@ -6,6 +6,7 @@
  */
 
 #include "funcionesWorker.h"
+#include "etapas.h"
 
 void iniciarWorker(){
 
@@ -27,6 +28,16 @@ void iniciarWorker(){
 
 	if(config_has_property(infoConfig, "PUERTO_WORKER")){
 		puerto = config_get_int_value(infoConfig, "PUERTO_WORKER");
+	}
+
+	if(config_has_property(infoConfig,"IP_FILESYSTEM")){
+		IP_fs = config_get_string_value(infoConfig,"IP_FILESYSTEM");
+		printf("IP: %s\n", IP_fs);
+	}
+
+	if(config_has_property(infoConfig,"PUERTO_FILESYSTEM")){
+		puerto_fs = config_get_int_value(infoConfig,"PUERTO_FILESYSTEM");
+		printf("Puerto: %d\n", puerto_fs);
 	}
 
 	//---------------ESPERA CONEXIONES-------------------------------
@@ -166,6 +177,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 	//	if(pid == 0){
 	//		//proceso hijo continua con la solicitud
 	switch(package->msgCode){
+
 	case ACCION_TRANSFORMACION:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
 		log_trace(worker_log, "Solicitud de transformacion recibida");
@@ -174,7 +186,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 			log_trace(worker_log, "Comienzo de transformacion");
 			solicitud_programa_transformacion* solicitudTDeserializada =
 					deserializarSolicitudProgramaTransformacion(package->message);
-			exit_code = transformacion(solicitudTDeserializada);
+			exit_code = transformacion(solicitudTDeserializada, rutaNodo);
 			responderSolicitudT(nuevoSocket, exit_code);
 			exit(0);
 		}else{
@@ -183,8 +195,8 @@ void recibirSolicitudMaster(int nuevoSocket){
 				log_error(worker_error_log, "No se ha podido crear el proceso hijo");
 			}
 		}
-
 		break;
+
 	case ACCION_REDUCCION_LOCAL:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
 		log_trace(worker_log, "Solicitud de reduccion local recibida");
@@ -203,26 +215,26 @@ void recibirSolicitudMaster(int nuevoSocket){
 			}
 		}
 		break;
+
 	case ACCION_REDUCCION_GLOBAL:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
 		log_trace(worker_log, "Solicitud de reduccion global recibida");
 		log_trace(worker_log, "Comienzo de reduccion global");
 		solicitud_programa_reduccion_global* solicitudRGDeserializada =
 				deserializarSolicitudProgramaReduccionGlobal(package->message);
+		ruta_archivo_temp_final = solicitudRGDeserializada->archivo_temporal_resultante;
 		exit_code = reduccionGlobal(solicitudRGDeserializada);
 		responderSolicitudRG(nuevoSocket, exit_code);
 		break;
+
+	case ACCION_ALMACENAMIENTO_FINAL:
+		; //empty statement. Es solucion a un error que genera el lenguaje C
+		log_trace(worker_log, "Solicitud de almacenamiento final recibida");
+		almacenamientoFinal(IP_fs, puerto_fs, ruta_archivo_temp_final);
+		break;
+
 	}
-	//		exit(0);
-	//	}else{
-	//		if(pid < 0){
-	//			//cuando no pudo crear el hijo
-	//			perror("No se ha podido crear el proceso hijo\n");
-	//		}else{
-	//			//lo que haria el padre si es que necesitamos que haga algo
-	//		}
-	//
-	//	}
+
 }
 
 void recibirSolicitudWorker(int nuevoSocket){

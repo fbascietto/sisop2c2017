@@ -5,7 +5,10 @@
  *      Author: utnso
  */
 
-#include "reduccionGlobal.h"
+#include "etapas.h"
+#include <commons/log.h>
+#include "../../bibliotecas/sockets.h"
+#include "../../bibliotecas/protocolo.h"
 
 int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada){
 
