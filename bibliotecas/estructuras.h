@@ -18,6 +18,10 @@
 #define LENGTH_ESTADO 30
 #define LENGTH_ETAPA 20
 
+/* Formatos YAMA */
+#define NOMBRE_NODO 10
+
+
 /*Structs de comunicacion YAMA con MASTER*/
 
 	//TRANSFORMACION

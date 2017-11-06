@@ -28,7 +28,7 @@ void hacerPedidoDeTransformacionYRL(){
 
 	nodo->bloques = bloques;
 	list_add((nodo->bloques), bloque);
-	nodo->idNodo = 0;
+	strcpy(nodo->idNodo, "nodo1");
 	strcpy(nodo->ipWorker, "127.0.0.1");
 	nodo->puerto = 5555;
 
@@ -137,17 +137,17 @@ void ejemploPrePlanificacion(){
 		//le agrego aparte un valor a cargaDeTrabajo
 		//para que quede igual que en el ejemplo del PPT
 		t_nodo* nodo0 = malloc(sizeof(t_nodo));
-		inicializarNodo(nodo0, 0);
+		inicializarNodo(nodo0, "0");
 		asignarBloque(nodo0, bl0, 10);
 		asignarBloque(nodo0, bl4, 230);
 		asignarBloque(nodo0, bl5, 329);
 		nodo0->cargaDeTrabajo++;
 		list_add(listaNodos, nodo0);
-		printf("nodo %d agregado a la lista\n", nodo0->idNodo);
+		printf("nodo %s agregado a la lista\n", nodo0->idNodo);
 
 		//inicializacion nodo1
 		t_nodo* nodo1 = malloc(sizeof(t_nodo));
-		inicializarNodo(nodo1, 1);
+		inicializarNodo(nodo1, "1");
 		asignarBloque(nodo1, bl1, 1248);
 		asignarBloque(nodo1, bl2, 128);
 		asignarBloque(nodo1, bl3, 256);
@@ -155,11 +155,11 @@ void ejemploPrePlanificacion(){
 		nodo1->cargaDeTrabajo++;
 		nodo1->cargaDeTrabajoActual++;
 		list_add(listaNodos, nodo1);
-		printf("nodo %d agregado a la lista\n", nodo1->idNodo);
+		printf("nodo %s agregado a la lista\n", nodo1->idNodo);
 
 		//inicializacion nodo2
 		t_nodo* nodo2 = malloc(sizeof(t_nodo));
-		inicializarNodo(nodo2, 2);
+		inicializarNodo(nodo2, "2");
 		asignarBloque(nodo2, bl0, 999);
 		asignarBloque(nodo2, bl1, 1024);
 		asignarBloque(nodo2, bl2, 1999);
@@ -168,14 +168,14 @@ void ejemploPrePlanificacion(){
 		nodo2->cargaDeTrabajo++;
 		nodo2->cargaDeTrabajoActual++;
 		list_add(listaNodos, nodo2);
-		printf("nodo %d agregado a la lista\n", nodo2->idNodo);
+		printf("nodo %s agregado a la lista\n", nodo2->idNodo);
 
 		planificacion = prePlanificacion(listaBloques, valorBase, listaNodos, tipoAlgoritmo);
 
 		printf("ejecucion de preplanificacion exitosa\n\n");
 		for(i=0; i<cantidadBloques; i++){
 			unaPlanificacion = list_get(planificacion, i);
-			printf("bloque %d  asignado al nodo: %d  ",
+			printf("bloque %d  asignado al nodo: %s  ",
 					unaPlanificacion->bloque->numeroBloque, unaPlanificacion->nodo->idNodo);
 			printf("con disponibilidad restante : %d  y reduccionGlobal (deberia estar en 0): %d \n",
 					unaPlanificacion->nodo->disponibilidad, unaPlanificacion->reduccionGlobal);
@@ -183,7 +183,7 @@ void ejemploPrePlanificacion(){
 
 		unaPlanificacion = list_get(planificacion, i);
 
-		printf("nodo seleccionado para reduccion global: %d \n", unaPlanificacion->nodo->idNodo);
+		printf("nodo seleccionado para reduccion global: %s \n", unaPlanificacion->nodo->idNodo);
 		printf("con carga de trabajo para la reduccion global: %d\n", unaPlanificacion->reduccionGlobal);
 		printf("tamanio lista planificacion %d + 1 (nodo reduccion global): %d\n", cantidadBloques, list_size(planificacion));
 
@@ -193,13 +193,14 @@ void ejemploPrePlanificacion(){
 
 
 		if(nuevaReplanificacion==NULL){
-				terminarJob(planificacion);
+				//todo terminarJob(planificacion);
+			printf("TO-DO, deberia ejecutar el metodo terminarJob()");
 		} else{
 			printf("ejecucion de replanificacion exitosa\n\n");
 			printf("tamanio de la lista de nodos: %d\n", list_size(listaNodos));
 					for(i=0; i<cantidadBloques; i++){
 						unaPlanificacion = list_get(nuevaReplanificacion, i);
-						printf("bloque %d asignado al nodo: %d ",
+						printf("bloque %d asignado al nodo: %s ",
 								unaPlanificacion->bloque->numeroBloque, unaPlanificacion->nodo->idNodo);
 						printf("con disponibilidad: %d y reduccionGlobal: %d \n",
 								unaPlanificacion->nodo->disponibilidad, unaPlanificacion->reduccionGlobal);
@@ -207,7 +208,7 @@ void ejemploPrePlanificacion(){
 
 			unaPlanificacion = list_get(nuevaReplanificacion, i);
 
-			printf("nodo seleccionado para reduccion global: %d \n", unaPlanificacion->nodo->idNodo);
+			printf("nodo seleccionado para reduccion global: %s \n", unaPlanificacion->nodo->idNodo);
 			printf("con carga de trabajo para la reduccion global: %d\n", unaPlanificacion->reduccionGlobal);
 			printf("tamanio lista replanificacion %d + 1 (nodo reduccion global): %d\n",
 						cantidadBloques, list_size(nuevaReplanificacion));
@@ -217,9 +218,9 @@ void ejemploPrePlanificacion(){
 }
 
 
-void inicializarNodo(t_nodo* nodo, int id){
+void inicializarNodo(t_nodo* nodo, char* id){
 	t_list* bloquesNodo = list_create();
-	nodo->idNodo = id;
+	strcpy(nodo->idNodo, id);
 	nodo->bloques = bloquesNodo;
 	nodo->cargaDeTrabajo = 0;
 	nodo->cargaDeTrabajoActual = 0;
@@ -232,7 +233,7 @@ void asignarBloque(t_nodo* nodo, int numeroBloque, int bytesOcupados){
 	bloque->numeroBloque = numeroBloque;
 	bloque->bytesOcupados = bytesOcupados;
 	list_add(nodo->bloques, bloque);
-	printf("se agrega bloque %d al nodo %d\n", bloque->numeroBloque, nodo->idNodo);
+	printf("se agrega bloque %d al nodo %s\n", bloque->numeroBloque, nodo->idNodo);
 }
 
 

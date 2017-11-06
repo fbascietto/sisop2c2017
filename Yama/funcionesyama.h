@@ -13,6 +13,7 @@
 #include "../bibliotecas/protocolo.h"
 #include "../Master/interface.h"
 #include <stdint.h>
+#include "../bibliotecas/estructuras.h"
 
 #ifndef YAMA_FUNCIONESYAMA_H_
 #define YAMA_FUNCIONESYAMA_H_
@@ -56,43 +57,45 @@ typedef struct {
 
 
 typedef struct{
-	int numeroBloque;
-	int bytesOcupados;
+	uint32_t numeroBloque;
+	uint32_t bytesOcupados;
+	char idNodo[NOMBRE_NODO];
 }t_bloque;
 
 
+
 typedef struct{
-	int idNodo;
+	char idNodo[NOMBRE_NODO];
 	int disponibilidad;
 	uint32_t cargaDeTrabajo;
 	uint32_t cargaDeTrabajoHistorica;
 	uint32_t cargaDeTrabajoActual;
 	t_list * bloques;
 	char ipWorker[20];
-	int puerto;
+	uint32_t puerto;
 }t_nodo;
 
 
 typedef struct {
 	t_nodo* nodo;
 	t_bloque* bloque;
-	int reduccionGlobal;
+	uint32_t reduccionGlobal;
 } t_planificacion;
 
 
 typedef struct{
 	t_planificacion* nodoPlanificado;
-	char* archivoTemporal;
-	char* estado;
-	char* etapa;
+	char archivoTemporal[LENGTH_RUTA_ARCHIVO_TEMP];
+	char* estado[LENGTH_ESTADO];
+	char* etapa[LENGTH_ETAPA];
 } t_estado;
 
 typedef struct{
-	t_list* estadosJob;
 	int idJob;
 	int idMaster;
-	int transformaciones;
-	int reduccionesLocales;
+	t_list* estadosTransformaciones;
+	t_list* estadosReduccionesLocales;
+	t_estado* reduccionGlobal;
 }t_job;
 
 void *esperarConexionMaster(void *args);

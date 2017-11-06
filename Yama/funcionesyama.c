@@ -159,24 +159,21 @@ solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinalMock(char* message){
 solicitud_transformacion* obtenerSolicitudTrasnformacion(t_job* job){
 	int i;
 	t_estado* unEstado;
-	int tamanioJob = list_size(job->estadosJob);
+	int tamanioTransformacion = list_size(job->estadosTransformaciones);
 
 	// menos 1 porque esta el de reduccion global en la planificacion
 	solicitud_transformacion* solicitud = malloc(sizeof(solicitud_transformacion));
 	item_transformacion* item = malloc(sizeof(item_transformacion));
 
-	for(i=0; i<tamanioJob ;i++){
-		unEstado = list_get(job->estadosJob, i);
-
-		if(strcmp(unEstado->etapa, "transformacion")==0){
-			item = crearItemTransformacion(unEstado->nodoPlanificado->nodo->idNodo,
-					unEstado->nodoPlanificado->nodo->ipWorker,
-					unEstado->nodoPlanificado->nodo->puerto,
-					unEstado->nodoPlanificado->bloque->numeroBloque,
-					unEstado->nodoPlanificado->bloque->bytesOcupados,
-					unEstado->archivoTemporal);
-			agregarItemTransformacion(solicitud, item);
-		}
+	for(i=0; i<tamanioTransformacion ;i++){
+		unEstado = list_get(job->estadosTransformaciones, i);
+		item = crearItemTransformacion(unEstado->nodoPlanificado->nodo->idNodo,
+				unEstado->nodoPlanificado->nodo->ipWorker,
+				unEstado->nodoPlanificado->nodo->puerto,
+				unEstado->nodoPlanificado->bloque->numeroBloque,
+				unEstado->nodoPlanificado->bloque->bytesOcupados,
+				unEstado->archivoTemporal);
+		agregarItemTransformacion(solicitud, item);
 	}
 	return solicitud;
 	//return obtenerSolicitudTrasnformacionMock(message);
@@ -190,31 +187,28 @@ solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job){ // t_list
 	t_estado* unEstado;
 	t_estado* estadoAux;
 	archivo_temp* listaRutasTransformacion;
-	int tamanioJob = list_size(job->estadosJob);
+	int tamanioTransformacion = list_size(job->estadosTransformaciones);
+	int tamanioReduccionLocal = list_size(job->estadosReduccionesLocales);
 
 	solicitud_reduccion_local* solicitud = malloc(sizeof(solicitud_reduccion_local));
 	item_reduccion_local* item = malloc(sizeof(item_reduccion_local));
 
-	for(i=0; i<tamanioJob ;i++){
-		unEstado = list_get(job->estadosJob, i);
-		if(strcmp(unEstado->etapa, "reduccion local")==0){
-			k=0;
-			for(j=0; j < tamanioJob; j++){
-				estadoAux = list_get(job->estadosJob, j);
-				if(strcmp(estadoAux->etapa, "transformacion") == 0){
-					listaRutasTransformacion = realloc(listaRutasTransformacion, sizeof(archivo_temp) * (k+1));
-					strcpy(listaRutasTransformacion[k].archivo_temp, estadoAux->archivoTemporal);
-					k++;
-				}
-			}
-			item = crearItemReduccionLocal(unEstado->nodoPlanificado->nodo->idNodo,
-					unEstado->nodoPlanificado->nodo->ipWorker,
-					unEstado->nodoPlanificado->nodo->puerto,
-					unEstado->archivoTemporal);
-			item->archivos_temporales_transformacion = listaRutasTransformacion;
-			agregarItemReduccionLocal(solicitud, item);
-
+	for(i=0; i<tamanioReduccionLocal ;i++){
+		unEstado = list_get(job->estadosReduccionesLocales, i);
+		k=0;
+		for(j=0; j < tamanioTransformacion; j++){
+			estadoAux = list_get(job->estadosTransformaciones, j);
+			listaRutasTransformacion = realloc(listaRutasTransformacion, sizeof(archivo_temp) * (k+1));
+			strcpy(listaRutasTransformacion[k].archivo_temp, estadoAux->archivoTemporal);
+			k++;
 		}
+		item = crearItemReduccionLocal(unEstado->nodoPlanificado->nodo->idNodo,
+				unEstado->nodoPlanificado->nodo->ipWorker,
+				unEstado->nodoPlanificado->nodo->puerto,
+				unEstado->archivoTemporal);
+		item->archivos_temporales_transformacion = listaRutasTransformacion;
+		agregarItemReduccionLocal(solicitud, item);
+
 	}
 	return solicitud;
 	//return obtenerSolicitudReduccionLocalMock(message);
@@ -224,50 +218,41 @@ solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job){ //t_lis
 
 	int i;
 	t_estado* unEstado;
-	int tamanioJob = list_size(job->estadosJob);
+	int tamanioReduccionLocal = list_size(job->estadosReduccionesLocales);
 
 	solicitud_reduccion_global* solicitud = malloc(sizeof(solicitud_reduccion_global));
 	item_reduccion_global* item = malloc(sizeof(item_reduccion_global));
 
-	for(i=0; i<tamanioJob ;i++){
-		unEstado = list_get(job->estadosJob, i);
-		if(strcmp(unEstado->etapa, "reduccion local")==0){
-
+	for(i=0; i<tamanioReduccionLocal ;i++){
+		unEstado = list_get(job->estadosReduccionesLocales, i);
 		item = crearItemReduccionGlobal(unEstado->nodoPlanificado->nodo->idNodo,
-				unEstado->nodoPlanificado->nodo->ipWorker,
-				unEstado->nodoPlanificado->nodo->puerto,
-				unEstado->archivoTemporal);
+					unEstado->nodoPlanificado->nodo->ipWorker,
+					unEstado->nodoPlanificado->nodo->puerto,
+					unEstado->archivoTemporal);
 			agregarItemReduccionGlobal(solicitud, item);
-		} else if (strcmp(unEstado->etapa, "reduccion global") == 0){
-
+		}
+			unEstado = job->reduccionGlobal;
 			item = crearItemReduccionGlobal(unEstado->nodoPlanificado->nodo->idNodo,
-							unEstado->nodoPlanificado->nodo->ipWorker,
-							unEstado->nodoPlanificado->nodo->puerto,
-							NULL);
+					unEstado->nodoPlanificado->nodo->ipWorker,
+					unEstado->nodoPlanificado->nodo->puerto,
+					NULL);
 			strcpy(solicitud->archivo_temporal_reduccion_global, item->archivo_temporal_reduccion_local);
 			solicitud->encargado_reduccion_global = item;
-		}
-	}
 	return solicitud;
 }
 
 solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_job* job){ //t_nodo* nodoEncargado, int puerto_worker, char* ip_worker, char* rutaReduccionGlobal){
 
-	int i;
 	t_estado* unEstado;
-	int tamanioJob = list_size(job->estadosJob);
 
 	solicitud_almacenado_final* solicitud = malloc(sizeof(solicitud_almacenado_final));
 
-	for(i=0; i<tamanioJob ;i++){
-		unEstado = list_get(job->estadosJob, i);
-		if (strcmp(unEstado->etapa, "reduccion global") == 0){
-			solicitud->nodo_id = unEstado->nodoPlanificado->nodo->idNodo;
+			unEstado = job->reduccionGlobal;
+
+			strcpy(solicitud->nodo_id, unEstado->nodoPlanificado->nodo->idNodo);
 			solicitud->puerto_worker = unEstado->nodoPlanificado->nodo->puerto;
 			strcpy(solicitud->ip_worker, unEstado->nodoPlanificado->nodo->ipWorker);
 			strcpy(solicitud->archivo_temporal_reduccion_global, unEstado->archivoTemporal);
-		}
-	}
 
 
 	return solicitud;

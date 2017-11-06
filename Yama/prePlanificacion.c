@@ -373,7 +373,7 @@ void estadisticas(void* unaPlanif){
 
 }
 
-bool quitarReduccionLocal(void* estado){
+bool verificarReduccionLocal(void* estado){
 	t_estado* unEstado = (t_estado*) estado;
 	if (strcmp(unEstado->etapa, "reduccion local") == 0){
 		return false;
@@ -382,36 +382,6 @@ bool quitarReduccionLocal(void* estado){
 	}
 }
 
-/**
- * todo
- * recibe una planificacion
- * y restaura todos los valores de
- * las cargas de trabajo
- */
-void terminarJob(t_job* job){
-	printf("finalizando job, mostrando estadisticas (pueden repetirse los nodos)\n\n");
-	t_list* estados = list_filter(job->estadosJob, quitarReduccionLocal);
-
-	int tamanioPlanificacion = list_size(estados);
-	int i;
-	t_estado* unaPlanificacion;
-
-
-
-	for(i=0; i<tamanioPlanificacion; i++){
-		unaPlanificacion = list_get(estados, i);
-		if(unaPlanificacion->nodoPlanificado->reduccionGlobal == 0){
-			unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajo--;
-		}	else{
-			unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajo -= unaPlanificacion->nodoPlanificado->reduccionGlobal;
-		}
-		unaPlanificacion->nodoPlanificado->nodo->disponibilidad++;
-	}
-	list_iterate(estados,estadisticas);
-	list_destroy(estados);
-	free(job);
-	printf("job finalizado exitosamente\n");
-}
 
 
 

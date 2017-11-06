@@ -24,7 +24,10 @@ int valorBaseTemporal;
 
 t_list* prePlanificacion(t_list* bloques, int valorBase, t_list* listaNodos, char* tipoAlgoritmo);
 t_list* replanificacion(t_list* listaNodos, int nodoFallado, t_list* bloques, int dispBase, char* tipoAlgoritmo);
-void terminarJob(t_list* planificacion);
+void terminarJob(t_job* job);
+void estadisticas(void* unaPlanif);
+
+char* generarRutaTemporal();
 
 void agregarDisponibilidad(void* unNodo);
 void agregarDisponibilidadNodos(void* nodosDisponibles, int valorBase);
@@ -50,7 +53,7 @@ void* obtenerNodos(void* elemento);
 
 
 //prueba de preplanificacion
-void inicializarNodo(t_nodo* nodo, int id);
+void inicializarNodo(t_nodo* nodo, char* id);
 void asignarBloque(t_nodo* nodo, int numeroBloque, int bytesOcupados);
 void ejemploPrePlanificacion();
 
