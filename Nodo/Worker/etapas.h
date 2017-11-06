@@ -19,7 +19,7 @@ void responderSolicitudT(int, int);
 int reduccionLocal(solicitud_programa_reduccion_local *);
 void responderSolicitudRL(int, int);
 //RG
-int reduccionGlobal(solicitud_programa_reduccion_global *);
+int reduccionGlobal(solicitud_programa_reduccion_global *, int);
 void responderSolicitudRG(int, int);
 void enviarArchivoTemp(solicitud_enviar_archivo_temp *);
 void leerArchivoTemp(solicitud_leer_archivo_temp *);

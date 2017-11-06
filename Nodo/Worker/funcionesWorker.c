@@ -223,7 +223,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 		solicitud_programa_reduccion_global* solicitudRGDeserializada =
 				deserializarSolicitudProgramaReduccionGlobal(package->message);
 		ruta_archivo_temp_final = solicitudRGDeserializada->archivo_temporal_resultante;
-		exit_code = reduccionGlobal(solicitudRGDeserializada);
+		exit_code = reduccionGlobal(solicitudRGDeserializada, puerto);
 		responderSolicitudRG(nuevoSocket, exit_code);
 		break;
 
