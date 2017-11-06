@@ -21,14 +21,14 @@ void main() {
 	FD_ZERO(&fdSocketsEscucha);
 
 
-	socketEscucha= escuchar(4003);
+	socketEscucha= escuchar(4004);
 	FD_SET(socketEscucha, &fdSocketsEscucha);
 
 
 	t_esperar_conexion *esperarConexion;
 
 
-	hacerPedidoDeTransformacionYRL();
+	//hacerPedidoDeTransformacionYRL();
 	printf("finaliza pedido transformacion y reduccion\n");
 
 	//cargo config.txt

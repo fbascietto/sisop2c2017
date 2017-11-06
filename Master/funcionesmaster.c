@@ -3,6 +3,18 @@
 #include "../bibliotecas/sockets.h"
 #include "../bibliotecas/protocolo.h"
 #include "interfaceWorker.h"
+#include <pthread.h>
+
+/*
+ typedef struct {
+	char programa_transformacion[LENGTH_NOMBRE_PROGRAMA];
+	char* programa; //contenido del programa
+	uint32_t length_programa;
+	uint32_t bloque;  //bloque a aplicar programa de Transformacion
+	uint32_t bytes_ocupados;
+	char archivo_temporal[LENGTH_RUTA_ARCHIVO_TEMP]; //ruta de archivo temporal
+} solicitud_programa_transformacion;
+ */
 
 
 void *enviarTransformacionWorker(void *args){
@@ -10,20 +22,24 @@ void *enviarTransformacionWorker(void *args){
 	int socketConn = conectarseA(itemTransformacion->ip_worker, itemTransformacion->puerto_worker);
 	enviarInt(socketConn,PROCESO_MASTER);
 
-	/*solicitud_programa_transformacion* solicitud = malloc(sizeof(solicitud_programa_transformacion));
-	strcpy(&(solicitud_programa_transformacion->ruta_programa_transformacion),"unaRuta.sh");
-	char* filebuffer = fileToChar("unaRuta.sh");
-	strcpy(&(solicitud_programa_transformacion->programa,filebuffer));
-	strcpy(&(solicitud_programa_transformacion->archivo_temporal,"archivotemp.txt"));
-	solicitud_programa_transformacion->length_programa = strlen(filebuffer);
-	solicitud_programa_transformacion->bloque = 12;
-	solicitud_programa_transformacion->bytes_ocupados = 2000;
+	solicitud_programa_transformacion* solicitud = malloc(sizeof(solicitud_programa_transformacion));
+	strcpy(&(solicitud->programa_transformacion),"script_transformacion.py");
+	char* filebuffer = fileToChar("script_transformacion.py");
+	printf("file = %s\n", filebuffer );
+	solicitud->programa = filebuffer;
+	strcpy(&(solicitud->archivo_temporal),itemTransformacion->archivo_temporal);
+	solicitud->length_programa = strlen(filebuffer);
+	solicitud->bloque = itemTransformacion->bloque;
+	solicitud->bytes_ocupados = itemTransformacion->bytes_ocupados;
 
-	char* serializado = serializarSolicitudProgramaTransformacion(solicitud_programa_transformacion);
-	int len = getLong_SolicitudProgramaTransformacion(solicitud_programa_transformacion);
+	char* serializado = serializarSolicitudProgramaTransformacion(solicitud);
+	int len = getLong_SolicitudProgramaTransformacion(solicitud);
 
-	enviarMensajeSocketConLongitud(socketConn, ENVIAR_PROGRAMA_TRANSFORMACION, serializado, len);
-	free(args);*/
+	solicitud_programa_transformacion* deserializado = deserializarSolicitudProgramaTransformacion(serializado);
+	printf("programa = %s\n", deserializado->programa );
+
+	enviarMensajeSocketConLongitud(socketConn, ACCION_TRANSFORMACION, serializado, len);
+	free(args);
 }
 
 void procesarSolicitudTransformacion(int socket, int message_long, char* message){
@@ -40,15 +56,9 @@ void procesarSolicitudTransformacion(int socket, int message_long, char* message
 				solicitudTransfDeserializada->items_transformacion[var].bytes_ocupados,
 				solicitudTransfDeserializada->items_transformacion[var].archivo_temporal);
 		pthread_t threadSolicitudTransformacionWorker;
+		enviarTransformacionWorker((void*) itemTransformacion);
 		//int er1 = pthread_create(&threadSolicitudTransformacionWorker, NULL,enviarTransformacionWorker,(void*) itemTransformacion);
 		//pthread_join(threadSolicitudTransformacionWorker, NULL);
-		printf("\nNUEVO ITEM DESERIALIZADO//////////////////////////////////////////////\n");
-		printf("archivo_temporal = %s\n", solicitudTransfDeserializada->items_transformacion[var].archivo_temporal );
-		printf("bloque = %d\n", solicitudTransfDeserializada->items_transformacion[var].bloque );
-		printf("bytes_ocupados = %d\n", solicitudTransfDeserializada->items_transformacion[var].bytes_ocupados );
-		printf("nodo_id = %d\n", solicitudTransfDeserializada->items_transformacion[var].nodo_id );
-		printf("ip_worker = %s\n", solicitudTransfDeserializada->items_transformacion[var].ip_worker );
-		printf("puerto_worker = %d\n", solicitudTransfDeserializada->items_transformacion[var].puerto_worker );
 	}
 }
 

@@ -13,7 +13,7 @@ uint32_t getLong_SolicitudProgramaTransformacion(solicitud_programa_transformaci
 	total_size += sizeof(uint32_t)*2;//campo bloque y bytes_ocupados
 	total_size += sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]);
 	total_size += sizeof(char[LENGTH_NOMBRE_PROGRAMA]);
-	total_size += sizeof(char)*solicitud->length_programa; //campo programa
+	total_size += sizeof(char)*(solicitud->length_programa); //campo programa
 	total_size += sizeof(uint32_t);//campo length_programa
 
 	return total_size;
@@ -30,10 +30,10 @@ char* serializarSolicitudProgramaTransformacion(solicitud_programa_transformacio
 	serializarDato(serializedPackage,&(solicitud->bloque),sizeof(uint32_t),&offset);
 	serializarDato(serializedPackage,&(solicitud->bytes_ocupados),sizeof(uint32_t),&offset);
 	serializarDato(serializedPackage,&(solicitud->archivo_temporal),sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
-	serializarDato(serializedPackage,&(solicitud->programa),sizeof(char)*solicitud->length_programa,&offset);
 	serializarDato(serializedPackage,&(solicitud->length_programa),sizeof(uint32_t),&offset);
+	serializarDato(serializedPackage,&(solicitud->programa),sizeof(char)*solicitud->length_programa,&offset);
 
-	return solicitud;
+	return serializedPackage;
 }
 
 solicitud_programa_transformacion* deserializarSolicitudProgramaTransformacion(char* serialized){
@@ -44,7 +44,7 @@ solicitud_programa_transformacion* deserializarSolicitudProgramaTransformacion(c
 	deserializarDato(&(solicitud->bytes_ocupados),serialized,sizeof(uint32_t),&offset);
 	deserializarDato(&(solicitud->archivo_temporal),serialized,sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
 	deserializarDato(&(solicitud->length_programa),serialized,sizeof(uint32_t),&offset);
-	deserializarDato(&(solicitud->programa),serialized,sizeof(char)*solicitud->length_programa,&offset);
+	deserializarDato(&(solicitud->programa),serialized,sizeof(char)*(solicitud->length_programa),&offset);
 
 	return solicitud;
 }
