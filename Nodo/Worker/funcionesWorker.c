@@ -56,7 +56,6 @@ int persistirPrograma(char* nombre, char* contenido){
 
 	int retorno;
 	FILE* f1;
-	FILE* f2;
 	//longitud del contenido del programa
 	int longitud_contenido = strlen(contenido);
 	//inicializo en -1 para que no pueda ser igual a la longitud excepto que complete correctamente el fwrite
@@ -71,28 +70,32 @@ int persistirPrograma(char* nombre, char* contenido){
 		//si no esta persistido el programa aun, lo persiste
 
 		//creo el programa vacio en el servidor local con la ruta
-		f2 = fopen(ruta, "w");
-		if(f2==NULL){
+		f1 = fopen(ruta, "w");
+		if(f1==NULL){
 			sprintf(mensaje_de_log, "No se pudo persistir %s", nombre);
 			log_error(worker_error_log, mensaje_de_log);
 			free(ruta);
 			free(mensaje_de_log);
+			log_destroy(worker_log);
+			log_destroy(worker_error_log);
 			return -1;
 		}
 
 		//le escribo el contenido con lo recibido por socket
-		escritos = fwrite(contenido, 1, longitud_contenido, f2);
+		escritos = fwrite(contenido, 1, longitud_contenido, f1);
 		if(escritos != longitud_contenido){
 			sprintf(mensaje_de_log, "No se pudo escribir el contenido de %s", nombre);
 			log_error(worker_error_log, mensaje_de_log);
 			free(ruta);
 			free(mensaje_de_log);
+			log_destroy(worker_log);
+			log_destroy(worker_error_log);
 			return -2;
 		}
 
 		sprintf(mensaje_de_log, "Programa %s persistido", nombre);
 		log_trace(worker_log, mensaje_de_log);
-		fclose(f2);
+		fclose(f1);
 
 		//puntero que va a tener la cadena de caracteres que se la pasa a la funcion system para dar permisos de ejecucion al script
 		char* p = malloc(strlen(ruta) + LENGTH_EXTRA_SPRINTF);
@@ -102,13 +105,15 @@ int persistirPrograma(char* nombre, char* contenido){
 		free(ruta);
 		retorno = system(p);
 		if(retorno == -1){
-
 			sprintf(mensaje_de_log, "No se pudo dar los permisos de ejecucion a %s", nombre);
 			log_error(worker_error_log, mensaje_de_log);
 			free(mensaje_de_log);
 			free(ruta);
+			log_destroy(worker_log);
+			log_destroy(worker_error_log);
 			return -10;
 		}
+
 		if(retorno != -1){
 			sprintf(mensaje_de_log, "Permisos de ejecucion dados a %s", nombre);
 			log_trace(worker_log, mensaje_de_log);
@@ -116,6 +121,8 @@ int persistirPrograma(char* nombre, char* contenido){
 
 		free(p);
 		free(mensaje_de_log);
+		log_destroy(worker_log);
+		log_destroy(worker_error_log);
 
 		return 0;
 	}
@@ -123,11 +130,13 @@ int persistirPrograma(char* nombre, char* contenido){
 	fclose(f1);
 	free(ruta);
 	free(mensaje_de_log);
+	log_destroy(worker_log);
+	log_destroy(worker_error_log);
 	return 0;
 
 }
 
-void *esperarConexionesMaster(void *args) {
+void *esperarConexionesMasterYWorker(void *args) {
 
 	t_esperar_conexion* argumentos = (t_esperar_conexion*) args;
 
@@ -188,6 +197,8 @@ void recibirSolicitudMaster(int nuevoSocket){
 					deserializarSolicitudProgramaTransformacion(package->message);
 			exit_code = transformacion(solicitudTDeserializada, rutaNodo);
 			responderSolicitudT(nuevoSocket, exit_code);
+			log_destroy(worker_log);
+			log_destroy(worker_error_log);
 			exit(0);
 		}else{
 			if(pid < 0){
@@ -207,6 +218,8 @@ void recibirSolicitudMaster(int nuevoSocket){
 					deserializarSolicitudProgramaReduccionLocal(package->message);
 			exit_code = reduccionLocal(solicitudRLDeserializada);
 			responderSolicitudRL(nuevoSocket, exit_code);
+			log_destroy(worker_log);
+			log_destroy(worker_error_log);
 			exit(0);
 		}else{
 			if(pid < 0){
@@ -235,6 +248,9 @@ void recibirSolicitudMaster(int nuevoSocket){
 
 	}
 
+	log_destroy(worker_log);
+	log_destroy(worker_error_log);
+
 }
 
 void recibirSolicitudWorker(int nuevoSocket){
@@ -261,6 +277,8 @@ void recibirSolicitudWorker(int nuevoSocket){
 		leerArchivoTemp(solicitudLATDeserializada);
 		break;
 
+	log_destroy(worker_log);
+	log_destroy(worker_error_log);
 
 	}
 }

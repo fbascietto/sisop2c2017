@@ -28,6 +28,8 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada, ch
 	//persisto el programa transformador
 	retorno = persistirPrograma(solicitudDeserializada->programa_transformacion, solicitudDeserializada->programa);
 	if(retorno == -1 || retorno == -2 || retorno == -10){
+		log_destroy(worker_log);
+		log_destroy(worker_error_log);
 		return retorno;
 	}
 
@@ -36,6 +38,8 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada, ch
 	if (f1==NULL)
 	{
 		log_error(worker_error_log, "No se pudo abrir data.bin");
+		log_destroy(worker_log);
+		log_destroy(worker_error_log);
 		return -3;
 	}
 
@@ -52,6 +56,8 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada, ch
 	if(leidos!= solicitudDeserializada->bytes_ocupados){
 		log_error(worker_error_log, "No se leyo correctamente el bloque");
 		free(buffer);
+		log_destroy(worker_log);
+		log_destroy(worker_error_log);
 		return -4;
 	}
 
@@ -67,6 +73,8 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada, ch
 	retorno = system(s);
 	if(retorno == -1){
 		log_error(worker_error_log, "No se pudo realizar la transformacion");
+		log_destroy(worker_log);
+		log_destroy(worker_error_log);
 		return -10;
 	}
 
@@ -74,6 +82,8 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada, ch
 	free(s);
 
 	log_trace(worker_log, "Transformacion de bloque finalizada");
+	log_destroy(worker_log);
+	log_destroy(worker_error_log);
 
 	return 0;
 
@@ -113,5 +123,9 @@ void responderSolicitudT(int socket, int exit_code){
 		break;
 
 	}
+
+	log_destroy(worker_log);
+	log_destroy(worker_error_log);
+
 }
 

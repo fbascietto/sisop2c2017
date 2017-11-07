@@ -18,8 +18,8 @@ void main() {
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
-	t_log_level level_ERROR = LOG_LEVEL_ERROR;
-	t_log* worker_log_error = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+	t_log_level level_INFO = LOG_LEVEL_INFO;
+	t_log* worker_log_error = log_create("logWorker.txt", "WORKER", 1, level_INFO);
 
 
 	//creo directorio de scripts
@@ -27,7 +27,7 @@ void main() {
 	if(retorno_mkdir == 0){
 		log_trace(worker_log, "Se crea el directorio scripts");
 	}else{
-		log_error(worker_log_error, "El directorio scripts no pude crearse porque ya existia");
+		log_info(worker_log_error, "El directorio scripts no pudo crearse porque ya existia");
 	}
 
 	/*testeo de la funcion de persistencia de programas.OK
@@ -53,9 +53,12 @@ void main() {
 
 	log_trace(worker_log, "Creacion socket para conexion con Master");
 
+	log_destroy(worker_log);
+	log_destroy(worker_log_error);
+
 	while(1){
 
-		esperarConexionesMaster((void*) esperarConexion);
+		esperarConexionesMasterYWorker((void*) esperarConexion);
 
 	}
 

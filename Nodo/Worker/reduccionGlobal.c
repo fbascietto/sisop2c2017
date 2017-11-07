@@ -78,6 +78,9 @@ void responderSolicitudRG(int socket, int exit_code){
 		break;
 	}
 
+	log_destroy(worker_log);
+	log_destroy(worker_error_log);
+
 }
 
 

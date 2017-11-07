@@ -49,3 +49,7 @@
 [TRACE] 11:20:20:511 WORKER/(3696:3696): Lectura de archivo de configuracion
 [TRACE] 11:20:20:511 WORKER/(3696:3696): Creacion socket para conexion con Master
 [TRACE] 11:20:20:511 WORKER/(3696:3696): Esperando conexiones de Master
+[INFO] 17:22:17:268 WORKER/(2859:2859): El directorio scripts no pudo crearse porque ya existia
+[TRACE] 17:22:17:290 WORKER/(2859:2859): Lectura de archivo de configuracion
+[TRACE] 17:22:17:290 WORKER/(2859:2859): Creacion socket para conexion con Master
+[TRACE] 17:22:17:290 WORKER/(2859:2859): Esperando conexiones de Master

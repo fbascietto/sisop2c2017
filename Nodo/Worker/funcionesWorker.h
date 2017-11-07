@@ -37,7 +37,7 @@ char* ruta_archivo_temp_final;
 
 void iniciarWorker();
 int persistirPrograma(char*, char*);
-void *esperarConexionesMaster(void *);
+void *esperarConexionesMasterYWorker(void *);
 void recibirSolicitudMaster(int);
 void recibirSolicitudWorker(int);
 

@@ -28,4 +28,6 @@ void almacenamientoFinal(char* IP_fs, int puerto_fs, char* archivo_a_enviar){
 	envioArchivo(socketConn, archivo_a_enviar);
 	log_trace(worker_log, "Finalizacion de envio de archivo");
 
+	log_destroy(worker_log);
+
 }
