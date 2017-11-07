@@ -60,11 +60,15 @@ void main(){
 	int er1 = pthread_create(&threadEscucharConsola,NULL,escucharConsola,NULL);
 	int er2 = pthread_create(&threadEsperaConexiones, NULL,esperarConexiones,(void*) esperarConexion);
 
-	pthread_join(threadEsperaConexiones, NULL);
+
 	pthread_join(threadEscucharConsola, NULL);
 
 
 	log_error(logFS,"Se sale forzadamente del fs.");
 	log_destroy(logFS);
+
+	list_destroy_and_destroy_elements(nodos,free);
+	free(esperarConexion);
+	exit(1);
 }
 

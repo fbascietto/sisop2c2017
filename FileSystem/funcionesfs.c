@@ -72,28 +72,39 @@ t_list* inicializarDirectorios(){
 	    folders = malloc(sizeof(t_directory));
 	    folderList = list_create();
 	    folders->index = 0;
-	    folders->nombre = "root";
+	    //free(folders->nombre);
+	    folders->nombre = string_duplicate("root");
 	    folders->padre = -1;
 	    fprintf(fptr,"%d%s%s%s%d%s",folders->index,"|",folders->nombre,"|",folders->padre,"\n");
 	    list_add(folderList, folders);
 	    } else {
 	    //cargo directorios.dat
-	    	char* linea[256];
-	    	char** col;
+
+	    	char linea[256];
+
 	    	folderList = list_create();
+
 	    	fgets(linea,sizeof(linea),fptr);
 	    	while(!feof(fptr)){
+
+	    		char** col;
 	    		col = string_split(linea,"|");
 	    		if(!strcmp(col[0],"Index")){
 	    			//ignoro titulos (para qué los puse?!)
 	    		} else {
-    		    folders = malloc(sizeof(t_directory));
-	    		folders->index = atoi(col[0]);
-	    		folders->nombre = col[1];
-	    		folders->padre = atoi(col[2]);
-	    	    list_add(folderList, folders);
+	    			t_directory *childFolder;
+	    			childFolder = malloc(sizeof(t_directory));
+	    			childFolder->index = atoi(col[0]);
+	    			//free(childFolder->nombre);
+	    			childFolder->nombre = string_duplicate(col[1]);
+	    			childFolder->padre = atoi(col[2]);
+					list_add(folderList, childFolder);
 	    		}
+
 	    		fgets(linea,sizeof(linea),fptr);
+	    		string_iterate_lines(col,free);
+	    		free(col);
+	    		//if(linea)free(linea);
 	    	}
 	    }
 
@@ -205,7 +216,9 @@ t_directory * cambiarAdirectorio(char* nombre, t_directory* carpetaActual, t_lis
 				break;
 		}
 	/*} llave del else de la comparación ".." */
+		list_destroy(carpetas);
 	}
+
 }
 
 int identificaDirectorio(char* directorio_yamafs, t_list* folderList){
@@ -231,6 +244,7 @@ int identificaDirectorio(char* directorio_yamafs, t_list* folderList){
 	}
 	free(ruta);
 	strcpy(directorio_yamafs,arrayString[i-1]);
+	string_iterate_lines(arrayString,free);
 	free(arrayString);
 	return carpetaActual->index;
 
@@ -496,16 +510,17 @@ void *escucharConsola(){
 	char * linea;
 
 	  while(1) {
-		linea = readline("yamafs:" );
+
+		linea = readline("yamafs:");
 
 		if(linea)
 		  add_history(linea);
 
 		if(!strncmp(linea, "exit", 4)) {
 		   log_trace(logFS,"Consola recibe ""exit""");
-		   log_destroy(logFS);
-		   free(linea);
-		   exit(1);
+		   //log_destroy(logFS);
+		   //free(linea);
+		   break;
 		} else
 		if(!strncmp(linea, "format", 6)) {
 			log_trace(logFS,"Consola recibe ""format""");
@@ -554,27 +569,30 @@ void *escucharConsola(){
 			// printf("Seleccionaste cambiar diretorio\n");
 			char ** parametros = string_split(linea, " ");
 			carpetaActual = cambiarAdirectorio(parametros[1], carpetaActual, carpetas);
-
+			string_iterate_lines(parametros,free);
+						free(parametros);
 		}
 		else
 		if(!strncmp(linea, "cpfrom", 6)) {
 			log_trace(logFS,"Consola recibe ""cpfrom""");
 			// printf("Seleccionaste copiar desde\n");
 			char ** parametros = string_split(linea, " ");
-			char * tipo_archivo = parametros[3];
-			if(tipo_archivo != NULL && !strcmp(parametros[3],"1")){
+			//char * tipo_archivo = parametros[3];
+			if(parametros[3] != NULL && !strcmp(parametros[3],"1")){
 				guardarArchivoLocalDeTextoEnFS(parametros[1],parametros[2], carpetas);
 			}else{
 				guardarArchivoLocalEnFS(parametros[1],parametros[2], carpetas);
 			}
-
-
+			string_iterate_lines(parametros,free);
+			free(parametros);
 		}else
 		if(!strncmp(linea, "cpto", 4)) {
 			log_trace(logFS,"Consola recibe ""cpto""");
 			// printf("Seleccionaste copiar hasta\n");
 			char ** parametros = string_split(linea, " ");
 			traerArchivoDeFs(parametros[1],parametros[2], carpetas);
+			string_iterate_lines(parametros,free);
+			free(parametros);
 
 		}else
 		if(!strncmp(linea, "cpblock", 7)) {
@@ -595,6 +613,8 @@ void *escucharConsola(){
 			}else{
 				obtenerMD5Archivo(archivo);
 			}
+			string_iterate_lines(parametros,free);
+			free(parametros);
 			free(archivo);
 		}else
 		if(!strncmp(linea, "ls", 2)) {
@@ -607,6 +627,7 @@ void *escucharConsola(){
 			string_append(&ruta, " | tr '\n' ' '");
 			system(ruta);
 			printf("\n");
+			free(ruta);
 			//printf("Seleccionaste ver directorios y archivos\n");
 
 		}else
@@ -615,7 +636,8 @@ void *escucharConsola(){
 			//printf("Seleccionaste obtener informacion\n");
 			char ** parametros = string_split(linea, " ");
 			imprimeMetadata(parametros[1], carpetas);
-
+			string_iterate_lines(parametros,free);
+			free(parametros);
 		}else
 		if(!strncmp(linea, "help",4)) {
 			log_trace(logFS,"Consola recibe ""help""");
@@ -639,7 +661,20 @@ void *escucharConsola(){
 			printf("Para más información utilice el comando ""help"".\n");
 		}
 
+
+
+
   }
+
+	  void liberarCarpeta(t_directory * carpeta){
+		  free(carpeta->nombre);
+		  free(carpeta);
+	  }
+
+	  free(linea);
+	  log_destroy(logFS);
+	  list_destroy_and_destroy_elements(carpetas,liberarCarpeta);
+	  //free(logFS);
 }
 
 char* getNombreArchivo(char* path){
