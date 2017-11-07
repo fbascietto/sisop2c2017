@@ -39,3 +39,13 @@
 [TRACE] 15:05:00:178 WORKER/(11455:11455): Lectura de archivo de configuracion
 [TRACE] 15:05:00:178 WORKER/(11455:11455): Creacion socket para conexion con Master
 [TRACE] 15:05:00:179 WORKER/(11455:11455): Esperando conexiones de Master
+[ERROR] 11:17:54:996 WORKER/(3626:3626): El directorio scripts no pude crearse porque ya existia
+[TRACE] 11:17:55:22 WORKER/(3626:3626): Lectura de archivo de configuracion
+[TRACE] 11:17:55:22 WORKER/(3626:3626): Creacion socket para conexion con Master
+[TRACE] 11:17:55:22 WORKER/(3626:3626): Esperando conexiones de Master
+[ERROR] 11:20:20:501 WORKER/(3696:3696): El directorio scripts no pude crearse porque ya existia
+[TRACE] 11:20:20:507 WORKER/(3696:3696): Programa script_test.sh persistido
+[TRACE] 11:20:20:511 WORKER/(3696:3696): Permisos de ejecucion dados a script_test.sh
+[TRACE] 11:20:20:511 WORKER/(3696:3696): Lectura de archivo de configuracion
+[TRACE] 11:20:20:511 WORKER/(3696:3696): Creacion socket para conexion con Master
+[TRACE] 11:20:20:511 WORKER/(3696:3696): Esperando conexiones de Master

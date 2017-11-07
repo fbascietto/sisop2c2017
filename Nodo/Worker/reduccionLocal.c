@@ -61,7 +61,7 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 		//determino longitud del archivo
 		longitud_archivo_temporal = ftell(f1);
 		//me posiciono al principio del archivo para poder leer
-		retorno = fseek(f1, 0, SEEK_SET);
+		rewind(f1);
 		if(retorno!=0){
 			log_error(worker_error_log, "No se pudo posicional al principio del archivo temporal");
 			free(buffer_total);
@@ -136,7 +136,7 @@ void responderSolicitudRL(int socket, int exit_code){
 		//enviar ERROR de lectura de archivo temporal
 		break;
 	case -10:
-		//enviar ERROR de llamada system()
+		//enviar ERROR de llamada system() al darle permisos al script
 		break;
 	case -7:
 		log_error(worker_error_log, "Se envia aviso de error en etapa de reduccion local a Master");

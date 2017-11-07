@@ -31,7 +31,7 @@ void main() {
 	}
 
 	/*testeo de la funcion de persistencia de programas.OK
-	persistirPrograma("test", "contenido de prueba", "testing");*/
+	persistirPrograma("script_test.sh", "abcdefghijklmnopqrstuvwxyz 123456789101112131415161718192021222324252627282930 ea funciono");*/
 	iniciarWorker();
 	log_trace(worker_log, "Lectura de archivo de configuracion");
 

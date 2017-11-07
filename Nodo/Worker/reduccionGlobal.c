@@ -10,6 +10,8 @@
 #include "../../bibliotecas/sockets.h"
 #include "../../bibliotecas/protocolo.h"
 
+//usar fgets(buffer, TAMANIO_BLOQUE, file) para leer de a lineas
+
 int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada, int puerto){
 
 	//para recorrer array
@@ -62,6 +64,15 @@ void responderSolicitudRG(int socket, int exit_code){
 		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_OK, NULL, 0);
 		break;
 	case -1:
+		//enviar ERROR de creacion de programa de reduccion
+		break;
+	case -2:
+		//enviar ERROR de escritura de programa de reduccion
+		break;
+	case -10:
+		//enviar ERROR de llamada system() al darle permisos al script
+		break;
+	case -9:
 		log_error(worker_error_log, "Se envia aviso de error en etapa de reduccion global a Master");
 		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_ERROR, NULL, 0);
 		break;

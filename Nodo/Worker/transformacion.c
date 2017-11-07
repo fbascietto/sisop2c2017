@@ -105,7 +105,7 @@ void responderSolicitudT(int socket, int exit_code){
 		//enviar ERROR de lectura de data.bin
 		break;
 	case -10:
-		//enviar ERROR de llamada system()
+		//enviar ERROR de llamada system() al darle permisos al script
 		break;
 	case -5:
 		log_error(worker_error_log, "Se envia aviso de error en etapa de transformacion de un bloque a Master");
