@@ -518,7 +518,7 @@ void *escucharConsola(){
 
 		if(!strncmp(linea, "exit", 4)) {
 		   log_trace(logFS,"Consola recibe ""exit""");
-		   //log_destroy(logFS);
+		   log_destroy(logFS);
 		   //free(linea);
 		   break;
 		} else
@@ -672,7 +672,7 @@ void *escucharConsola(){
 	  }
 
 	  free(linea);
-	  log_destroy(logFS);
+	 // log_destroy(logFS);
 	  list_destroy_and_destroy_elements(carpetas,liberarCarpeta);
 	  //free(logFS);
 }
