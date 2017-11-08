@@ -7,6 +7,7 @@
 
 #include "funcionesWorker.h"
 #include "etapas.h"
+#include <commons/string.h>
 
 void iniciarWorker(){
 
@@ -52,7 +53,7 @@ int persistirPrograma(char* nombre, char* contenido){
 	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
-	char* mensaje_de_log = malloc(100);
+	char* mensaje_de_error_log = string_new();
 
 	int retorno;
 	FILE* f1;
@@ -62,8 +63,7 @@ int persistirPrograma(char* nombre, char* contenido){
 	int escritos = -1;
 
 	//creo ruta para crear el archivo
-	char* ruta = malloc(strlen(nombre) + LENGTH_EXTRA_SPRINTF);
-	sprintf(ruta, "scripts/%s", nombre);
+	char* ruta = string_from_format("scripts/%s", nombre);
 
 	f1 = fopen(ruta, "r");
 	if(f1 == NULL){
@@ -72,10 +72,10 @@ int persistirPrograma(char* nombre, char* contenido){
 		//creo el programa vacio en el servidor local con la ruta
 		f1 = fopen(ruta, "w");
 		if(f1==NULL){
-			sprintf(mensaje_de_log, "No se pudo persistir %s", nombre);
-			log_error(worker_error_log, mensaje_de_log);
+			string_append_with_format(&mensaje_de_error_log, "No se pudo persistir %s", nombre);
+			log_error(worker_error_log, mensaje_de_error_log);
 			free(ruta);
-			free(mensaje_de_log);
+			free(mensaje_de_error_log);
 			log_destroy(worker_log);
 			log_destroy(worker_error_log);
 			return -1;
@@ -84,43 +84,43 @@ int persistirPrograma(char* nombre, char* contenido){
 		//le escribo el contenido con lo recibido por socket
 		escritos = fwrite(contenido, 1, longitud_contenido, f1);
 		if(escritos != longitud_contenido){
-			sprintf(mensaje_de_log, "No se pudo escribir el contenido de %s", nombre);
-			log_error(worker_error_log, mensaje_de_log);
+			string_append_with_format(&mensaje_de_error_log, "No se pudo escribir el contenido de %s", nombre);
+			log_error(worker_error_log, mensaje_de_error_log);
 			free(ruta);
-			free(mensaje_de_log);
+			free(mensaje_de_error_log);
 			log_destroy(worker_log);
 			log_destroy(worker_error_log);
 			return -2;
 		}
 
-		sprintf(mensaje_de_log, "Programa %s persistido", nombre);
-		log_trace(worker_log, mensaje_de_log);
+		char* mensaje_de_log1 = string_from_format("Programa %s persistido", nombre);
+		log_trace(worker_log, mensaje_de_log1);
+		free(mensaje_de_log1);
 		fclose(f1);
 
 		//puntero que va a tener la cadena de caracteres que se la pasa a la funcion system para dar permisos de ejecucion al script
-		char* p = malloc(strlen(ruta) + LENGTH_EXTRA_SPRINTF);
-
-		//le doy permisos de ejecucion al script
-		sprintf(p, "chmod 777 \"%s\"", ruta);
+		char* p = string_from_format("chmod 777 \"%s\"", ruta);
 		free(ruta);
+		//le doy permisos de ejecucion al script
 		retorno = system(p);
 		if(retorno == -1){
-			sprintf(mensaje_de_log, "No se pudo dar los permisos de ejecucion a %s", nombre);
-			log_error(worker_error_log, mensaje_de_log);
-			free(mensaje_de_log);
-			free(ruta);
+			sprintf(mensaje_de_error_log, "No se pudo dar los permisos de ejecucion a %s", nombre);
+			log_error(worker_error_log, mensaje_de_error_log);
+			free(mensaje_de_error_log);
+			free(p);
 			log_destroy(worker_log);
 			log_destroy(worker_error_log);
 			return -10;
 		}
 
 		if(retorno != -1){
-			sprintf(mensaje_de_log, "Permisos de ejecucion dados a %s", nombre);
-			log_trace(worker_log, mensaje_de_log);
+			char* mensaje_de_log2 = string_from_format("Permisos de ejecucion dados a %s", nombre);
+			log_trace(worker_log, mensaje_de_log2);
+			free(mensaje_de_log2);
 		}
 
 		free(p);
-		free(mensaje_de_log);
+		free(mensaje_de_error_log);
 		log_destroy(worker_log);
 		log_destroy(worker_error_log);
 
@@ -129,7 +129,7 @@ int persistirPrograma(char* nombre, char* contenido){
 	//si ya esta persistido, no hace nada
 	fclose(f1);
 	free(ruta);
-	free(mensaje_de_log);
+	free(mensaje_de_error_log);
 	log_destroy(worker_log);
 	log_destroy(worker_error_log);
 	return 0;

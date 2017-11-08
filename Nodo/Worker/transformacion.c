@@ -7,6 +7,7 @@
 
 #include "etapas.h"
 #include <commons/log.h>
+#include <commons/string.h>
 #include "../../bibliotecas/sockets.c"
 #include "../../bibliotecas/sockets.h"
 #include "../../bibliotecas/protocolo.h"
@@ -66,19 +67,18 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada, ch
 	fclose(f1);
 
 	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
-	char* s = malloc(solicitudDeserializada->bytes_ocupados + LENGTH_NOMBRE_PROGRAMA + LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_EXTRA_SPRINTF + 1);
-
-	//meto en s lo que quiero pasarle a system para que ejecute el script
-	sprintf(s, "printf \"%s\" | .\"/scripts/%s\" | sort > \"%s\"", buffer, solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
+	char* s = string_from_format("printf \"%s\" | .\"/scripts/%s\" | sort > \"%s\"", buffer,
+									solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
+	free(buffer);
 	retorno = system(s);
 	if(retorno == -1){
 		log_error(worker_error_log, "No se pudo realizar la transformacion");
 		log_destroy(worker_log);
 		log_destroy(worker_error_log);
+		free(s);
 		return -10;
 	}
 
-	free(buffer);
 	free(s);
 
 	log_trace(worker_log, "Transformacion de bloque finalizada");

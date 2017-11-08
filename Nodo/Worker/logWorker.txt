@@ -53,3 +53,28 @@
 [TRACE] 17:22:17:290 WORKER/(2859:2859): Lectura de archivo de configuracion
 [TRACE] 17:22:17:290 WORKER/(2859:2859): Creacion socket para conexion con Master
 [TRACE] 17:22:17:290 WORKER/(2859:2859): Esperando conexiones de Master
+[TRACE] 23:55:03:398 WORKER/(3515:3515): Se crea el directorio scripts
+[TRACE] 23:55:03:402 WORKER/(3515:3515): Programa script_test.sh persistido
+[TRACE] 23:55:03:430 WORKER/(3515:3515): Programa script_test.sh persistidoPermisos de ejecucion dados a script_test.sh
+[TRACE] 23:55:03:431 WORKER/(3515:3515): Lectura de archivo de configuracion
+[TRACE] 23:55:03:431 WORKER/(3515:3515): Creacion socket para conexion con Master
+[TRACE] 23:55:03:431 WORKER/(3515:3515): Esperando conexiones de Master
+[INFO] 23:56:02:192 WORKER/(3556:3556): El directorio scripts no pudo crearse porque ya existia
+[TRACE] 23:56:02:214 WORKER/(3556:3556): Lectura de archivo de configuracion
+[TRACE] 23:56:02:215 WORKER/(3556:3556): Creacion socket para conexion con Master
+[TRACE] 23:56:02:215 WORKER/(3556:3556): Esperando conexiones de Master
+[TRACE] 23:59:44:431 WORKER/(3629:3629): Se crea el directorio scripts
+[TRACE] 00:03:48:36 WORKER/(3629:3629): Programa script_test.sh persistido
+[TRACE] 00:06:39:456 WORKER/(3629:3629): Programa script_test.sh persistidoPermisos de ejecucion dados a script_test.sh
+[TRACE] 00:15:37:265 WORKER/(3973:3973): Se crea el directorio scripts
+[TRACE] 00:15:37:265 WORKER/(3973:3973): Programa script_test.sh persistido
+[TRACE] 00:15:37:275 WORKER/(3973:3973): 
+[TRACE] 00:15:37:275 WORKER/(3973:3973): Lectura de archivo de configuracion
+[TRACE] 00:15:37:275 WORKER/(3973:3973): Creacion socket para conexion con Master
+[TRACE] 00:15:37:275 WORKER/(3973:3973): Esperando conexiones de Master
+[TRACE] 00:16:27:954 WORKER/(4034:4034): Se crea el directorio scripts
+[TRACE] 00:16:27:955 WORKER/(4034:4034): Programa script_test.sh persistido
+[TRACE] 00:16:27:974 WORKER/(4034:4034): Permisos de ejecucion dados a script_test.sh
+[TRACE] 00:16:27:974 WORKER/(4034:4034): Lectura de archivo de configuracion
+[TRACE] 00:16:27:974 WORKER/(4034:4034): Creacion socket para conexion con Master
+[TRACE] 00:16:27:975 WORKER/(4034:4034): Esperando conexiones de Master

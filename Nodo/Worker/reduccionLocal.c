@@ -40,7 +40,7 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 	}
 
 	//para guardar el contenido de todos los archivos
-	char* buffer_total = malloc(memoria_asignada);
+	char* buffer_total = string_new();
 
 	for(i=0; i<solicitudDeserializada->cantidad_archivos_temp; i++){
 
@@ -80,29 +80,28 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 			log_destroy(worker_error_log);
 			return -5;
 		}
-		//modifico valor de memoria asignada para que tambien tenga la longitud del archivo
-		memoria_asignada = memoria_asignada + longitud_archivo_temporal + 1;
-		buffer_total = realloc(buffer_total, memoria_asignada);
-		strcat(buffer_total, buffer);
+
+		string_append(&buffer_total, buffer);
 
 		fclose(f1);
 	}
 
-	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
-	char* s = malloc(strlen(buffer_total) + LENGTH_NOMBRE_PROGRAMA + LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_EXTRA_SPRINTF + 1);
+	free(buffer);
 
-	sprintf(s, "printf \"%s\" | sort | .\"/scripts/%s\" > \"%s\"", buffer_total, solicitudDeserializada->programa_reduccion, solicitudDeserializada->archivo_temporal_resultante);
+	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
+	char* s = string_from_format("printf \"%s\" | .\"/scripts/%s\" > \"%s\"", buffer_total,
+										solicitudDeserializada->programa_reduccion, solicitudDeserializada->archivo_temporal_resultante);
+	free(buffer_total);
 	retorno = system(s);
 	if(retorno == -1){
 		log_error(worker_error_log, "No se pudo realizar la reduccion local");
 		log_destroy(worker_log);
 		log_destroy(worker_error_log);
+		free(s);
 		return -10;
 	}
 
 	free(s);
-	free(buffer);
-	free(buffer_total);
 
 	log_trace(worker_log, "Reduccion local finalizada");
 	log_destroy(worker_log);
