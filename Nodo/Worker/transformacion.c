@@ -50,7 +50,7 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada, ch
 	fseek(f1, TAMANIO_BLOQUE*solicitudDeserializada->bloque, SEEK_SET);
 
 	//buffer donde pongo datos que leo del bloque del data.bin
-	char* buffer = malloc(solicitudDeserializada->bytes_ocupados + 1);
+	char* buffer = malloc(solicitudDeserializada->bytes_ocupados);
 
 	//leer bloque de archivo
 	leidos = fread(buffer, 1, solicitudDeserializada->bytes_ocupados, f1);

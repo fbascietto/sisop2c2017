@@ -7,10 +7,12 @@
 
 #include "etapas.h"
 #include <commons/log.h>
+#include <commons/string.h>
 #include "../../bibliotecas/sockets.h"
 #include "../../bibliotecas/protocolo.h"
+#include <semaphore.h>
 
-//usar fgets(buffer, TAMANIO_BLOQUE, file) para leer de a lineas
+int sem;
 
 int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada, int puerto){
 
@@ -84,11 +86,68 @@ void responderSolicitudRG(int socket, int exit_code){
 }
 
 
-void enviarArchivoTemp(solicitud_enviar_archivo_temp* solicitudDeserializada){
+int leerYEnviarArchivoTemp(solicitud_leer_y_enviar_archivo_temp* solicitudDeserializada, int socket){
+
+	sem = 1;
+
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+
+	char* buffer;
+	int retorno;
+	int longitud_archivo_temporal;
+
+	FILE* f1;
+	f1 = fopen(solicitudDeserializada->ruta_archivo_red_local_temp, "r");
+	if(f1 == NULL){
+		log_error(worker_error_log, "No se pudo abrir el archivo temporal de reduccion local para recorrerlo");
+		log_destroy(worker_log);
+		log_destroy(worker_error_log);
+		return -3;
+	}
+
+	//me posiciono al final del archivo
+	retorno = fseek(f1, 0, SEEK_END);
+	if(retorno!=0){
+		log_error(worker_error_log, "No se pudo posicional al final del archivo temporal");
+		log_destroy(worker_log);
+		log_destroy(worker_error_log);
+		return -4;
+	}
+	//determino longitud del archivo
+	longitud_archivo_temporal = ftell(f1);
+	//me posiciono al principio del archivo para poder leer
+	rewind(f1);
+
+	buffer = malloc(longitud_archivo_temporal);
+
+	while(!feof(f1)){
+
+		wait(sem);
+
+		//leo de a un registro (una linea porque ya viene ordenado el archivo) para guardar en buffer y enviar
+		fgets(buffer, longitud_archivo_temporal, f1);
+
+		enviarMensajeSocketConLongitud(socket, ACCION_RECIBIR_REGISTRO, buffer, strlen(buffer));
+
+
+	}
+
+	free(buffer);
+
+	return 0;
 
 }
 
-void leerArchivoTemp(solicitud_leer_archivo_temp* solicitudDeserializada){
+void recibirArchivoTemp(solicitud_recibir_archivo_temp* solicitudDeserializada){
+
+}
+
+void habilitarSemaforo(){
+
+	signal(sem);
 
 }
 

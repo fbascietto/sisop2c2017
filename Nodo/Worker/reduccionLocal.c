@@ -7,6 +7,7 @@
 
 #include "etapas.h"
 #include <commons/log.h>
+#include <commons/string.h>
 #include "../../bibliotecas/sockets.h"
 #include "../../bibliotecas/protocolo.h"
 
@@ -23,8 +24,6 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 	int longitud_archivo_temporal;
 	//para guardar el contenido de 1 archivo
 	char* buffer;
-	//variable que uso para trackear cuanta memoria asignada tiene previamente el buffer_total
-	int memoria_asignada = sizeof(char);
 	FILE* f1;
 	int leidos;
 
@@ -69,7 +68,7 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 		//me posiciono al principio del archivo para poder leer
 		rewind(f1);
 
-		buffer = realloc(buffer, longitud_archivo_temporal + 1);
+		buffer = realloc(buffer, longitud_archivo_temporal);
 		//leo archivo y lo pongo en el buffer
 		leidos = fread(buffer, 1, longitud_archivo_temporal, f1);
 		if(leidos != longitud_archivo_temporal){

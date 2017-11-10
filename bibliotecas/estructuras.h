@@ -136,14 +136,14 @@ typedef struct {
 /*Structs de comunicacion WORKER con WORKER*/
 
 typedef struct {
-//TODO: definir struct, tal vez ni sea struct este tipo de comunicacion
+char ruta_archivo_red_local_temp[LENGTH_RUTA_ARCHIVO_TEMP];  //ruta del archivo de RL del worker para recorrer y enviar de a un registro a la vez
 
-} solicitud_enviar_archivo_temp;
+} solicitud_leer_y_enviar_archivo_temp;
 
 typedef struct {
 //TODO: definir struct, tal vez ni sea struct este tipo de comunicacion
 
-} solicitud_leer_archivo_temp;
+} solicitud_recibir_archivo_temp;
 
 //-------------------------------------------------------------------------------------------------------------------
 

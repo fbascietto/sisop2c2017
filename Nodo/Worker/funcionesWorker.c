@@ -203,7 +203,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 		}else{
 			if(pid < 0){
 				//cuando no pudo crear el hijo
-				log_error(worker_error_log, "No se ha podido crear el proceso hijo");
+				log_error(worker_error_log, "No se ha podido crear el proceso hijo para realizar la solicitud de transformacion");
 			}
 		}
 		break;
@@ -224,7 +224,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 		}else{
 			if(pid < 0){
 				//cuando no pudo crear el hijo
-				log_error(worker_error_log, "No se ha podido crear el proceso hijo");
+				log_error(worker_error_log, "No se ha podido crear el proceso hijo para realizar la solicitud de reduccion local");
 			}
 		}
 		break;
@@ -232,12 +232,23 @@ void recibirSolicitudMaster(int nuevoSocket){
 	case ACCION_REDUCCION_GLOBAL:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
 		log_trace(worker_log, "Solicitud de reduccion global recibida");
-		log_trace(worker_log, "Comienzo de reduccion global");
-		solicitud_programa_reduccion_global* solicitudRGDeserializada =
-				deserializarSolicitudProgramaReduccionGlobal(package->message);
-		ruta_archivo_temp_final = solicitudRGDeserializada->archivo_temporal_resultante;
-		exit_code = reduccionGlobal(solicitudRGDeserializada, puerto);
-		responderSolicitudRG(nuevoSocket, exit_code);
+		pid = fork();
+		if(pid == 0){
+			log_trace(worker_log, "Comienzo de reduccion global");
+			solicitud_programa_reduccion_global* solicitudRGDeserializada =
+					deserializarSolicitudProgramaReduccionGlobal(package->message);
+			ruta_archivo_temp_final = solicitudRGDeserializada->archivo_temporal_resultante;
+			exit_code = reduccionGlobal(solicitudRGDeserializada, puerto);
+			responderSolicitudRG(nuevoSocket, exit_code);
+			log_destroy(worker_log);
+			log_destroy(worker_error_log);
+			exit(0);
+		}else{
+			if(pid < 0){
+				//cuando no pudo crear el hijo
+				log_error(worker_error_log, "No se ha podido crear el proceso hijo para realizar la solicitud de reduccion global");
+			}
+		}
 		break;
 
 	case ACCION_ALMACENAMIENTO_FINAL:
@@ -266,19 +277,23 @@ void recibirSolicitudWorker(int nuevoSocket){
 	switch(package->msgCode){
 	case ACCION_ENVIAR_ARCHIVO_TEMP_DE_RL:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
-		solicitud_enviar_archivo_temp* solicitudEATDeserializada =
+		solicitud_leer_y_enviar_archivo_temp* solicitudEATDeserializada =
 				deserializarSolicitudEnviarArchivoTemp(package->message);
-		enviarArchivoTemp(solicitudEATDeserializada);
+		exit_code = leerYEnviarArchivoTemp(solicitudEATDeserializada, nuevoSocket);
 		break;
-	case ACCION_LEER_ARCHIVO_TEMP_DE_RL:
+	case HABILITAR_SEMAFORO:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
-		solicitud_leer_archivo_temp* solicitudLATDeserializada =
+		habilitarSemaforo();
+		break;
+	case ACCION_RECIBIR_REGISTRO:
+		; //empty statement. Es solucion a un error que genera el lenguaje C
+		solicitud_recibir_archivo_temp* solicitudLATDeserializada =
 				deserializarSolicitudLeerArchivoTemp(package->message);
-		leerArchivoTemp(solicitudLATDeserializada);
+		recibirArchivoTemp(solicitudLATDeserializada);
 		break;
 
-	log_destroy(worker_log);
-	log_destroy(worker_error_log);
+		log_destroy(worker_log);
+		log_destroy(worker_error_log);
 
 	}
 }
