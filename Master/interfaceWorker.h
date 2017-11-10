@@ -40,7 +40,7 @@ char* serializarSolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_gl
 item_programa_reduccion_global* deserializar_item_programa_reduccion_global(char* serialized);
 solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGlobal(char* serialized);
 
-solicitud_enviar_archivo_temp* deserializarSolicitudEnviarArchivoTemp(char* message);
-solicitud_leer_archivo_temp* deserializarSolicitudLeerArchivoTemp(char* message);
+solicitud_leer_y_enviar_archivo_temp* deserializarSolicitudEnviarArchivoTemp(char* message);
+solicitud_recibir_archivo_temp* deserializarSolicitudLeerArchivoTemp(char* message);
 
 #endif /* INTERFACEWORKER_H_ */
