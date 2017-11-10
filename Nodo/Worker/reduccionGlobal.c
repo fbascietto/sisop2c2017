@@ -12,7 +12,7 @@
 #include "../../bibliotecas/protocolo.h"
 #include <semaphore.h>
 
-int sem;
+sem_t sem;
 
 int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada, int puerto){
 
@@ -88,7 +88,7 @@ void responderSolicitudRG(int socket, int exit_code){
 
 int leerYEnviarArchivoTemp(solicitud_leer_y_enviar_archivo_temp* solicitudDeserializada, int socket){
 
-	sem = 1;
+	signal(sem);
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
@@ -130,6 +130,7 @@ int leerYEnviarArchivoTemp(solicitud_leer_y_enviar_archivo_temp* solicitudDeseri
 		//leo de a un registro (una linea porque ya viene ordenado el archivo) para guardar en buffer y enviar
 		fgets(buffer, longitud_archivo_temporal, f1);
 
+		log_trace(worker_log, "Se envia al worker encargado un registro para la reduccion global");
 		enviarMensajeSocketConLongitud(socket, ACCION_RECIBIR_REGISTRO, buffer, strlen(buffer));
 
 
@@ -147,6 +148,10 @@ void recibirArchivoTemp(solicitud_recibir_archivo_temp* solicitudDeserializada){
 
 void habilitarSemaforo(){
 
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log* sem_log = log_create("logWorker.txt", "WORKER", 1, level);
+
+	log_trace(sem_log, "Se habilita el semaforo para enviar el siguiente registro");
 	signal(sem);
 
 }
