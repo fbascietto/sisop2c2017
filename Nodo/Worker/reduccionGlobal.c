@@ -88,18 +88,39 @@ void responderSolicitudRG(int socket, int exit_code){
 
 int leerYEnviarArchivoTemp(solicitud_leer_y_enviar_archivo_temp* solicitudDeserializada, int socket){
 
-	signal(sem);
-
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
 	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
+	//fichero para recorrer el archivo de reduccion local
+	FILE* f1;
+
+	//buffer donde pongo cada registro (linea) que voy a enviar
 	char* buffer;
-	int retorno;
+	//entero donde almaceno longitud del archivo para reservar memoria en el malloc
 	int longitud_archivo_temporal;
 
-	FILE* f1;
+	//Inicializacion del semaforo
+
+	/*pshared = 0 significa que el semaforo no se comparte entre proceso
+	**pshared = 1 que si se comparte*/
+	int pshared;
+	int retorno;
+	int value;
+
+	//solo este proceso utiliza el semaforo => 0 de privado
+	pshared = 0;
+	//inicializo en 1 para que pueda leer un registro y enviar antes de bloquearse
+	value = 1;
+	retorno = sem_init(&sem, pshared, value);
+	if(retorno != 0){
+		log_error(worker_error_log, "No se pudo inicializar el semaforo");
+		return -5;
+	}
+
+	signal(sem);
+
 	f1 = fopen(solicitudDeserializada->ruta_archivo_red_local_temp, "r");
 	if(f1 == NULL){
 		log_error(worker_error_log, "No se pudo abrir el archivo temporal de reduccion local para recorrerlo");
