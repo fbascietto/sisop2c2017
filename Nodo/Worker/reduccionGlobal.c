@@ -36,15 +36,15 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada,
 	//para ver si uno de los archivos de reduccion local reside en el worker encargado
 	for(i=0; i<solicitudDeserializada->cantidad_item_programa_reduccion; i++){
 
-		if(puerto == solicitudDeserializada->items_programa_reduccion_global[i].puerto_worker){
+		if(puerto == solicitudDeserializada->workers[i].puerto_worker){
 
 			//se utiliza un archivo temporal local
 
 		}else{
 
 			//se debe pedir los registros mediante puerto/ip
-			socket = conectarseA(solicitudDeserializada->items_programa_reduccion_global[i].ip_worker,
-									solicitudDeserializada->items_programa_reduccion_global[i].puerto_worker);
+			socket = conectarseA(solicitudDeserializada->workers[i].ip_worker,
+									solicitudDeserializada->workers[i].puerto_worker);
 			enviarInt(socket, PROCESO_WORKER);
 			enviarMensajeSocketConLongitud(socket, COMENZAR_REDUCCION_GLOBAL, NULL, 0);
 

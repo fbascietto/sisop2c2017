@@ -118,13 +118,13 @@ typedef struct {
 	char ip_worker[LENGTH_IP];
 	uint32_t puerto_worker;
 	char archivo_temp_red_local[LENGTH_RUTA_ARCHIVO_TEMP];
-} item_programa_reduccion_global;
+} t_worker;
 
 typedef struct {
 	char programa_reduccion[LENGTH_NOMBRE_PROGRAMA];
 	char* programa; //contenido del programa
 	uint32_t length_programa;
-	item_programa_reduccion_global* items_programa_reduccion_global; 		/*lista de procesos Worker con sus respectivos IP, puerto y ruta de archivo temporal de
+	t_worker* workers; 		/*lista de procesos Worker con sus respectivos IP, puerto y ruta de archivo temporal de
 																			reduccion local*/
 	uint32_t cantidad_item_programa_reduccion; 		//cantidad de elementos en dicha lista
 	char archivo_temporal_resultante[LENGTH_RUTA_ARCHIVO_TEMP];		//ruta del archivo temporal resultante de la reduccion global

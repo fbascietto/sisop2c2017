@@ -17,7 +17,7 @@ sem_t sem;
 //estructura que define los elementos que maneja el worker encargado en la reduccion global
 typedef struct{
 
-	item_programa_reduccion_global* worker;	//worker al que representa este elemento
+	t_worker* worker;	//worker al que representa este elemento
 	bool pedir;		//booleano que determina si hay que pedirle el proximo elemento a este worker
 	char* ultima_palabra;	//ultima palabra enviada por este worker al worker encargado
 	bool fin; //booleano que determina si ya recorrio por completo su archivo temporal el worker
