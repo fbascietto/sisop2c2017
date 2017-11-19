@@ -275,7 +275,7 @@ void recibirSolicitudWorker(int nuevoSocket){
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
 	int exit_code;
 	switch(package->msgCode){
-	case ACCION_ENVIAR_ARCHIVO_TEMP_DE_RL:
+	case COMENZAR_REDUCCION_GLOBAL:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
 		solicitud_leer_y_enviar_archivo_temp* solicitudEATDeserializada =
 				deserializarSolicitudEnviarArchivoTemp(package->message);
@@ -290,6 +290,9 @@ void recibirSolicitudWorker(int nuevoSocket){
 		solicitud_recibir_archivo_temp* solicitudLATDeserializada =
 				deserializarSolicitudLeerArchivoTemp(package->message);
 		recibirArchivoTemp(solicitudLATDeserializada);
+		break;
+	case ARCHIVO_TERMINADO:
+		; //empty statement. Es solucion a un error que genera el lenguaje C
 		break;
 
 		log_destroy(worker_log);

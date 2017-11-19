@@ -46,7 +46,7 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada,
 			socket = conectarseA(solicitudDeserializada->workers[i].ip_worker,
 									solicitudDeserializada->workers[i].puerto_worker);
 			enviarInt(socket, PROCESO_WORKER);
-			enviarMensajeSocketConLongitud(socket, ACCION_ENVIAR_ARCHIVO_TEMP_DE_RL, NULL, 0);
+			enviarMensajeSocketConLongitud(socket, COMENZAR_REDUCCION_GLOBAL, NULL, 0);
 
 		}
 
@@ -155,10 +155,12 @@ int leerYEnviarArchivoTemp(solicitud_leer_y_enviar_archivo_temp* solicitudDeseri
 		fgets(buffer, longitud_archivo_temporal, f1);
 
 		log_trace(worker_log, "Se envia al worker encargado un registro para la reduccion global");
-		enviarMensajeSocketConLongitud(socket, ACCION_RECIBIR_REGISTRO, buffer, strlen(buffer));
+		enviarMensajeSocket(socket, ACCION_RECIBIR_REGISTRO, buffer);
 
 
 	}
+
+	enviarMensajeSocketConLongitud(socket, ARCHIVO_TERMINADO, NULL, 0);
 
 	free(buffer);
 
