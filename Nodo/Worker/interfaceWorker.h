@@ -30,14 +30,14 @@ archivo_temp* deserializar_archivo_temp(char* serialized);
 archivo_temp* deserializar_archivos_temporales(char* serialized, uint32_t items_cantidad);
 solicitud_programa_reduccion_local* deserializarSolicitudProgramaReduccionLocal(char* serialized);
 
-uint32_t getLong_one_item_reduccion_global(t_worker* items_programa_reduccion_global);
-uint32_t getLong_items_reduccion_global(t_worker* items_programa_reduccion_global, uint32_t cantidad);
+uint32_t getLong_one_item_reduccion_global(item_programa_reduccion_global* items_programa_reduccion_global);
+uint32_t getLong_items_reduccion_global(item_programa_reduccion_global* items_programa_reduccion_global, uint32_t cantidad);
 uint32_t getLong_SolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_global* solicitud);
 
-char* serializar_t_worker(t_worker* worker);
-char* serializar_workers(t_worker** workers, uint32_t cantidad_item);
+char* serializar_item_prog_reduccion_global(item_programa_reduccion_global* item_programa_reduccion_global);
+char* serializar_items_prog_reduccion_global(item_programa_reduccion_global** items_programa_reduccion_global, uint32_t cantidad_item);
 char* serializarSolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_global* solicitud);
-t_worker* deserializar_t_worker(char* serialized);
+item_programa_reduccion_global* deserializar_item_prog_reduccion_global(char* serialized);
 solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGlobal(char* serialized);
 
 solicitud_leer_y_enviar_archivo_temp* deserializarSolicitudEnviarArchivoTemp(char* message);

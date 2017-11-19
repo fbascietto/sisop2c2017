@@ -595,7 +595,7 @@ char* serializarSolicitudReduccionGlobal(solicitud_reduccion_global* solicitudRe
 	uint32_t size_item_encargado = getLong_one_item_reduccion_global(solicitudReduccionGlobal->encargado_reduccion_global);
 	serializarDato(serializedPackage,&(size_item_encargado),sizeof(uint32_t),&offset);
 
-	char* serialized_encargado = serializar_t_worker(solicitudReduccionGlobal->encargado_reduccion_global);
+	char* serialized_encargado = serializar_item_reduccion_global(solicitudReduccionGlobal->encargado_reduccion_global);
 	serializarDato(serializedPackage,serialized_encargado,sizeof(char)*size_item_encargado,&offset);
 	free(serialized_encargado);
 
@@ -603,14 +603,14 @@ char* serializarSolicitudReduccionGlobal(solicitud_reduccion_global* solicitudRe
 	uint32_t size_items = getLong_items_reduccion_global(solicitudReduccionGlobal->items_reduccion_global,solicitudReduccionGlobal->item_cantidad);
 	serializarDato(serializedPackage,&(size_items),sizeof(uint32_t),&offset);
 
-	char* serialized_items = serializar_workers(&(solicitudReduccionGlobal->items_reduccion_global),solicitudReduccionGlobal->item_cantidad);
+	char* serialized_items = serializar_items_reduccion_global(&(solicitudReduccionGlobal->items_reduccion_global),solicitudReduccionGlobal->item_cantidad);
 	serializarDato(serializedPackage,serialized_items,sizeof(char)*size_items,&offset);
 	free(serialized_items);
 
 	return serializedPackage;
 }
 
-char* serializar_workers(item_reduccion_global** items_reduccion_global, uint32_t item_cantidad){
+char* serializar_items_reduccion_global(item_reduccion_global** items_reduccion_global, uint32_t item_cantidad){
 	item_reduccion_global* aux_items_reduccion_global = *items_reduccion_global;
 	uint32_t total_size = getLong_items_reduccion_global(aux_items_reduccion_global, item_cantidad);
 	char *serializedPackage = malloc(sizeof(char)*total_size);
@@ -619,7 +619,7 @@ char* serializar_workers(item_reduccion_global** items_reduccion_global, uint32_
 
 	int i;
 	for (i = 0; i < item_cantidad; i++) {
-		char* serialized_item_reduccion_global = serializar_t_worker(&aux_items_reduccion_global[i]);//TODO: ver como pasarle el puntero como parametro
+		char* serialized_item_reduccion_global = serializar_item_reduccion_global(&aux_items_reduccion_global[i]);//TODO: ver como pasarle el puntero como parametro
 		uint32_t size_item_reduccion_global = getLong_one_item_reduccion_global(&aux_items_reduccion_global[i]);
 		serializarDato(serializedPackage,&(size_item_reduccion_global),sizeof(uint32_t),&offset);//size_item_transformacion
 		serializarDato(serializedPackage,serialized_item_reduccion_global,sizeof(char)*size_item_reduccion_global,&offset);//item_transformacion
@@ -628,7 +628,7 @@ char* serializar_workers(item_reduccion_global** items_reduccion_global, uint32_
 	return serializedPackage;
 }
 
-char* serializar_t_worker(item_reduccion_global* item_reduccion_global){
+char* serializar_item_reduccion_global(item_reduccion_global* item_reduccion_global){
 	uint32_t total_size = getLong_one_item_reduccion_global(item_reduccion_global);
 	char *serializedPackage = malloc(sizeof(char)*total_size);
 
@@ -799,7 +799,7 @@ void testSerializarItemReduccionGlobal(){
 
 	item_reduccion_global *item1 = crearItemReduccionGlobal(1,"127.0.0.1",8080,"/tmp/Master1-temp38");
 
-	char* itemSerializado = serializar_t_worker(item1);
+	char* itemSerializado = serializar_item_reduccion_global(item1);
 
 	item_reduccion_global *itemDeserializado = deserializar_item_reduccion_global(itemSerializado);
 	printf("archivo_temporal_transformacion = %s\n", itemDeserializado->archivo_temporal_reduccion_local );

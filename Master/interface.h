@@ -54,8 +54,8 @@ void testSerializarItemReduccionLocal();
 
 /*SERIALIZACION DE SOLICUTUD REDUCCION GLOBAL*/
 char* serializarSolicitudReduccionGlobal(solicitud_reduccion_global* solicitudReduccionGlobal);
-char* serializar_workers(item_reduccion_global** items_reduccion_global, uint32_t item_cantidad);
-char* serializar_t_worker(item_reduccion_global* item_reduccion_global);
+char* serializar_items_reduccion_global(item_reduccion_global** items_reduccion_global, uint32_t item_cantidad);
+char* serializar_item_reduccion_global(item_reduccion_global* item_reduccion_global);
 
 uint32_t getLong_SolicitudReduccionGlobal(solicitud_reduccion_global* solicitudReduccionGlobal);
 uint32_t getLong_items_reduccion_global(item_reduccion_global* items_reduccion_global, uint32_t item_cantidad);
