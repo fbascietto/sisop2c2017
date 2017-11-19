@@ -1,11 +1,11 @@
 /*
- * interfaceWorker.h
+ * interfaceWorkerMaster.h
  *
- *  Created on: 16/10/2017
+ *  Created on: 18/11/2017
  *      Author: utnso
  */
 
-#include "../bibliotecas/estructuras.h"
+#include "estructuras.h"
 
 #ifndef INTERFACEWORKER_H_
 #define INTERFACEWORKER_H_
