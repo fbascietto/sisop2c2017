@@ -196,7 +196,7 @@ char* serializarSolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_gl
 	return serializedPackage;
 }
 
-t_worker* deserializar_item_programa_reduccion_global(char* serialized){
+t_worker* deserializar_t_worker(char* serialized){
 	t_worker* item = malloc(sizeof(t_worker));
 	int offset = 0;
 
@@ -217,7 +217,7 @@ t_worker* deserializar_items_programa_reduccion_global(char* serialized, uint32_
 		deserializarDato(&(size_item),serialized,sizeof(uint32_t),&offset);
 		char* serialized_item = malloc(sizeof(char)*size_item);
 		deserializarDato(serialized_item,serialized,size_item,&offset);
-		t_worker* aux = deserializar_item_programa_reduccion_global(serialized_item);
+		t_worker* aux = deserializar_t_worker(serialized_item);
 		workers[i] = *(aux);
 		free(aux);
 		free(serialized_item);
