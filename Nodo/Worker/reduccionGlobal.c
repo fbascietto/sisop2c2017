@@ -27,30 +27,52 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada,
 		return retorno;
 	}
 
+	t_list* elementos_de_RG = list_create();
+
 	//preparacion de estructuras para preparar la reduccion global
 	for(i=0; i<solicitudDeserializada->cantidad_item_programa_reduccion; i++){
 
+		prepararEstructuras(elementos_de_RG, solicitudDeserializada->workers[i], i);
 
 	}
+
+	t_elemento* element_with_socket_to_add;
 
 	//para ver si uno de los archivos de reduccion local reside en el worker encargado
 	for(i=0; i<solicitudDeserializada->cantidad_item_programa_reduccion; i++){
 
 		if(puerto == solicitudDeserializada->workers[i].puerto_worker){
 
-			//se utiliza un archivo temporal local
+			element_with_socket_to_add = list_get(elementos_de_RG, i);
+			element_with_socket_to_add->socket = -2;  //el -2 indica ser el worker encargado porque no hay una conexion de socket
+			list_replace(elementos_de_RG, i, element_with_socket_to_add);
+
+			leerYEnviarArchivoTemp(solicitudDeserializada->workers[i].archivo_temp_red_local, -2);
 
 		}else{
 
 			//se debe pedir los registros mediante puerto/ip
 			socket = conectarseA(solicitudDeserializada->workers[i].ip_worker,
 									solicitudDeserializada->workers[i].puerto_worker);
+
+			element_with_socket_to_add = list_get(elementos_de_RG, i);
+			element_with_socket_to_add->socket = socket;
+			list_replace(elementos_de_RG, i, element_with_socket_to_add);
+
 			enviarInt(socket, PROCESO_WORKER);
+			//Todo: enviar la ruta del archivo temporal
 			enviarMensajeSocketConLongitud(socket, COMENZAR_REDUCCION_GLOBAL, NULL, 0);
 
 		}
 
+		while(1){
+
+
+		}
+
 	}
+
+	free(element_with_socket_to_add);
 
 	return 0;
 }
@@ -89,7 +111,9 @@ void responderSolicitudRG(int socket, int exit_code){
 }
 
 
-int leerYEnviarArchivoTemp(solicitud_leer_y_enviar_archivo_temp* solicitudDeserializada, int socket){
+int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int socket){
+
+	//Todo: verificacion usando el socket para ver si es el encargado u otro worker
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
@@ -122,9 +146,7 @@ int leerYEnviarArchivoTemp(solicitud_leer_y_enviar_archivo_temp* solicitudDeseri
 		return -5;
 	}
 
-	signal(sem);
-
-	f1 = fopen(solicitudDeserializada->ruta_archivo_red_local_temp, "r");
+	f1 = fopen(ruta_arch_temp, "r");
 	if(f1 == NULL){
 		log_error(worker_error_log, "No se pudo abrir el archivo temporal de reduccion local para recorrerlo");
 		log_destroy(worker_log);
@@ -179,6 +201,21 @@ void habilitarSemaforo(){
 
 	log_trace(sem_log, "Se habilita el semaforo para enviar el siguiente registro");
 	signal(sem);
+
+}
+
+void prepararEstructuras(t_list* elementos_para_RG, t_worker worker, int posicion){
+
+	t_elemento* unElemento;
+
+	unElemento->ultima_palabra = "";
+	unElemento->worker = worker;
+	unElemento->pedir = false;
+	unElemento->fin = false;
+	unElemento->posicion = posicion;
+
+	list_add(elementos_para_RG, unElemento);
+
 
 }
 

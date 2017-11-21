@@ -130,6 +130,7 @@ typedef struct {
 	char archivo_temporal_resultante[LENGTH_RUTA_ARCHIVO_TEMP];		//ruta del archivo temporal resultante de la reduccion global
 } solicitud_programa_reduccion_global;
 
+
 //-------------------------------------------------------------------------------------------------------------------
 
 
