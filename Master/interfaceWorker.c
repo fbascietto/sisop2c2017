@@ -177,14 +177,6 @@ char* serializar_t_worker(t_worker* worker){
 	return serializedPackage;
 }*/
 
-char programa_reduccion[LENGTH_NOMBRE_PROGRAMA];
-	char* programa; //contenido del programa
-	uint32_t length_programa;
-	t_worker* items_programa_reduccion_global; 		/*lista de procesos Worker con sus respectivos IP, puerto y ruta de archivo temporal de
-																			reduccion local*/
-	uint32_t cantidad_item_programa_reduccion; 		//cantidad de elementos en dicha lista
-	char archivo_temporal_resultante[LENGTH_RUTA_ARCHIVO_TEMP];
-
 char* serializarSolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_global* solicitud){
 	uint32_t total_size = getLong_SolicitudProgramaReduccionGlobal(solicitud);
 
