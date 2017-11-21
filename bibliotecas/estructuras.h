@@ -62,17 +62,17 @@ typedef struct solicitud_reduccion_local {
 
 	//REDUCCION GLOBAL
 
-typedef struct item_reduccion_global {
+typedef struct worker {
 	uint32_t nodo_id;		//nodo
 	char ip_worker[LENGTH_IP];
 	uint32_t puerto_worker;
 	char archivo_temporal_reduccion_local[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal reduccion local
-} item_reduccion_global;
+} t_worker;
 
 typedef struct solicitud_reduccion_global {
-	item_reduccion_global* items_reduccion_global;		//array de item_reduccion_global
+	t_worker* workers;		//array de worker
 	uint32_t item_cantidad; //cantidad de items
-	item_reduccion_global* encargado_reduccion_global;
+	t_worker* encargado_worker;
 	char archivo_temporal_reduccion_global[LENGTH_RUTA_ARCHIVO_TEMP];
 } solicitud_reduccion_global;
 
@@ -114,11 +114,13 @@ typedef struct {
 
 	//REDUCCION GLOBAL
 
-typedef struct {
+/*typedef struct {
+	uint32_t nodo_id;
 	char ip_worker[LENGTH_IP];
 	uint32_t puerto_worker;
 	char archivo_temp_red_local[LENGTH_RUTA_ARCHIVO_TEMP];
-} t_worker;
+<<<<<<< Updated upstream
+} t_worker;*/
 
 typedef struct {
 	char programa_reduccion[LENGTH_NOMBRE_PROGRAMA];

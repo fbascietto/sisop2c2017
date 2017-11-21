@@ -106,9 +106,29 @@ solicitud_transformacion* obtenerSolicitudTrasnformacionMock(char* message){
 }
 
 solicitud_reduccion_local* obtenerSolicitudReduccionLocalMock(char* message){
+	archivo_temp *arch_temp11 = crearArchivoTemporal("/tmp/Master1-temp11");
+	archivo_temp *arch_temp12 = crearArchivoTemporal("/tmp/Master1-temp12");
 	item_reduccion_local* item1 = crearItemReduccionLocal(1,"127.0.0.1",8080,"/tmp/Master1-temp38");
+	agregarArchivoTemporalTransf(item1, arch_temp11);
+	free(arch_temp11);
+	agregarArchivoTemporalTransf(item1, arch_temp12);
+	free(arch_temp12);
+
 	item_reduccion_local* item2 = crearItemReduccionLocal(12,"127.23.0.1",0101,"/tmp/Master1-Worker1");
+	archivo_temp *arch_temp21 = crearArchivoTemporal("/tmp/Master1-temp21");
+	archivo_temp *arch_temp22 = crearArchivoTemporal("/tmp/Master1-temp22");
+	agregarArchivoTemporalTransf(item2, arch_temp21);
+	free(arch_temp21);
+	agregarArchivoTemporalTransf(item2, arch_temp22);
+	free(arch_temp22);
+
 	item_reduccion_local* item3 = crearItemReduccionLocal(137,"187.0.56.1",9090,"/tmp/Master1-Worker2");
+	archivo_temp *arch_temp31 = crearArchivoTemporal("/tmp/Master1-temp31");
+	archivo_temp *arch_temp32 = crearArchivoTemporal("/tmp/Master1-temp32");
+	agregarArchivoTemporalTransf(item3, arch_temp31);
+	free(arch_temp31);
+	agregarArchivoTemporalTransf(item3, arch_temp32);
+	free(arch_temp32);
 
 	solicitud_reduccion_local* solicitudReduccionLocal = malloc(sizeof(solicitud_reduccion_local));
 
@@ -124,21 +144,26 @@ solicitud_reduccion_local* obtenerSolicitudReduccionLocalMock(char* message){
 }
 
 solicitud_reduccion_global* obtenerSolicitudReduccionGlobalMock(char* message){
+	t_worker* item1 = crearItemWorker(1,"127.0.0.1",8080,"/tmp/Master1-temp38");
+	t_worker* item2 = crearItemWorker(12,"127.23.0.1",0101,"/tmp/Master1-temp39");
+	t_worker* item3 = crearItemWorker(137,"187.0.56.1",9090,"/tmp/Master1-temp44");
 
-	item_reduccion_global* item1 = crearItemReduccionGlobal(1,"127.0.0.1",8080,"/tmp/Master1-temp38");
-	item_reduccion_global* item2 = crearItemReduccionGlobal(12,"127.23.0.1",0101,"/tmp/Master1-temp39");
-	item_reduccion_global* item3 = crearItemReduccionGlobal(137,"187.0.56.1",9090,"/tmp/Master1-temp44");
+	t_worker* itemEncargado = crearItemWorker(137,"187.0.56.1",9090,"/tmp/ruta_encargado");
 
 	solicitud_reduccion_global* solicitudReduccionGlobal = malloc(sizeof(solicitud_reduccion_global));
 
 	solicitudReduccionGlobal->item_cantidad = 0;
 
-	agregarItemReduccionGlobal(solicitudReduccionGlobal,item1);
+	agregarItemWorker(solicitudReduccionGlobal,item1);
 	free(item1);
-	agregarItemReduccionGlobal(solicitudReduccionGlobal,item2);
+	agregarItemWorker(solicitudReduccionGlobal,item2);
 	free(item2);
-	agregarItemReduccionGlobal(solicitudReduccionGlobal,item3);
+	agregarItemWorker(solicitudReduccionGlobal,item3);
 	free(item3);
+
+	solicitudReduccionGlobal->encargado_worker = itemEncargado;
+	strcpy(solicitudReduccionGlobal->archivo_temporal_reduccion_global, "/tmp/archivoResultante");
+
 	return solicitudReduccionGlobal;
 }
 
@@ -221,23 +246,23 @@ solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job){ //t_lis
 	int tamanioReduccionLocal = list_size(job->estadosReduccionesLocales);
 
 	solicitud_reduccion_global* solicitud = malloc(sizeof(solicitud_reduccion_global));
-	item_reduccion_global* item = malloc(sizeof(item_reduccion_global));
+	t_worker* item = malloc(sizeof(t_worker));
 
 	for(i=0; i<tamanioReduccionLocal ;i++){
 		unEstado = list_get(job->estadosReduccionesLocales, i);
-		item = crearItemReduccionGlobal(unEstado->nodoPlanificado->nodo->idNodo,
+		item = crearItemWorker(unEstado->nodoPlanificado->nodo->idNodo,
 					unEstado->nodoPlanificado->nodo->ipWorker,
 					unEstado->nodoPlanificado->nodo->puerto,
 					unEstado->archivoTemporal);
-			agregarItemReduccionGlobal(solicitud, item);
+			agregarItemWorker(solicitud, item);
 		}
 			unEstado = job->reduccionGlobal;
-			item = crearItemReduccionGlobal(unEstado->nodoPlanificado->nodo->idNodo,
+			item = crearItemWorker(unEstado->nodoPlanificado->nodo->idNodo,
 					unEstado->nodoPlanificado->nodo->ipWorker,
 					unEstado->nodoPlanificado->nodo->puerto,
 					NULL);
 			strcpy(solicitud->archivo_temporal_reduccion_global, item->archivo_temporal_reduccion_local);
-			solicitud->encargado_reduccion_global = item;
+			solicitud->encargado_worker = item;
 	return solicitud;
 }
 
@@ -267,6 +292,7 @@ void procesarResultadoTransformacion(int nuevoSocket, uint32_t message_long, cha
 	char* solicitudSerializado = serializarSolicitudReduccionLocal(solicitudTransformacion);
 	uint32_t longitud = getLong_SolicitudReduccionLocal(solicitudTransformacion);
 	int enviados = enviarMensajeSocketConLongitud(nuevoSocket,ACCION_PROCESAR_REDUCCION_LOCAL,solicitudSerializado,longitud);
+	free(solicitudTransformacion);
 }
 
 void procesarResultadoReduccionLocal(int nuevoSocket, uint32_t message_long, char* message){

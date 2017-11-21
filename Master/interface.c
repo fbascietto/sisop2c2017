@@ -592,52 +592,52 @@ char* serializarSolicitudReduccionGlobal(solicitud_reduccion_global* solicitudRe
 
 	serializarDato(serializedPackage,&(solicitudReduccionGlobal->archivo_temporal_reduccion_global),sizeof(char[50]),&offset);
 
-	uint32_t size_item_encargado = getLong_one_item_reduccion_global(solicitudReduccionGlobal->encargado_reduccion_global);
+	uint32_t size_item_encargado = getLong_one_worker(solicitudReduccionGlobal->encargado_worker);
 	serializarDato(serializedPackage,&(size_item_encargado),sizeof(uint32_t),&offset);
 
-	char* serialized_encargado = serializar_item_reduccion_global(solicitudReduccionGlobal->encargado_reduccion_global);
+	char* serialized_encargado = serializar_worker(solicitudReduccionGlobal->encargado_worker);
 	serializarDato(serializedPackage,serialized_encargado,sizeof(char)*size_item_encargado,&offset);
 	free(serialized_encargado);
 
 	//serializar items
-	uint32_t size_items = getLong_items_reduccion_global(solicitudReduccionGlobal->items_reduccion_global,solicitudReduccionGlobal->item_cantidad);
+	uint32_t size_items = getLong_workers(solicitudReduccionGlobal->workers,solicitudReduccionGlobal->item_cantidad);
 	serializarDato(serializedPackage,&(size_items),sizeof(uint32_t),&offset);
 
-	char* serialized_items = serializar_items_reduccion_global(&(solicitudReduccionGlobal->items_reduccion_global),solicitudReduccionGlobal->item_cantidad);
+	char* serialized_items = serializar_workers(&(solicitudReduccionGlobal->workers),solicitudReduccionGlobal->item_cantidad);
 	serializarDato(serializedPackage,serialized_items,sizeof(char)*size_items,&offset);
 	free(serialized_items);
 
 	return serializedPackage;
 }
 
-char* serializar_items_reduccion_global(item_reduccion_global** items_reduccion_global, uint32_t item_cantidad){
-	item_reduccion_global* aux_items_reduccion_global = *items_reduccion_global;
-	uint32_t total_size = getLong_items_reduccion_global(aux_items_reduccion_global, item_cantidad);
+char* serializar_workers(t_worker** workers, uint32_t item_cantidad){
+	t_worker* aux_workers = *workers;
+	uint32_t total_size = getLong_workers(aux_workers, item_cantidad);
 	char *serializedPackage = malloc(sizeof(char)*total_size);
 
 	int offset = 0;
 
 	int i;
 	for (i = 0; i < item_cantidad; i++) {
-		char* serialized_item_reduccion_global = serializar_item_reduccion_global(&aux_items_reduccion_global[i]);//TODO: ver como pasarle el puntero como parametro
-		uint32_t size_item_reduccion_global = getLong_one_item_reduccion_global(&aux_items_reduccion_global[i]);
-		serializarDato(serializedPackage,&(size_item_reduccion_global),sizeof(uint32_t),&offset);//size_item_transformacion
-		serializarDato(serializedPackage,serialized_item_reduccion_global,sizeof(char)*size_item_reduccion_global,&offset);//item_transformacion
-		free(serialized_item_reduccion_global);
+		char* serialized_worker = serializar_worker(&aux_workers[i]);//TODO: ver como pasarle el puntero como parametro
+		uint32_t size_worker = getLong_one_worker(&aux_workers[i]);
+		serializarDato(serializedPackage,&(size_worker),sizeof(uint32_t),&offset);//size_item_transformacion
+		serializarDato(serializedPackage,serialized_worker,sizeof(char)*size_worker,&offset);//item_transformacion
+		free(serialized_worker);
 	}
 	return serializedPackage;
 }
 
-char* serializar_item_reduccion_global(item_reduccion_global* item_reduccion_global){
-	uint32_t total_size = getLong_one_item_reduccion_global(item_reduccion_global);
+char* serializar_worker(t_worker* worker){
+	uint32_t total_size = getLong_one_worker(worker);
 	char *serializedPackage = malloc(sizeof(char)*total_size);
 
 	int offset = 0;
 
-	serializarDato(serializedPackage,&(item_reduccion_global->nodo_id),sizeof(uint32_t),&offset);
-	serializarDato(serializedPackage,&(item_reduccion_global->ip_worker),sizeof(char[20]),&offset);
-	serializarDato(serializedPackage,&(item_reduccion_global->puerto_worker),sizeof(uint32_t),&offset);
-	serializarDato(serializedPackage,&(item_reduccion_global->archivo_temporal_reduccion_local),sizeof(char[50]),&offset);
+	serializarDato(serializedPackage,&(worker->nodo_id),sizeof(uint32_t),&offset);
+	serializarDato(serializedPackage,&(worker->ip_worker),sizeof(char[20]),&offset);
+	serializarDato(serializedPackage,&(worker->puerto_worker),sizeof(uint32_t),&offset);
+	serializarDato(serializedPackage,&(worker->archivo_temporal_reduccion_local),sizeof(char[50]),&offset);
 
 	return serializedPackage;
 }
@@ -645,10 +645,10 @@ char* serializar_item_reduccion_global(item_reduccion_global* item_reduccion_glo
 uint32_t getLong_SolicitudReduccionGlobal(solicitud_reduccion_global* solicitudReduccionGlobal){
 	uint32_t total_size = 0;
 
-	uint32_t size_item_encargado = getLong_one_item_reduccion_global(solicitudReduccionGlobal->encargado_reduccion_global);
+	uint32_t size_item_encargado = getLong_one_worker(solicitudReduccionGlobal->encargado_worker);
 	size_item_encargado += sizeof(uint32_t);
 
-	uint32_t size_items = getLong_items_reduccion_global(solicitudReduccionGlobal->items_reduccion_global,solicitudReduccionGlobal->item_cantidad);
+	uint32_t size_items = getLong_workers(solicitudReduccionGlobal->workers,solicitudReduccionGlobal->item_cantidad);
 	total_size += sizeof(uint32_t)*2;//campo item_cantidad y size_items
 	total_size += sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]);//campo archivo_temporal_reduccion_global
 	total_size += size_items;
@@ -657,17 +657,17 @@ uint32_t getLong_SolicitudReduccionGlobal(solicitud_reduccion_global* solicitudR
 	return total_size;
 }
 
-uint32_t getLong_items_reduccion_global(item_reduccion_global* items_reduccion_global, uint32_t item_cantidad){
+uint32_t getLong_workers(t_worker* workers, uint32_t item_cantidad){
 	uint32_t total = 0;
 	int i;
 	for(i=0; i<item_cantidad; i++){
 		total += sizeof(uint32_t);
-		total += getLong_one_item_reduccion_global(&(items_reduccion_global[i]));
+		total += getLong_one_worker(&(workers[i]));
 	}
 	return total;
 }
 
-uint32_t getLong_one_item_reduccion_global(item_reduccion_global* items_reduccion_global){
+uint32_t getLong_one_worker(t_worker* workers){
 	uint32_t longitud = 0;
 	longitud += sizeof(uint32_t)*2; //nodo_id, puerto_worker
 	longitud += sizeof(char[20]); //ip_worker,
@@ -689,7 +689,7 @@ solicitud_reduccion_global* deserializar_solicitud_reduccion_global(char* serial
 	memcpy(serialized_encargado,serialized+offset,size_encargado);
 	offset+=size_encargado;
 
-	solicitudReduccionGlobal->encargado_reduccion_global = deserializar_item_reduccion_global(serialized_encargado);
+	solicitudReduccionGlobal->encargado_worker = deserializar_worker(serialized_encargado);
 	free(serialized_encargado);
 
 	uint32_t size_items;
@@ -697,24 +697,24 @@ solicitud_reduccion_global* deserializar_solicitud_reduccion_global(char* serial
 
 	char* serialized_items = malloc(sizeof(char)*size_items);
 	deserializarDato(serialized_items,serialized,size_items,&offset);
-	solicitudReduccionGlobal->items_reduccion_global = deserializar_items_reduccion_global(serialized_items,solicitudReduccionGlobal->item_cantidad);
+	solicitudReduccionGlobal->workers = deserializar_workers(serialized_items,solicitudReduccionGlobal->item_cantidad);
 	free(serialized_items);
 
 	return solicitudReduccionGlobal;
 }
 
-item_reduccion_global* deserializar_items_reduccion_global(char* serialized, uint32_t items_cantidad){
+t_worker* deserializar_workers(char* serialized, uint32_t items_cantidad){
 	int offset = 0;
 
-	//item_reduccion_global* item_reduccion_global = NULL;
-	item_reduccion_global* itemsReduccionGlobal = malloc(sizeof(item_reduccion_global)*items_cantidad);
+	//worker* worker = NULL;
+	t_worker* itemsReduccionGlobal = malloc(sizeof(t_worker)*items_cantidad);
 	int i;
 	for (i = 0; i < items_cantidad; i++) {
 		uint32_t size_item;
 		deserializarDato(&(size_item),serialized,sizeof(uint32_t),&offset);
 		char* serialized_item = malloc(sizeof(char)*size_item);
 		deserializarDato(serialized_item,serialized,size_item,&offset);
-		item_reduccion_global* aux = deserializar_item_reduccion_global(serialized_item);
+		t_worker* aux = deserializar_worker(serialized_item);
 		itemsReduccionGlobal[i] = *(aux);
 		free(aux);
 		free(serialized_item);
@@ -722,8 +722,8 @@ item_reduccion_global* deserializar_items_reduccion_global(char* serialized, uin
 	return itemsReduccionGlobal;
 }
 
-item_reduccion_global* deserializar_item_reduccion_global(char* serialized){
-	item_reduccion_global* itemReduccionGlobal = malloc(sizeof(item_reduccion_global));
+t_worker* deserializar_worker(char* serialized){
+	t_worker* itemReduccionGlobal = malloc(sizeof(t_worker));
 	int offset = 0;
 
 	deserializarDato(&(itemReduccionGlobal->nodo_id),serialized,sizeof(uint32_t),&offset);
@@ -734,8 +734,8 @@ item_reduccion_global* deserializar_item_reduccion_global(char* serialized){
 	return itemReduccionGlobal;
 }
 
-item_reduccion_global* crearItemReduccionGlobal(uint32_t nodo,char* ipWorker,uint32_t puerto_worker, char* archivoTemporalReduccionLocal){
-	item_reduccion_global *item = malloc(sizeof(item_reduccion_global));
+t_worker* crearItemWorker(uint32_t nodo,char* ipWorker,uint32_t puerto_worker, char* archivoTemporalReduccionLocal){
+	t_worker *item = malloc(sizeof(t_worker));
 	strcpy(item->archivo_temporal_reduccion_local,archivoTemporalReduccionLocal);
 	item->nodo_id = nodo;
 	item->puerto_worker = puerto_worker;
@@ -743,35 +743,35 @@ item_reduccion_global* crearItemReduccionGlobal(uint32_t nodo,char* ipWorker,uin
 	return item;
 }
 
-void agregarItemReduccionGlobal(solicitud_reduccion_global* solicitudReduccionGlobal, item_reduccion_global* item){
-	solicitudReduccionGlobal->items_reduccion_global = realloc(solicitudReduccionGlobal->items_reduccion_global,sizeof(item_reduccion_global)*(solicitudReduccionGlobal->item_cantidad+1));
-	strcpy(solicitudReduccionGlobal->items_reduccion_global[solicitudReduccionGlobal->item_cantidad].archivo_temporal_reduccion_local,item->archivo_temporal_reduccion_local);
-	solicitudReduccionGlobal->items_reduccion_global[solicitudReduccionGlobal->item_cantidad].nodo_id = item->nodo_id;
-	strcpy(solicitudReduccionGlobal->items_reduccion_global[solicitudReduccionGlobal->item_cantidad].ip_worker,item->ip_worker);
-	solicitudReduccionGlobal->items_reduccion_global[solicitudReduccionGlobal->item_cantidad].puerto_worker = item->puerto_worker;
+void agregarItemWorker(solicitud_reduccion_global* solicitudReduccionGlobal, t_worker* item){
+	solicitudReduccionGlobal->workers = realloc(solicitudReduccionGlobal->workers,sizeof(t_worker)*(solicitudReduccionGlobal->item_cantidad+1));
+	strcpy(solicitudReduccionGlobal->workers[solicitudReduccionGlobal->item_cantidad].archivo_temporal_reduccion_local,item->archivo_temporal_reduccion_local);
+	solicitudReduccionGlobal->workers[solicitudReduccionGlobal->item_cantidad].nodo_id = item->nodo_id;
+	strcpy(solicitudReduccionGlobal->workers[solicitudReduccionGlobal->item_cantidad].ip_worker,item->ip_worker);
+	solicitudReduccionGlobal->workers[solicitudReduccionGlobal->item_cantidad].puerto_worker = item->puerto_worker;
 	solicitudReduccionGlobal->item_cantidad++;
 }
 
 void testSerializarSolicitudReduccionGlobal(){
 
-	item_reduccion_global* item1 = crearItemReduccionGlobal(1,"127.0.0.1",8080,"/tmp/Master1-temp38");
-	item_reduccion_global* item2 = crearItemReduccionGlobal(12,"127.23.0.1",0101,"/tmp/Master1-temp39");
-	item_reduccion_global* item3 = crearItemReduccionGlobal(137,"187.0.56.1",9090,"/tmp/Master1-temp44");
+	t_worker* item1 = crearItemWorker(1,"127.0.0.1",8080,"/tmp/Master1-temp38");
+	t_worker* item2 = crearItemWorker(12,"127.23.0.1",0101,"/tmp/Master1-temp39");
+	t_worker* item3 = crearItemWorker(137,"187.0.56.1",9090,"/tmp/Master1-temp44");
 
-	item_reduccion_global* itemEncargado = crearItemReduccionGlobal(137,"187.0.56.1",9090,"/tmp/ruta_encargado");
+	t_worker* itemEncargado = crearItemWorker(137,"187.0.56.1",9090,"/tmp/ruta_encargado");
 
 	solicitud_reduccion_global* solicitudReduccionGlobal = malloc(sizeof(solicitud_reduccion_global));
 
 	solicitudReduccionGlobal->item_cantidad = 0;
 
-	agregarItemReduccionGlobal(solicitudReduccionGlobal,item1);
+	agregarItemWorker(solicitudReduccionGlobal,item1);
 	free(item1);
-	agregarItemReduccionGlobal(solicitudReduccionGlobal,item2);
+	agregarItemWorker(solicitudReduccionGlobal,item2);
 	free(item2);
-	agregarItemReduccionGlobal(solicitudReduccionGlobal,item3);
+	agregarItemWorker(solicitudReduccionGlobal,item3);
 	free(item3);
 
-	solicitudReduccionGlobal->encargado_reduccion_global = itemEncargado;
+	solicitudReduccionGlobal->encargado_worker = itemEncargado;
 	strcpy(solicitudReduccionGlobal->archivo_temporal_reduccion_global, "/tmp/archivoResultante");
 
 	char* solicitudRedGlobalSerializada = serializarSolicitudReduccionGlobal(solicitudReduccionGlobal);
@@ -782,26 +782,26 @@ void testSerializarSolicitudReduccionGlobal(){
 	printf("archivo_temporal_reduccion_global = %s\n", solicitudRedGlobalDeserializada->archivo_temporal_reduccion_global );
 	int var2;
 	printf("\nNUEVO ITEM ENCARGADO//////////////////////////////////////////////\n");
-	printf("archivo_temporal_reduccion_local = %s\n", solicitudRedGlobalDeserializada->items_reduccion_global->archivo_temporal_reduccion_local );
-	printf("nodo_id = %d\n", solicitudRedGlobalDeserializada->items_reduccion_global->nodo_id );
-	printf("ip_worker = %s\n", solicitudRedGlobalDeserializada->items_reduccion_global->ip_worker );
-	printf("puerto_worker = %d\n", solicitudRedGlobalDeserializada->items_reduccion_global->puerto_worker );
+	printf("archivo_temporal_reduccion_local = %s\n", solicitudRedGlobalDeserializada->workers->archivo_temporal_reduccion_local );
+	printf("nodo_id = %d\n", solicitudRedGlobalDeserializada->workers->nodo_id );
+	printf("ip_worker = %s\n", solicitudRedGlobalDeserializada->workers->ip_worker );
+	printf("puerto_worker = %d\n", solicitudRedGlobalDeserializada->workers->puerto_worker );
 	for (var2 = 0; var2 < solicitudRedGlobalDeserializada->item_cantidad; ++var2) {
 		printf("\nNUEVO ITEM DESERIALIZADO//////////////////////////////////////////////\n");
-		printf("archivo_temporal_reduccion_local = %s\n", solicitudRedGlobalDeserializada->items_reduccion_global[var2].archivo_temporal_reduccion_local );
-		printf("nodo_id = %d\n", solicitudRedGlobalDeserializada->items_reduccion_global[var2].nodo_id );
-		printf("ip_worker = %s\n", solicitudRedGlobalDeserializada->items_reduccion_global[var2].ip_worker );
-		printf("puerto_worker = %d\n", solicitudRedGlobalDeserializada->items_reduccion_global[var2].puerto_worker );
+		printf("archivo_temporal_reduccion_local = %s\n", solicitudRedGlobalDeserializada->workers[var2].archivo_temporal_reduccion_local );
+		printf("nodo_id = %d\n", solicitudRedGlobalDeserializada->workers[var2].nodo_id );
+		printf("ip_worker = %s\n", solicitudRedGlobalDeserializada->workers[var2].ip_worker );
+		printf("puerto_worker = %d\n", solicitudRedGlobalDeserializada->workers[var2].puerto_worker );
 	}
 }
 
-void testSerializarItemReduccionGlobal(){
+void testSerializarWorker(){
 
-	item_reduccion_global *item1 = crearItemReduccionGlobal(1,"127.0.0.1",8080,"/tmp/Master1-temp38");
+	t_worker *item1 = crearItemWorker(1,"127.0.0.1",8080,"/tmp/Master1-temp38");
 
-	char* itemSerializado = serializar_item_reduccion_global(item1);
+	char* itemSerializado = serializar_worker(item1);
 
-	item_reduccion_global *itemDeserializado = deserializar_item_reduccion_global(itemSerializado);
+	t_worker *itemDeserializado = deserializar_worker(itemSerializado);
 	printf("archivo_temporal_transformacion = %s\n", itemDeserializado->archivo_temporal_reduccion_local );
 	printf("nodo_id = %d\n", itemDeserializado->nodo_id );
 	printf("ip_worker = %s\n", itemDeserializado->ip_worker );

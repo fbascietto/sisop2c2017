@@ -54,22 +54,22 @@ void testSerializarItemReduccionLocal();
 
 /*SERIALIZACION DE SOLICUTUD REDUCCION GLOBAL*/
 char* serializarSolicitudReduccionGlobal(solicitud_reduccion_global* solicitudReduccionGlobal);
-char* serializar_items_reduccion_global(item_reduccion_global** items_reduccion_global, uint32_t item_cantidad);
-char* serializar_item_reduccion_global(item_reduccion_global* item_reduccion_global);
+char* serializar_workers(t_worker** workers, uint32_t item_cantidad);
+char* serializar_worker(t_worker* worker);
 
 uint32_t getLong_SolicitudReduccionGlobal(solicitud_reduccion_global* solicitudReduccionGlobal);
-uint32_t getLong_items_reduccion_global(item_reduccion_global* items_reduccion_global, uint32_t item_cantidad);
-uint32_t getLong_one_item_reduccion_global(item_reduccion_global* items_reduccion_global);
+uint32_t getLong_workers(t_worker* workers, uint32_t item_cantidad);
+uint32_t getLong_one_worker(t_worker* workers);
 
 solicitud_reduccion_global* deserializar_solicitud_reduccion_global(char* serialized);
-item_reduccion_global* deserializar_items_reduccion_global(char* serialized, uint32_t items_cantidad);
-item_reduccion_global* deserializar_item_reduccion_global(char* serialized);
+t_worker* deserializar_workers(char* serialized, uint32_t items_cantidad);
+t_worker* deserializar_worker(char* serialized);
 
-item_reduccion_global* crearItemReduccionGlobal(uint32_t nodo,char* ipWorker,uint32_t puerto_worker, char* archivoTemporalReduccionLocal);
-void agregarItemReduccionGlobal(solicitud_reduccion_global* solicitudReduccionGlobal, item_reduccion_global* item);
+t_worker* crearItemWorker(uint32_t nodo,char* ipWorker,uint32_t puerto_worker, char* archivoTemporalReduccionLocal);
+void agregarItemWorker(solicitud_reduccion_global* solicitudReduccionGlobal, t_worker* item);
 
 void testSerializarSolicitudReduccionGlobal();
-void testSerializarItemReduccionGlobal();
+void testSerializarWorker();
 
 /*SERIALIZACION DE SOLICUTUD ALMACENADO FINAL*/
 char* serializarSolicitudAlmacenadoFinal(solicitud_almacenado_final* solicitudAlmacenadoFinal);
