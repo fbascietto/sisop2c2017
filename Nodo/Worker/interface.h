@@ -5,8 +5,8 @@
  *      Author: utnso
  */
 
-#include "../bibliotecas/estructuras.h"
-#include "../bibliotecas/protocolo.h"
+#include "../../bibliotecas/estructuras.h"
+#include "../../bibliotecas/protocolo.h"
 #include <stdint.h>
 
 #ifndef INTERFACE_H_

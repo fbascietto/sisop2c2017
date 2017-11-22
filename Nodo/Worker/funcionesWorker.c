@@ -181,17 +181,15 @@ void recibirSolicitudMaster(int nuevoSocket){
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
 
 	int exit_code;
-	//pid para usarlo luego en el fork
-	pid_t pid;
-	//	if(pid == 0){
-	//		//proceso hijo continua con la solicitud
-	switch(package->msgCode){
 
-	case ACCION_TRANSFORMACION:
-		; //empty statement. Es solucion a un error que genera el lenguaje C
-		log_trace(worker_log, "Solicitud de transformacion recibida");
-		pid = fork();
-		if(pid == 0){
+	pid_t pid = fork();
+	if(pid == 0){
+		//proceso hijo continua con la solicitud
+		switch(package->msgCode){
+
+		case ACCION_TRANSFORMACION:
+			; //empty statement. Es solucion a un error que genera el lenguaje C
+			log_trace(worker_log, "Solicitud de transformacion recibida");
 			log_trace(worker_log, "Comienzo de transformacion");
 			solicitud_programa_transformacion* solicitudTDeserializada =
 					deserializarSolicitudProgramaTransformacion(package->message);
@@ -200,19 +198,11 @@ void recibirSolicitudMaster(int nuevoSocket){
 			log_destroy(worker_log);
 			log_destroy(worker_error_log);
 			exit(0);
-		}else{
-			if(pid < 0){
-				//cuando no pudo crear el hijo
-				log_error(worker_error_log, "No se ha podido crear el proceso hijo para realizar la solicitud de transformacion");
-			}
-		}
-		break;
+			break;
 
-	case ACCION_REDUCCION_LOCAL:
-		; //empty statement. Es solucion a un error que genera el lenguaje C
-		log_trace(worker_log, "Solicitud de reduccion local recibida");
-		pid = fork();
-		if(pid == 0){
+		case ACCION_REDUCCION_LOCAL:
+			; //empty statement. Es solucion a un error que genera el lenguaje C
+			log_trace(worker_log, "Solicitud de reduccion local recibida");
 			log_trace(worker_log, "Comienzo de reduccion local");
 			solicitud_programa_reduccion_local* solicitudRLDeserializada =
 					deserializarSolicitudProgramaReduccionLocal(package->message);
@@ -221,19 +211,12 @@ void recibirSolicitudMaster(int nuevoSocket){
 			log_destroy(worker_log);
 			log_destroy(worker_error_log);
 			exit(0);
-		}else{
-			if(pid < 0){
-				//cuando no pudo crear el hijo
-				log_error(worker_error_log, "No se ha podido crear el proceso hijo para realizar la solicitud de reduccion local");
-			}
-		}
-		break;
+			break;
 
-	case ACCION_REDUCCION_GLOBAL:
-		; //empty statement. Es solucion a un error que genera el lenguaje C
-		log_trace(worker_log, "Solicitud de reduccion global recibida");
-		pid = fork();
-		if(pid == 0){
+		case ACCION_REDUCCION_GLOBAL:
+			; //empty statement. Es solucion a un error que genera el lenguaje C
+			log_trace(worker_log, "Solicitud de reduccion global recibida");
+
 			log_trace(worker_log, "Comienzo de reduccion global");
 			solicitud_programa_reduccion_global* solicitudRGDeserializada =
 					deserializarSolicitudProgramaReduccionGlobal(package->message);
@@ -243,20 +226,22 @@ void recibirSolicitudMaster(int nuevoSocket){
 			log_destroy(worker_log);
 			log_destroy(worker_error_log);
 			exit(0);
-		}else{
-			if(pid < 0){
-				//cuando no pudo crear el hijo
-				log_error(worker_error_log, "No se ha podido crear el proceso hijo para realizar la solicitud de reduccion global");
-			}
+			break;
+
+		case ACCION_ALMACENAMIENTO_FINAL:
+			; //empty statement. Es solucion a un error que genera el lenguaje C
+			log_trace(worker_log, "Solicitud de almacenamiento final recibida");
+			almacenamientoFinal(IP_fs, puerto_fs, ruta_archivo_temp_final);
+			break;
+
 		}
-		break;
+	}else{
 
-	case ACCION_ALMACENAMIENTO_FINAL:
-		; //empty statement. Es solucion a un error que genera el lenguaje C
-		log_trace(worker_log, "Solicitud de almacenamiento final recibida");
-		almacenamientoFinal(IP_fs, puerto_fs, ruta_archivo_temp_final);
-		break;
+		if(pid < 0){
+			//cuando no pudo crear el hijo
+			log_error(worker_error_log, "No se ha podido crear el proceso hijo para contestar la solicitud");
 
+		}
 	}
 
 	log_destroy(worker_log);
@@ -279,7 +264,7 @@ void recibirSolicitudWorker(int nuevoSocket){
 		; //empty statement. Es solucion a un error que genera el lenguaje C
 		solicitud_leer_y_enviar_archivo_temp* solicitudEATDeserializada =
 				deserializarSolicitudEnviarArchivoTemp(package->message);
-		exit_code = leerYEnviarArchivoTemp(solicitudEATDeserializada, nuevoSocket);
+		exit_code = leerYEnviarArchivoTemp("", nuevoSocket);
 		break;
 	case HABILITAR_SEMAFORO:
 		; //empty statement. Es solucion a un error que genera el lenguaje C

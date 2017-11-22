@@ -6,13 +6,13 @@
  */
 
 #include "funcionesmaster.h"
-#include "interface.h"
 #include <stdio.h>
 #include <string.h>
 #include <commons/config.h>
 #include "../bibliotecas/sockets.c"
 #include "../bibliotecas/sockets.h"
 #include "../bibliotecas/protocolo.h"
+#include "interfaceMaster.h"
 
 #define PROCESO_MASTER 4
 
