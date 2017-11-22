@@ -47,7 +47,7 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada,
 			element_with_socket_to_add->socket = -2;  //el -2 indica ser el worker encargado porque no hay una conexion de socket
 			list_replace(elementos_de_RG, i, element_with_socket_to_add);
 
-			leerYEnviarArchivoTemp(solicitudDeserializada->workers[i].archivo_temp_red_local, -2);
+			leerYEnviarArchivoTemp(solicitudDeserializada->workers[i].archivo_temporal_reduccion_local, -2);
 
 		}else{
 

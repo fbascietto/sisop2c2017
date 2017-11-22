@@ -1,9 +1,9 @@
 #include "funcionesmaster.h"
-#include "interface.h"
 #include "../bibliotecas/sockets.h"
 #include "../bibliotecas/protocolo.h"
 #include "interfaceWorker.h"
 #include <pthread.h>
+#include "interfaceMaster.h"
 
 /*
  typedef struct {

@@ -3,14 +3,6 @@
 #include "../bibliotecas/protocolo.h"
 #include "../bibliotecas/estructuras.h"
 
-
-
-void deserializarDato(void* dato, char* buffer, int size, int* offset){
-	memcpy(dato,buffer + *offset,size);
-	*offset += size;
-}
-
-
 void *recibirMensajeMaster(void *args){
 	t_esperar_mensaje *argumentos = (t_esperar_mensaje*) args;
 	int nuevoSocket = argumentos->socketCliente;

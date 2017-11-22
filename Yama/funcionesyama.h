@@ -11,9 +11,9 @@
 #include <commons/collections/list.h>
 #include "../bibliotecas/sockets.h"
 #include "../bibliotecas/protocolo.h"
-#include "../Master/interface.h"
 #include <stdint.h>
 #include "../bibliotecas/estructuras.h"
+#include "../Master/interfaceMaster.h"
 
 #ifndef YAMA_FUNCIONESYAMA_H_
 #define YAMA_FUNCIONESYAMA_H_

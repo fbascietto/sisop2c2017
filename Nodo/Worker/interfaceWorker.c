@@ -114,24 +114,6 @@ solicitud_programa_reduccion_local* deserializarSolicitudProgramaReduccionLocal(
 	return solicitud;
 }
 
-uint32_t getLong_one_t_worker(t_worker* workers){
-	uint32_t longitud = 0;
-	longitud += sizeof(char[LENGTH_IP]); //ip_worker,
-	longitud += sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]);
-	longitud += sizeof(uint32_t)*2;
-	return longitud;
-}
-
-/*uint32_t getLong_workers(t_worker* workers, uint32_t cantidad){
-	uint32_t total = 0;
-	int i;
-	for(i=0; i<cantidad; i++){
-		total += sizeof(uint32_t);
-		total += getLong_one_t_worker(&(workers[i]));
-	}
-	return total;
-}*/
-
 uint32_t getLong_SolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_global* solicitud){
 	uint32_t total_size = 0;
 
@@ -145,37 +127,6 @@ uint32_t getLong_SolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_g
 
 	return total_size;
 }
-
-char* serializar_t_worker(t_worker* worker){
-	uint32_t total_size = getLong_one_t_worker(worker);
-	char *serializedPackage = malloc(sizeof(char)*total_size);
-
-	int offset = 0;
-
-	serializarDato(serializedPackage,&(worker->ip_worker),sizeof(char[LENGTH_IP]),&offset);
-	serializarDato(serializedPackage,&(worker->puerto_worker),sizeof(uint32_t),&offset);
-	serializarDato(serializedPackage,&(worker->archivo_temporal_reduccion_local),sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
-
-	return serializedPackage;
-}
-
-/*char* serializar_workers(t_worker** workers, uint32_t cantidad_item){
-	t_worker* aux_workers = *workers;
-	uint32_t total_size = getLong_workers(aux_workers, cantidad_item);
-	char *serializedPackage = malloc(sizeof(char)*total_size);
-
-	int offset = 0;
-
-	int i;
-	for (i = 0; i < cantidad_item; i++) {
-		char* serialized_item = serializar_t_worker(&aux_workers[i]);//TODO: ver como pasarle el puntero como parametro
-		uint32_t size_item = getLong_one_t_worker(&aux_workers[i]);
-		serializarDato(serializedPackage,&(size_item),sizeof(uint32_t),&offset);
-		serializarDato(serializedPackage,serialized_item,sizeof(char)*size_item,&offset);
-		free(serialized_item);
-	}
-	return serializedPackage;
-}*/
 
 char* serializarSolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_global* solicitud){
 	uint32_t total_size = getLong_SolicitudProgramaReduccionGlobal(solicitud);
@@ -204,35 +155,6 @@ char* serializarSolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_gl
 	return serializedPackage;
 }
 
-t_worker* deserializar_t_worker(char* serialized){
-	t_worker* item = malloc(sizeof(t_worker));
-	int offset = 0;
-
-	deserializarDato(&(item->ip_worker),serialized,sizeof(char[LENGTH_IP]),&offset);
-	deserializarDato(&(item->puerto_worker),serialized,sizeof(uint32_t),&offset);
-	deserializarDato(&(item->archivo_temporal_reduccion_local),serialized,sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
-
-	return item;
-}
-
-/*t_worker* deserializar_workers(char* serialized, uint32_t items_cantidad){
-	int offset = 0;
-
-	t_worker* workers = malloc(sizeof(t_worker)*items_cantidad);
-	int i;
-	for (i = 0; i < items_cantidad; i++) {
-		uint32_t size_item;
-		deserializarDato(&(size_item),serialized,sizeof(uint32_t),&offset);
-		char* serialized_item = malloc(sizeof(char)*size_item);
-		deserializarDato(serialized_item,serialized,size_item,&offset);
-		t_worker* aux = deserializar_t_worker(serialized_item);
-		workers[i] = *(aux);
-		free(aux);
-		free(serialized_item);
-	}
-	return workers;
-}*/
-
 solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGlobal(char* serialized){
 	solicitud_programa_reduccion_global* solicitud = malloc(sizeof(solicitud_programa_reduccion_global));
 	int offset = 0;
@@ -245,7 +167,7 @@ solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGloba
 
 	char* serialized_items = malloc(sizeof(char)*size_items);
 	deserializarDato(serialized_items,serialized,size_items,&offset);
-	solicitud->workers = deserializar_workers(serialized_items,solicitud->cantidad_item_programa_reduccion);
+	solicitud->workers = deserializar_t_workers(serialized_items,solicitud->cantidad_item_programa_reduccion);
 	free(serialized_items);
 
 	deserializarDato(&(solicitud->length_programa),serialized,sizeof(uint32_t),&offset);
