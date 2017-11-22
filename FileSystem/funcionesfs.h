@@ -66,6 +66,7 @@ void *esperarConexiones(void *args);
 void procesarSolicitudMaster(int nuevoSocket);
 int recibirConexionDataNode(int nuevoSocket);
 void actualizarNodosBin();
+void imprimeNodosBin();
 void deserializar_a_nodo(void* serializado, t_nodo *nodo);
 t_nodo* getNodoPorNombre(char* nombre_nodo, t_list* listaABuscar);
 t_list* getNodosMenosCargados(t_list* listaABuscar);
@@ -83,16 +84,17 @@ void destruir_bitmap(t_bitarray* bitmap);
 /*Funciones de Filesys*/
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList);
 void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList);
-int traerArchivoDeFs(char* archivoABuscar, char* parametro, t_list* folderList);
-t_list * obtener_lista_metadata(char * ruta_metadata);
-int obtenerMD5Archivo(char * archivo);
+int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList);
+int obtenerMD5Archivo(char * archivo, t_list* folderList);
 void * imprimeMetadata(char* rutaEnYamafs, t_list* folderList);
+void escucharConexionNodo(void* socket);
+
 
 int escribirBloque(int socketnodo, int bloque, void * buffer, int largoAMandar);
 int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer);
-void recibirDatosBloque(t_nodo * nodo);
-void escucharConexionNodo(void* socket);
 FILE * crearMetadata(char * destino, char* directorio_yamafs, t_list* folderList, char* tipo, int tamanio);
+t_list * obtener_lista_metadata(char * ruta_metadata);
+void recibirDatosBloque(t_nodo * nodo);
 
 /*Funciones de directorio.dat*/
 t_list* inicializarDirectorios();

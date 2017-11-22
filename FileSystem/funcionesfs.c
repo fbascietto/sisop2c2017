@@ -8,7 +8,7 @@
 #include "../bibliotecas/protocolo.h"
 #include "../bibliotecas/serializacion.h"
 #include "../bibliotecas/serializacion.c"
-#include <openssl/md5.h>
+#include <dirent.h>
 
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
@@ -16,11 +16,23 @@
 void levantarNodos(int clean){
 
 	if(clean>0){
+
+		system("rm -r metadata");
+		/*creo carpeta metadata*/
+		int status = mkdir("metadata", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		/*creo carpeta bitmap*/
+		status = mkdir("metadata/bitmap", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		/*creo carpeta para archivos*/
+		status = mkdir("metadata/archivos", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
 		FILE* file = fopen(nodos_file, "wb+");
 		fprintf(file,"TAMANIO=0\n");
 		fprintf(file,"LIBRE=0\n");
 		fprintf(file,"NODOS=[]\n");
 		fclose(file);
+	}
+	if(clean==0){
+		// actualizarNodosBin();
 	}
 
 	if (nodos_file == NULL){
@@ -153,6 +165,23 @@ void ordenoDirectorios(t_list* folderList){
 }
 
 void crearDirectorio(t_list* folderList, t_directory* carpetaActual, char* nombre){
+
+		if (list_size(folderList)>100){
+			printf("No se pueden crear más de 100 directorios.\n");
+			return;
+		}
+
+		bool* condicionCrearCarpeta(void* parametro) {
+				t_directory* dir = (t_directory*) parametro;
+				return ((dir->padre == carpetaActual->index) && (strcmp(dir->nombre,nombre) == 0));
+			}
+
+		t_list* chequeo = list_filter(folderList,condicionCrearCarpeta);;
+		if(list_size(chequeo)>0){
+			printf("Directorio ya existente, imposible crear.\n");
+			return;
+		}
+
 		t_directory* carpeta;
 
 		carpeta = malloc(sizeof(t_directory));
@@ -466,7 +495,6 @@ int findFreeBloque(int tamNodo, t_bitarray* t_fs_bitmap){
 
 int cuentaBloquesLibre(int tamNodo, t_bitarray* t_fs_bitmap){
 
-
 	int bloques = (tamNodo / (1024*1024)) ;
 
 	int libre = 0;
@@ -522,7 +550,7 @@ void actualizarNodosBin(){
 	pthread_mutex_lock(&mx_nodobin);
 	FILE* nodosbin = fopen(nodos_file,"wb+");
 	fprintf(nodosbin, "TAMANIO=%d\n", tamanio/(1024*1024));
-	fprintf(nodosbin, "LIBRE=%d\n", libre/(1024*1024));
+	fprintf(nodosbin, "LIBRE=%d\n", libre);
 	fprintf(nodosbin, "NODOS=[%s]\n",descripcion);
 
 	for(i=0;i<size;i++){
@@ -535,6 +563,25 @@ void actualizarNodosBin(){
 	pthread_mutex_unlock(&mx_nodobin);
 
 }
+void imprimeNodosBin(){
+
+	FILE* nodosbin = fopen(nodos_file,"r");
+
+	char * line = NULL;
+	size_t len = 0;
+
+	do {
+		getline(&line, &len, nodosbin);
+		if(feof(nodosbin)){break;};
+		printf("%s", line);
+	} while (!feof(nodosbin));
+
+	fclose(nodosbin);
+
+	if (line){
+	   free(line);}
+}
+
 
 void procesarSolicitudMaster(nuevoSocket){
     int protocolo;
@@ -647,9 +694,9 @@ void *escucharConsola(){
 		}else
 		if(!strncmp(linea, "md5", 3)) {
 			log_trace(logFS,"Consola recibe ""md5""");
-			printf("Seleccionaste obtener md5\n");
+			//printf("Seleccionaste obtener md5\n");
 			char ** parametros = string_split(linea, " ");
-			obtenerMD5Archivo(parametros[1]);
+			obtenerMD5Archivo(parametros[1], carpetas);
 		}else
 		if(!strncmp(linea, "ls", 2)) {
 			log_trace(logFS,"Consola recibe ""ls""");
@@ -669,6 +716,12 @@ void *escucharConsola(){
 			//printf("Seleccionaste obtener informacion\n");
 			char ** parametros = string_split(linea, " ");
 			imprimeMetadata(parametros[1], carpetas);
+
+		}else
+		if(!strncmp(linea, "statusfs", 4)) {
+			log_trace(logFS,"Consola recibe ""statusfs""");
+			//printf("Seleccionaste obtener informacion\n");
+			imprimeNodosBin();
 
 		}else
 		if(!strncmp(linea, "help",4)) {
@@ -813,6 +866,9 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 	free(buffer);
 	fclose(origen);
 	fclose(metadata);
+
+	actualizarNodosBin();
+
 	printf("¡Archivo guardado con éxito! Cantidad de bloques: %d\n", iteration);
 }
 
@@ -945,12 +1001,12 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 			int largo= 0;
 			char * aMandar = string_new();
 			string_append(&aMandar,hastaNuevaLinea);
+			largo += strlen(hastaNuevaLinea);
 			while(!feof(origen) && largo<1024*1024){
 				fgets(hastaNuevaLinea,1024*1024,origen);
-
 				largo += strlen(hastaNuevaLinea);
 
-				 if(largo>=1024*1024 || feof(origen)){
+				 if(largo>1024*1024 || feof(origen)){
 					 int largoAMandar = strlen(aMandar);
 					 escribirBloque(socketnodo, bloque, aMandar, largoAMandar);
 					 escribirBloque(socketnodo2, bloqueCopia, aMandar, largoAMandar);
@@ -978,6 +1034,9 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 	free(hastaNuevaLinea);
 	fclose(origen);
 	fclose(metadata);
+
+	actualizarNodosBin();
+
 	printf("¡Archivo guardado con éxito! Cantidad de bloques: %d\n", iteration);
 }
 
@@ -988,46 +1047,49 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList)
 
 
 	char * pathObjetivo = string_new();
-	    if(directorio != NULL){
-			string_append(&pathObjetivo,directorio);
-			if(!string_ends_with(directorio, "/")){
-				string_append(&pathObjetivo,"/");
+	if(directorio == "") {
+
+	} else if(directorio != NULL){
+		string_append(&pathObjetivo,directorio);
+		if(!string_ends_with(directorio, "/")){
+			string_append(&pathObjetivo,"/");
+		}
+	}
+
+	string_append(&pathObjetivo,archivoABuscar);
+	FILE * destino = fopen(pathObjetivo,"wb");
+	if(destino == NULL){
+		printf("problema al recopilar archivo %s", pathObjetivo);
+		return -1;
+	}
+
+	t_list * lista_bloques = obtener_lista_metadata(ruta_metadata);
+
+	int i = 0;
+	for(;i<list_size(lista_bloques);i++){
+
+		t_bloque* bloque = list_get(lista_bloques,i);
+		char ** parametros1 = string_get_string_as_array(bloque->Copia0);
+		t_nodo * nodo = getNodoPorNombre(parametros1[0],nodos);
+		unsigned char * buff;
+		buff = malloc((size_t)(bloque->tamanio_bloque));
+		if(leerBloque(nodo,atoi(parametros1[1]),bloque->tamanio_bloque,buff)<=0){
+			char ** parametros2 = string_get_string_as_array(bloque->Copia1);
+			t_nodo * nodo = getNodoPorNombre(parametros2[0],nodos);
+			free(parametros1);
+			if(leerBloque(nodo,atoi(parametros2[1]),bloque->tamanio_bloque,buff)<=0){
+				free(parametros2);
+				printf("No se puede recuperar 1 o mas bloques");
+				return -1;
 			}
-	    }
-
-	    string_append(&pathObjetivo,archivoABuscar);
-	    FILE * destino = fopen(pathObjetivo,"wb+");
-	    if(destino == NULL){
-	    	printf("problema al recopilar archivo %s", pathObjetivo);
-	    	return -1;
-	    }
-
-	    t_list * lista_bloques = obtener_lista_metadata(ruta_metadata);
-
-	    int i = 0;
-	    for(;i<list_size(lista_bloques);i++){
-
-	    	t_bloque* bloque = list_get(lista_bloques,i);
-	    	char ** parametros1 = string_get_string_as_array(bloque->Copia0);
-	    	t_nodo * nodo = getNodoPorNombre(parametros1[0],nodos);
-	    	unsigned char * buffer;
-	    	buffer = malloc((size_t)(bloque->tamanio_bloque));
-	    	if(leerBloque(nodo,atoi(parametros1[1]),bloque->tamanio_bloque,buffer)<=0){
-	    		char ** parametros2 = string_get_string_as_array(bloque->Copia1);
-	    		t_nodo * nodo = getNodoPorNombre(parametros2[0],nodos);
-	    		free(parametros1);
-	    		if(leerBloque(nodo,atoi(parametros2[1]),bloque->tamanio_bloque,buffer)<=0){
-	    			free(parametros2);
-	    			printf("No se puede recuperar 1 o mas bloques");
-	    			return -1;
-	    		}
-	    		free(parametros2);
-	    	}else{
-	    		free(parametros1);
-	    	}
-	    	fprintf(destino,"%s",buffer);
-	    	free(buffer);
-	    }
+			free(parametros2);
+		}else{
+			free(parametros1);
+		}
+		// fprintf(destino,"%s",buff);
+		fwrite(buff,sizeof(unsigned char),(size_t)(bloque->tamanio_bloque),destino);
+		free(buff);
+	}
 
 	void destruyoBloques(void* parametro) {
 	 t_bloque* dir = (t_bloque*) parametro;
@@ -1173,7 +1235,12 @@ void recibirDatosBloque(t_nodo * nodo){
 		//}
 }
 
-int obtenerMD5Archivo(char * archivo){
+int obtenerMD5Archivo(char * archivo, t_list* folderList){
+
+		/* solución inteligente, puede tener conflicto con librerías con librerias
+		 *
+		 *
+
 		unsigned char c[MD5_DIGEST_LENGTH];
 
 	    int i;
@@ -1200,7 +1267,19 @@ int obtenerMD5Archivo(char * archivo){
 				printf (" %s\n", archivo);
 				fclose (inFile);
 	    }
+		*/
 
+
+		traerArchivoDeFs(archivo,"",folderList);
+		char* command = string_new();
+		string_append(&command,"md5sum ");
+		string_append(&command,archivo);
+		system(command);
+		char* command2 = string_new();
+		string_append(&command2,"rm ");
+		string_append(&command2,archivo);
+		free(command);
+		free(command2);
 	    return 1;
 }
 
