@@ -21,6 +21,10 @@
 #ifndef FUNCIONESFS_H_
 #define FUNCIONESFS_H_
 
+#define ROUNDUP(x,y) ((x - 1) / y + 1)
+// Redondear hacia arriba
+#define CANTIDAD_BLOQUES_ARCHIVO(FILE_SIZE, BLOCK_SIZE) ((FILE_SIZE > 0) ? ROUNDUP(FILE_SIZE, BLOCK_SIZE) : 1)
+
 char* nodos_file;
 t_list * nodos;
 
@@ -45,7 +49,7 @@ typedef struct {
   int socket_nodo;
   char nombre_nodo[10];
   int tamanio;
-  int espacioLibre;
+  int bloquesLibres;
 } t_nodo;
 
 typedef struct {
@@ -64,16 +68,23 @@ int recibirConexionDataNode(int nuevoSocket);
 void actualizarNodosBin();
 void deserializar_a_nodo(void* serializado, t_nodo *nodo);
 t_nodo* getNodoPorNombre(char* nombre_nodo, t_list* listaABuscar);
+t_list* getNodosMenosCargados(t_list* listaABuscar);
 
 /*Funciones de bitmap*/
-t_bitarray* creaAbreBitmap(int tamNodo, char* nombreNodo[10]);
+t_bitarray* creaAbreBitmap(int tamNodo, char nombreNodo[10]);
+t_bitarray *crearBitmapVacio(int tamNodo);
+t_bitarray *leerBitmap(FILE* bitmap_file, int tamNodo);
 int findFreeBloque(int tamNodo, t_bitarray* t_fs_bitmap);
-void escribirBitMap(int tamNodo, char* nombreNodo[10], t_bitarray* t_fs_bitmap);
+bool escribirBitMap(int tamNodo, char* nombreNodo[10], t_bitarray* t_fs_bitmap);
+int cuentaBloquesLibre(int tamNodo, t_bitarray* t_fs_bitmap);
+t_bitarray *limpiar_bitmap(int tamNodo, char* nomNodo[10], t_bitarray* bitmap);
+void destruir_bitmap(t_bitarray* bitmap);
 
 /*Funciones de Filesys*/
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList);
 void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList);
 int traerArchivoDeFs(char* archivoABuscar, char* parametro, t_list* folderList);
+t_list * obtener_lista_metadata(char * ruta_metadata);
 int obtenerMD5Archivo(char * archivo);
 void * imprimeMetadata(char* rutaEnYamafs, t_list* folderList);
 

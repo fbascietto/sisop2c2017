@@ -47,7 +47,7 @@ void iniciarDataNode(){
 
 	char* buffer;
 	t_nodo *nodo;
-	infoConfig = config_create("../config.txt");
+	infoConfig = config_create("config.txt");
 
 		if(config_has_property(infoConfig,"IP_FILESYSTEM")){
 			fsIP = config_get_string_value(infoConfig,"IP_FILESYSTEM");
@@ -179,9 +179,9 @@ int esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 						break;
 					}*/
 
-				printf("se escribieron %d caracteres\n",recibido);
+				printf("Se escribieron %d caracteres.\n",recibido);
 
-		printf("se termino de escribir el bloque %d \n", bloque);
+		printf("Se termino de escribir el bloque %d.\n", bloque);
 		munmap(map,fileStat.st_size);
 		// free(map);
 		free(bloqueArchivo);
@@ -211,7 +211,7 @@ int leerBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 			return -1;
 		}
 
-			printf("se recibio solicitud para leer el bloque %d \n", bloque);
+			printf("Se recibio solicitud para leer el bloque %d.\n", bloque);
 
 
 			int data = open(rutaNodo,O_RDWR);
@@ -232,7 +232,7 @@ int leerBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 			int err1 = recibirInt(socketConn, &bytesAleer);
 
 			if(err1<0){
-				printf("error de conexion con el fs");
+				printf("Error de conexion con el fs.");
 				return -1;
 			}
 
@@ -256,14 +256,14 @@ int leerBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 					printf("error de conexion con el fs");
 					return -1;
 				}*/
-				printf("%s\n",buffer);
+				//printf("%s\n",buffer); printea el buffer para ver que onda -- no more
 				bytes_leidos=0;
 
 				free(buffer);
 			}
 
 
-			printf("se termino de leer el bloque %d \n", bloque);
+			printf("Se termino de leer el bloque %d.\n", bloque);
 			munmap(map,fileStat.st_size);
 			// free(map);
 			close(data);
