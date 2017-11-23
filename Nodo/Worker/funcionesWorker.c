@@ -141,30 +141,51 @@ void *esperarConexionesMasterYWorker(void *args) {
 	t_esperar_conexion* argumentos = (t_esperar_conexion*) args;
 
 	t_log_level level = LOG_LEVEL_TRACE;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
 	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
 	log_trace(worker_log, "Esperando conexiones de Master");
 
 	// ---------------ME QUEDO ESPERANDO UNA CONEXION NUEVA--------------
 
+	int cliente;
+	pid_t pid;
+	int nuevoSocket;
 
 	while(1){
-		int nuevoSocket = -1;
+
+		nuevoSocket = -1;
 
 		nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,argumentos->socketEscucha);
 
 		if (nuevoSocket != -1) {
-			int cliente;
-			recibirInt(nuevoSocket,&cliente);
-			switch(cliente){
-			case PROCESO_MASTER:
-				log_trace(worker_log, "Nueva conexion de Master recibida!");
-				recibirSolicitudMaster(nuevoSocket);
-				break;
-			case PROCESO_WORKER:
-				log_trace(worker_log, "Nueva conexion de un Worker recibida!");
-				recibirSolicitudWorker(nuevoSocket);
-				break;
+
+			pid = fork();
+			if(pid == 0){
+				//proceso hijo continua la solicitud
+				recibirInt(nuevoSocket,&cliente);
+				switch(cliente){
+
+				case PROCESO_MASTER:
+					log_trace(worker_log, "Nueva conexion de Master recibida!");
+					recibirSolicitudMaster(nuevoSocket);
+					break;
+				case PROCESO_WORKER:
+					log_trace(worker_log, "Nueva conexion de un Worker recibida!");
+					recibirSolicitudWorker(nuevoSocket);
+					break;
+
+				}
+
+			}else{
+
+				if(pid < 0){
+					//cuando no pudo crear el hijo
+					log_error(worker_error_log, "No se ha podido crear el proceso hijo para responder a la solicitud");
+
+				}
+
 			}
 		}
 	}
@@ -173,79 +194,64 @@ void *esperarConexionesMasterYWorker(void *args) {
 void recibirSolicitudMaster(int nuevoSocket){
 
 	t_log_level level = LOG_LEVEL_TRACE;
-	t_log_level level_ERROR = LOG_LEVEL_ERROR;
 	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
-	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+
 
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
 
 	int exit_code;
 
-	pid_t pid = fork();
-	if(pid == 0){
-		//proceso hijo continua con la solicitud
-		switch(package->msgCode){
+	switch(package->msgCode){
 
-		case ACCION_TRANSFORMACION:
-			; //empty statement. Es solucion a un error que genera el lenguaje C
-			log_trace(worker_log, "Solicitud de transformacion recibida");
-			log_trace(worker_log, "Comienzo de transformacion");
-			solicitud_programa_transformacion* solicitudTDeserializada =
-					deserializarSolicitudProgramaTransformacion(package->message);
-			exit_code = transformacion(solicitudTDeserializada, rutaNodo);
-			responderSolicitudT(nuevoSocket, exit_code);
-			log_destroy(worker_log);
-			log_destroy(worker_error_log);
-			exit(0);
-			break;
+	case ACCION_TRANSFORMACION:
+		; //empty statement. Es solucion a un error que genera el lenguaje C
+		log_trace(worker_log, "Solicitud de transformacion recibida");
+		log_trace(worker_log, "Comienzo de transformacion");
+		solicitud_programa_transformacion* solicitudTDeserializada =
+				deserializarSolicitudProgramaTransformacion(package->message);
+		exit_code = transformacion(solicitudTDeserializada, rutaNodo);
+		responderSolicitudT(nuevoSocket, exit_code);
+		log_destroy(worker_log);
+		exit(0);
+		break;
 
-		case ACCION_REDUCCION_LOCAL:
-			; //empty statement. Es solucion a un error que genera el lenguaje C
-			log_trace(worker_log, "Solicitud de reduccion local recibida");
-			log_trace(worker_log, "Comienzo de reduccion local");
-			solicitud_programa_reduccion_local* solicitudRLDeserializada =
-					deserializarSolicitudProgramaReduccionLocal(package->message);
-			exit_code = reduccionLocal(solicitudRLDeserializada);
-			responderSolicitudRL(nuevoSocket, exit_code);
-			log_destroy(worker_log);
-			log_destroy(worker_error_log);
-			exit(0);
-			break;
+	case ACCION_REDUCCION_LOCAL:
+		; //empty statement. Es solucion a un error que genera el lenguaje C
+		log_trace(worker_log, "Solicitud de reduccion local recibida");
+		log_trace(worker_log, "Comienzo de reduccion local");
+		solicitud_programa_reduccion_local* solicitudRLDeserializada =
+				deserializarSolicitudProgramaReduccionLocal(package->message);
+		exit_code = reduccionLocal(solicitudRLDeserializada);
+		responderSolicitudRL(nuevoSocket, exit_code);
+		log_destroy(worker_log);
+		exit(0);
+		break;
 
-		case ACCION_REDUCCION_GLOBAL:
-			; //empty statement. Es solucion a un error que genera el lenguaje C
-			log_trace(worker_log, "Solicitud de reduccion global recibida");
+	case ACCION_REDUCCION_GLOBAL:
+		; //empty statement. Es solucion a un error que genera el lenguaje C
+		log_trace(worker_log, "Solicitud de reduccion global recibida");
 
-			log_trace(worker_log, "Comienzo de reduccion global");
-			solicitud_programa_reduccion_global* solicitudRGDeserializada =
-					deserializarSolicitudProgramaReduccionGlobal(package->message);
-			ruta_archivo_temp_final = solicitudRGDeserializada->archivo_temporal_resultante;
-			exit_code = reduccionGlobal(solicitudRGDeserializada, puerto);
-			responderSolicitudRG(nuevoSocket, exit_code);
-			log_destroy(worker_log);
-			log_destroy(worker_error_log);
-			exit(0);
-			break;
+		log_trace(worker_log, "Comienzo de reduccion global");
+		solicitud_programa_reduccion_global* solicitudRGDeserializada =
+				deserializarSolicitudProgramaReduccionGlobal(package->message);
+		ruta_archivo_temp_final = solicitudRGDeserializada->archivo_temporal_resultante;
+		exit_code = reduccionGlobal(solicitudRGDeserializada);
+		responderSolicitudRG(nuevoSocket, exit_code);
+		log_destroy(worker_log);
+		exit(0);
+		break;
 
-		case ACCION_ALMACENAMIENTO_FINAL:
-			; //empty statement. Es solucion a un error que genera el lenguaje C
-			log_trace(worker_log, "Solicitud de almacenamiento final recibida");
-			almacenamientoFinal(IP_fs, puerto_fs, ruta_archivo_temp_final);
-			break;
+	case ACCION_ALMACENAMIENTO_FINAL:
+		; //empty statement. Es solucion a un error que genera el lenguaje C
+		log_trace(worker_log, "Solicitud de almacenamiento final recibida");
+		almacenamientoFinal(IP_fs, puerto_fs, ruta_archivo_temp_final);
+		exit(0);
+		break;
 
-		}
-	}else{
-
-		if(pid < 0){
-			//cuando no pudo crear el hijo
-			log_error(worker_error_log, "No se ha podido crear el proceso hijo para contestar la solicitud");
-
-		}
 	}
 
 	log_destroy(worker_log);
-	log_destroy(worker_error_log);
 
 }
 
@@ -258,19 +264,20 @@ void recibirSolicitudWorker(int nuevoSocket){
 
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
+
 	int exit_code;
+
 	switch(package->msgCode){
+
 	case COMENZAR_REDUCCION_GLOBAL:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
 		solicitud_leer_y_enviar_archivo_temp* solicitudEATDeserializada =
 				deserializarSolicitudEnviarArchivoTemp(package->message);
-		exit_code = leerYEnviarArchivoTemp("", nuevoSocket);
+		exit_code = leerYEnviarArchivoTemp(solicitudEATDeserializada->ruta_archivo_red_local_temp, nuevoSocket);
 		break;
-	case HABILITAR_SEMAFORO:
-		; //empty statement. Es solucion a un error que genera el lenguaje C
-		habilitarSemaforo();
+	case CONTINUAR_ENVIO:
 		break;
-	case ACCION_RECIBIR_REGISTRO:
+	case ACCION_RECIBIR_PALABRA:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
 		solicitud_recibir_archivo_temp* solicitudLATDeserializada =
 				deserializarSolicitudLeerArchivoTemp(package->message);
@@ -280,8 +287,8 @@ void recibirSolicitudWorker(int nuevoSocket){
 		; //empty statement. Es solucion a un error que genera el lenguaje C
 		break;
 
-		log_destroy(worker_log);
-		log_destroy(worker_error_log);
-
 	}
+
+	log_destroy(worker_log);
+	log_destroy(worker_error_log);
 }

@@ -4,19 +4,16 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../interface.c \
 ../main.c \
 ../serializacion.c \
 ../sockets.c 
 
 OBJS += \
-./interface.o \
 ./main.o \
 ./serializacion.o \
 ./sockets.o 
 
 C_DEPS += \
-./interface.d \
 ./main.d \
 ./serializacion.d \
 ./sockets.d 

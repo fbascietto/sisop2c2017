@@ -12,6 +12,8 @@
 #ifndef ETAPAS_H_
 #define ETAPAS_H_
 
+#define VALOR_SOCKET_WE -2
+
 //semaforo para el recorrido de los archivos temporales de reduccion local para enviarle al worker encargado de a una linea
 sem_t sem;
 
@@ -29,7 +31,8 @@ typedef struct{
 
 typedef struct{
 
-char* palabraCandidata;
+char* palabra;
+bool fin_de_archivo;
 
 } t_palabra;
 
@@ -40,12 +43,15 @@ void responderSolicitudT(int, int);
 int reduccionLocal(solicitud_programa_reduccion_local *);
 void responderSolicitudRL(int, int);
 //RG
-int reduccionGlobal(solicitud_programa_reduccion_global *, int);
+int reduccionGlobal(solicitud_programa_reduccion_global *);
 void responderSolicitudRG(int, int);
 int leerYEnviarArchivoTemp(char[LENGTH_RUTA_ARCHIVO_TEMP], int);
-void habilitarSemaforo();
+t_palabra recibirPalabra();
+void escribirEnArchivo(char *);
+void aparear(t_list*);
 void recibirArchivoTemp(solicitud_recibir_archivo_temp *);
 void prepararEstructuras(t_list*, t_worker, int);
+//void habilitarSemaforo();
 //AF
 void almacenamientoFinal(char*, int, char*);
 

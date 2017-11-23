@@ -34,12 +34,12 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 	for(i=0; i<solicitudDeserializada->cantidad_archivos_temp; i++){
 
 		//concatena string con formato "cat temp1 temp2 temp3...tempN"
-		string_append_with_format(&buffer, " %s",solicitudDeserializada->archivos_temporales[i].archivo_temp);
+		string_append_with_format(&buffer, " \"%s\"",solicitudDeserializada->archivos_temporales[i].archivo_temp);
 
 	}
 
 	//concatena lo anterior con el sort y la ejecucion del programa de reduccion
-	string_append_with_format(&buffer, " | sort | .\"/scripts/%s\" > %s",
+	string_append_with_format(&buffer, " | sort | .\"/scripts/%s\" > \"%s\"",
 			solicitudDeserializada->programa_reduccion, solicitudDeserializada->archivo_temporal_resultante);
 
 	retorno = system(buffer);
