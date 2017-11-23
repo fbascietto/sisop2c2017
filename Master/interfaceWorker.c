@@ -175,13 +175,3 @@ solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGloba
 
 	return solicitud;
 }
-
-solicitud_leer_y_enviar_archivo_temp* deserializarSolicitudEnviarArchivoTemp(char* message){
-	solicitud_leer_y_enviar_archivo_temp* mock = malloc(sizeof(solicitud_leer_y_enviar_archivo_temp));
-	return mock;
-}
-
-solicitud_recibir_archivo_temp* deserializarSolicitudLeerArchivoTemp(char* message){
-	solicitud_recibir_archivo_temp* mock = malloc(sizeof(solicitud_recibir_archivo_temp));
-	return mock;
-}

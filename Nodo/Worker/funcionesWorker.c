@@ -6,8 +6,7 @@
  */
 
 #include "funcionesWorker.h"
-#include "etapas.h"
-#include <commons/string.h>
+
 
 void iniciarWorker(){
 
@@ -235,7 +234,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 		log_trace(worker_log, "Comienzo de reduccion global");
 		solicitud_programa_reduccion_global* solicitudRGDeserializada =
 				deserializarSolicitudProgramaReduccionGlobal(package->message);
-		ruta_archivo_temp_final = solicitudRGDeserializada->archivo_temporal_resultante;
+		strcpy(ruta_archivo_temp_final, solicitudRGDeserializada->archivo_temporal_resultante);
 		exit_code = reduccionGlobal(solicitudRGDeserializada);
 		responderSolicitudRG(nuevoSocket, exit_code);
 		log_destroy(worker_log);
@@ -272,16 +271,16 @@ void recibirSolicitudWorker(int nuevoSocket){
 	case COMENZAR_REDUCCION_GLOBAL:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
 		solicitud_leer_y_enviar_archivo_temp* solicitudEATDeserializada =
-				deserializarSolicitudEnviarArchivoTemp(package->message);
+				deserializarSolicitudLeerYEnviarArchivoTemp(package->message);
 		exit_code = leerYEnviarArchivoTemp(solicitudEATDeserializada->ruta_archivo_red_local_temp, nuevoSocket);
 		break;
 	case CONTINUAR_ENVIO:
 		break;
 	case ACCION_RECIBIR_PALABRA:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
-		solicitud_recibir_archivo_temp* solicitudLATDeserializada =
-				deserializarSolicitudLeerArchivoTemp(package->message);
-		recibirArchivoTemp(solicitudLATDeserializada);
+		solicitud_recibir_palabra* solicitudRPDeserializada =
+				deserializarSolicitudRecibirPalabra(package->message);
+		recibirPalabraDeSocket(solicitudRPDeserializada);
 		break;
 	case ARCHIVO_TERMINADO:
 		; //empty statement. Es solucion a un error que genera el lenguaje C

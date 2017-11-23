@@ -178,7 +178,8 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 		if(socket!= VALOR_SOCKET_WE){
 
 			log_trace(worker_log, "Se envia al worker encargado un registro para la reduccion global");
-			enviarMensajeSocket(socket, ACCION_RECIBIR_PALABRA, buffer);
+			//hay que serializar... solicitud_recibir_palabra
+			enviarMensajeSocket(socket, ACCION_RECIBIR_PALABRA, serialized);
 
 		}
 
@@ -187,7 +188,7 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 
 	}
 
-	enviarMensajeSocketConLongitud(socket, ARCHIVO_TERMINADO, NULL, 0);
+	enviarMensajeSocket(socket, ARCHIVO_TERMINADO, serialized);
 
 	free(buffer);
 
@@ -198,7 +199,7 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 
 }
 
-void recibirArchivoTemp(solicitud_recibir_archivo_temp* solicitudDeserializada){
+void recibirPalabraDeSocket(solicitud_recibir_palabra* solicitudDeserializada){
 
 }
 
@@ -231,37 +232,69 @@ t_palabra recibirPalabra(){
 
 void escribirEnArchivo(char* palabra_a_escribir){
 
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+
+	FILE* f1;
+
+	f1 = fopen(ruta_archivo_temp_final, "r+");
+	if(f1 == NULL){
+		f1 = fopen(ruta_archivo_temp_final, "w");
+		if(f1 == NULL){
+			log_error(worker_error_log, "No se pudo abrir el archivo de reduccion global para escritura");
+		}
+	}
+
+	fseek(f1, 0, SEEK_END);
+
+	fputs(palabra_a_escribir, f1);
+
+	fclose(f1);
+
+	log_destroy(worker_error_log);
+
+}
+
+bool esMenor(char* cadena1, char* cadena2){
+
+	return cadena1 < cadena2;
 
 }
 
 void aparear(t_list* lista){
 
-bool termino(t_elemento elemento){
+	char* palabraCandidata;
 
-	return elemento.fin;
+	bool termino(t_elemento* elemento){
 
-}
-	while(list_all_satisfy(lista, !termino)){
+		return elemento->fin;
 
-		char* palabraCandidata;
-
-		void procesarElemento(t_elemento elemento){
-
-			if(!elemento.fin && elemento.pedir){
-
-				t_palabra respuesta = recibirPalabra();
-				elemento.fin = respuesta.fin_de_archivo;
-				elemento.ultima_palabra = respuesta.palabra;
-
-
-			}
-
-			list_iterate(lista, procesarElemento);
-			escribirEnArchivo(palabraCandidata);
-
-		}
 	}
 
+	void procesarElemento(t_elemento* elemento){
+
+		//si aun no termino y hay que pedir
+		if(!elemento->fin && elemento->pedir){
+
+			t_palabra respuesta = recibirPalabra();
+			elemento->fin = respuesta.fin_de_archivo; //
+			elemento->ultima_palabra = respuesta.palabra;
+			elemento->pedir = false;
+		}
+
+		if(!elemento->fin && esMenor(elemento->ultima_palabra, palabraCandidata)){
+			palabraCandidata = elemento->ultima_palabra;
+			elemento->pedir = true;
+		}
+
+	}
+
+	while(list_any_satisfy(lista, !termino)){
+
+		list_iterate(lista, procesarElemento);
+		escribirEnArchivo(palabraCandidata);
+
+	}
 
 
 }

@@ -14,6 +14,9 @@
 
 #define VALOR_SOCKET_WE -2
 
+//ruta del archivo temporal de reduccion global
+char ruta_archivo_temp_final[LENGTH_RUTA_ARCHIVO_TEMP];
+
 //semaforo para el recorrido de los archivos temporales de reduccion local para enviarle al worker encargado de a una linea
 sem_t sem;
 
@@ -48,8 +51,9 @@ void responderSolicitudRG(int, int);
 int leerYEnviarArchivoTemp(char[LENGTH_RUTA_ARCHIVO_TEMP], int);
 t_palabra recibirPalabra();
 void escribirEnArchivo(char *);
+bool esMenor(char*, char*);
 void aparear(t_list*);
-void recibirArchivoTemp(solicitud_recibir_archivo_temp *);
+void recibirPalabraDeSocket(solicitud_recibir_palabra *);
 void prepararEstructuras(t_list*, t_worker, int);
 //void habilitarSemaforo();
 //AF

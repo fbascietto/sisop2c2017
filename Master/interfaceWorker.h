@@ -30,7 +30,5 @@ uint32_t getLong_SolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_g
 char* serializarSolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_global* solicitud);
 solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGlobal(char* serialized);
 
-solicitud_leer_y_enviar_archivo_temp* deserializarSolicitudEnviarArchivoTemp(char* message);
-solicitud_recibir_archivo_temp* deserializarSolicitudLeerArchivoTemp(char* message);
 
 #endif /* INTERFACEWORKER_H_ */

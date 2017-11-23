@@ -15,8 +15,12 @@
 #include <commons/collections/list.h>
 #include "../../bibliotecas/protocolo.h"
 #include "../../bibliotecas/sockets.h"
-#include "interfaceWorker.h"
+#include "interfaceWorkerMaster.h"
+#include "interfaceWorkerWorker.h"
 #include <commons/config.h>
+#include <commons/string.h>
+#include "etapas.h"
+
 
 #ifndef FUNCIONESWORKER_H_
 #define FUNCIONESWORKER_H_
@@ -33,7 +37,6 @@ char* rutaNodo;
 int puerto;
 int puerto_fs;
 char* IP_fs;
-char* ruta_archivo_temp_final;
 
 void iniciarWorker();
 int persistirPrograma(char*, char*);

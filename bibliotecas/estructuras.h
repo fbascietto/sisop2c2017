@@ -24,7 +24,7 @@
 
 /*Structs de comunicacion YAMA con MASTER*/
 
-	//TRANSFORMACION
+//TRANSFORMACION
 
 typedef struct item_transformacion {
 	uint32_t nodo_id;		//nodo
@@ -40,7 +40,7 @@ typedef struct solicitud_transformacion {
 	uint32_t item_cantidad; //cantidad de items
 } solicitud_transformacion;
 
-	//REDUCCION LOCAL
+//REDUCCION LOCAL
 
 typedef struct {
 	char archivo_temp[LENGTH_RUTA_ARCHIVO_TEMP];
@@ -60,7 +60,7 @@ typedef struct solicitud_reduccion_local {
 	uint32_t item_cantidad; //cantidad de items
 } solicitud_reduccion_local;
 
-	//REDUCCION GLOBAL
+//REDUCCION GLOBAL
 
 typedef struct worker {
 	uint32_t nodo_id;		//nodo
@@ -76,7 +76,7 @@ typedef struct solicitud_reduccion_global {
 	char archivo_temporal_reduccion_global[LENGTH_RUTA_ARCHIVO_TEMP];
 } solicitud_reduccion_global;
 
-	//ALMACENAMIENTO FINAL
+//ALMACENAMIENTO FINAL
 
 typedef struct solicitud_almacenado_final {
 	uint32_t nodo_id;		//nodo
@@ -90,7 +90,7 @@ typedef struct solicitud_almacenado_final {
 
 /*Structs de comunicacion MASTER con WORKER*/
 
-	//TRANSFORMACION
+//TRANSFORMACION
 
 typedef struct {
 	char programa_transformacion[LENGTH_NOMBRE_PROGRAMA];
@@ -101,7 +101,7 @@ typedef struct {
 	char archivo_temporal[LENGTH_RUTA_ARCHIVO_TEMP]; //ruta de archivo temporal
 } solicitud_programa_transformacion;
 
-	//REDUCCION LOCAL
+//REDUCCION LOCAL
 
 typedef struct {
 	char programa_reduccion[LENGTH_NOMBRE_PROGRAMA];
@@ -112,7 +112,7 @@ typedef struct {
 	char archivo_temporal_resultante[LENGTH_RUTA_ARCHIVO_TEMP];
 } solicitud_programa_reduccion_local;
 
-	//REDUCCION GLOBAL
+//REDUCCION GLOBAL
 
 /*typedef struct {
 	uint32_t nodo_id;
@@ -139,14 +139,15 @@ typedef struct {
 /*Structs de comunicacion WORKER con WORKER*/
 
 typedef struct {
-char ruta_archivo_red_local_temp[LENGTH_RUTA_ARCHIVO_TEMP];  //ruta del archivo de RL del worker para recorrer y enviar de a un registro a la vez
+	char ruta_archivo_red_local_temp[LENGTH_RUTA_ARCHIVO_TEMP];  //ruta del archivo de RL del worker para recorrer y enviar de a un registro a la vez
 
 } solicitud_leer_y_enviar_archivo_temp;
 
 typedef struct {
-//TODO: definir struct, tal vez ni sea struct este tipo de comunicacion
+	char* ultimaPalabra;
+	bool fin_de_archivo;
 
-} solicitud_recibir_archivo_temp;
+} solicitud_recibir_palabra;
 
 //-------------------------------------------------------------------------------------------------------------------
 
