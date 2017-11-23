@@ -178,7 +178,10 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 		if(socket!= VALOR_SOCKET_WE){
 
 			log_trace(worker_log, "Se envia al worker encargado un registro para la reduccion global");
-			//hay que serializar... solicitud_recibir_palabra
+			solicitud_recibir_palabra* respuesta;
+			respuesta->fin_de_archivo = false;
+			respuesta->ultimaPalabra = buffer;
+			char* serialized = serializarSolicitudRecibirPalabra(respuesta);
 			enviarMensajeSocket(socket, ACCION_RECIBIR_PALABRA, serialized);
 
 		}
@@ -188,7 +191,11 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 
 	}
 
-	enviarMensajeSocket(socket, ARCHIVO_TERMINADO, serialized);
+	solicitud_recibir_palabra* respuesta_fin;
+	respuesta_fin->fin_de_archivo = true;
+	respuesta_fin->ultimaPalabra = "";
+	char* serialized_fin = serializarSolicitudRecibirPalabra(respuesta_fin);
+	enviarMensajeSocket(socket, ARCHIVO_TERMINADO, serialized_fin);
 
 	free(buffer);
 

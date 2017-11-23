@@ -10,7 +10,10 @@
 #ifndef INTERFACEWORKERWORKER_H_
 #define INTERFACEWORKERWORKER_H_
 
-solicitud_leer_y_enviar_archivo_temp* deserializarSolicitudLeerYEnviarArchivoTemp(char* message);
-solicitud_recibir_palabra* deserializarSolicitudRecibirPalabra(char* message);
+uint32_t getLong_SolicitudRecibirPalabra(solicitud_recibir_palabra*);
+char* serializarSolicitudRecibirPalabra(solicitud_recibir_palabra*);
+
+solicitud_leer_y_enviar_archivo_temp* deserializarSolicitudLeerYEnviarArchivoTemp(char* serialized);
+solicitud_recibir_palabra* deserializarSolicitudRecibirPalabra(char* serialized);
 
 #endif /* INTERFACEWORKERWORKER_H_ */
