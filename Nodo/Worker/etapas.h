@@ -17,7 +17,7 @@
 //ruta del archivo temporal de reduccion global
 char ruta_archivo_temp_final[LENGTH_RUTA_ARCHIVO_TEMP];
 
-//semaforo para el recorrido de los archivos temporales de reduccion local para enviarle al worker encargado de a una linea
+//semaforo para el recorrido del archivo que se encuentra en el worker encargado
 sem_t sem;
 
 //estructura que define los elementos que maneja el worker encargado en la reduccion global
@@ -32,30 +32,26 @@ typedef struct{
 
 } t_elemento;
 
-typedef struct{
-
-char* palabra;
-bool fin_de_archivo;
-
-} t_palabra;
 
 //T
 int transformacion(solicitud_programa_transformacion *, char *);
 void responderSolicitudT(int, int);
+
 //RL
 int reduccionLocal(solicitud_programa_reduccion_local *);
 void responderSolicitudRL(int, int);
+
 //RG
 int reduccionGlobal(solicitud_programa_reduccion_global *);
 void responderSolicitudRG(int, int);
 int leerYEnviarArchivoTemp(char[LENGTH_RUTA_ARCHIVO_TEMP], int);
-t_palabra recibirPalabra();
+solicitud_recibir_palabra* recibirPalabra(int);
 void escribirEnArchivo(char *);
 bool esMenor(char*, char*);
 void aparear(t_list*);
-void recibirPalabraDeSocket(solicitud_recibir_palabra *);
 void prepararEstructuras(t_list*, t_worker, int);
-//void habilitarSemaforo();
+void habilitarSemaforo();
+
 //AF
 void almacenamientoFinal(char*, int, char*);
 

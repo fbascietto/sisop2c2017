@@ -28,6 +28,7 @@ void iniciarWorker(){
 
 	if(config_has_property(infoConfig, "PUERTO_WORKER")){
 		puerto = config_get_int_value(infoConfig, "PUERTO_WORKER");
+		printf("Puerto: %d\n", puerto);
 	}
 
 	if(config_has_property(infoConfig,"IP_FILESYSTEM")){
@@ -37,7 +38,7 @@ void iniciarWorker(){
 
 	if(config_has_property(infoConfig,"PUERTO_FILESYSTEM")){
 		puerto_fs = config_get_int_value(infoConfig,"PUERTO_FILESYSTEM");
-		printf("Puerto: %d\n", puerto_fs);
+
 	}
 
 	//---------------ESPERA CONEXIONES-------------------------------
@@ -254,12 +255,14 @@ void recibirSolicitudMaster(int nuevoSocket){
 
 }
 
-void recibirSolicitudWorker(int nuevoSocket){
+solicitud_recibir_palabra* recibirSolicitudWorker(int nuevoSocket){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
 	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+
+	solicitud_recibir_palabra* palabra;
 
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
@@ -278,16 +281,17 @@ void recibirSolicitudWorker(int nuevoSocket){
 		break;
 	case ACCION_RECIBIR_PALABRA:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
-		solicitud_recibir_palabra* solicitudRPDeserializada =
-				deserializarSolicitudRecibirPalabra(package->message);
-		recibirPalabraDeSocket(solicitudRPDeserializada);
+		palabra = deserializarSolicitudRecibirPalabra(package->message);
 		break;
 	case ARCHIVO_TERMINADO:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
+		palabra = deserializarSolicitudRecibirPalabra(package->message);
 		break;
 
 	}
 
 	log_destroy(worker_log);
 	log_destroy(worker_error_log);
+
+	return palabra;
 }

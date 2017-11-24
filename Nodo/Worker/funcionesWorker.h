@@ -42,7 +42,7 @@ void iniciarWorker();
 int persistirPrograma(char*, char*);
 void *esperarConexionesMasterYWorker(void *);
 void recibirSolicitudMaster(int);
-void recibirSolicitudWorker(int);
+solicitud_recibir_palabra* recibirSolicitudWorker(int);
 
 #endif /* FUNCIONESWORKER_H_ */
 

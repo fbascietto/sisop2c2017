@@ -144,7 +144,7 @@ typedef struct {
 } solicitud_leer_y_enviar_archivo_temp;
 
 typedef struct {
-	char* ultimaPalabra;
+	char* palabra;
 	bool fin_de_archivo;
 
 } solicitud_recibir_palabra;

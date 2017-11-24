@@ -180,7 +180,7 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 			log_trace(worker_log, "Se envia al worker encargado un registro para la reduccion global");
 			solicitud_recibir_palabra* respuesta;
 			respuesta->fin_de_archivo = false;
-			respuesta->ultimaPalabra = buffer;
+			respuesta->palabra = buffer;
 			char* serialized = serializarSolicitudRecibirPalabra(respuesta);
 			enviarMensajeSocket(socket, ACCION_RECIBIR_PALABRA, serialized);
 
@@ -193,7 +193,7 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 
 	solicitud_recibir_palabra* respuesta_fin;
 	respuesta_fin->fin_de_archivo = true;
-	respuesta_fin->ultimaPalabra = "";
+	respuesta_fin->palabra = "";
 	char* serialized_fin = serializarSolicitudRecibirPalabra(respuesta_fin);
 	enviarMensajeSocket(socket, ARCHIVO_TERMINADO, serialized_fin);
 
@@ -203,10 +203,6 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 	log_destroy(worker_error_log);
 
 	return 0;
-
-}
-
-void recibirPalabraDeSocket(solicitud_recibir_palabra* solicitudDeserializada){
 
 }
 
@@ -226,12 +222,20 @@ void prepararEstructuras(t_list* elementos_para_RG, t_worker worker, int posicio
 
 }
 
-t_palabra recibirPalabra(){
+solicitud_recibir_palabra* recibirPalabra(int socket){
 
-	t_palabra palabra;
+	solicitud_recibir_palabra* palabra;
 
-	palabra.fin_de_archivo = false;
-	palabra.palabra = "blabla";
+	if(socket != VALOR_SOCKET_WE){
+
+		enviarMensajeSocketConLongitud(socket, CONTINUAR_ENVIO, NULL, 0);
+		palabra = recibirSolicitudWorker(socket);
+
+	}else{
+
+		habilitarSemaforo();
+
+	}
 
 	return palabra;
 
@@ -283,10 +287,11 @@ void aparear(t_list* lista){
 		//si aun no termino y hay que pedir
 		if(!elemento->fin && elemento->pedir){
 
-			t_palabra respuesta = recibirPalabra();
-			elemento->fin = respuesta.fin_de_archivo; //
-			elemento->ultima_palabra = respuesta.palabra;
+			solicitud_recibir_palabra* respuesta = recibirPalabra(elemento->socket);
+			elemento->fin = respuesta->fin_de_archivo; //
+			elemento->ultima_palabra = respuesta->palabra;
 			elemento->pedir = false;
+
 		}
 
 		if(!elemento->fin && esMenor(elemento->ultima_palabra, palabraCandidata)){
@@ -307,13 +312,12 @@ void aparear(t_list* lista){
 }
 
 
+void habilitarSemaforo(){
 
-//void habilitarSemaforo(){
-//
-//	t_log_level level = LOG_LEVEL_TRACE;
-//	t_log* sem_log = log_create("logWorker.txt", "WORKER", 1, level);
-//
-//	log_trace(sem_log, "Se habilita el semaforo para enviar el siguiente registro");
-//	signal(sem);
-//
-//}
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log* sem_log = log_create("logWorker.txt", "WORKER", 1, level);
+
+	log_trace(sem_log, "Se habilita el semaforo para enviar el siguiente registro");
+	signal(sem);
+
+}

@@ -13,7 +13,7 @@ uint32_t getLong_SolicitudRecibirPalabra(solicitud_recibir_palabra* solicitud){
 	uint32_t total_size = 0;
 
 	total_size += sizeof(bool);
-	total_size += strlen(solicitud->ultimaPalabra);
+	total_size += strlen(solicitud->palabra);
 
 	return total_size;
 
@@ -28,8 +28,8 @@ char* serializarSolicitudRecibirPalabra(solicitud_recibir_palabra* solicitud){
 	int offset = 0;
 
 	serializarDato(serializedPackage, &(solicitud->fin_de_archivo), sizeof(bool), &offset);
-	int size_to_send = strlen(solicitud->ultimaPalabra);
-	memcpy(serializedPackage + offset, solicitud->ultimaPalabra, size_to_send);
+	int size_to_send = strlen(solicitud->palabra);
+	memcpy(serializedPackage + offset, solicitud->palabra, size_to_send);
 
 
 	return serializedPackage;
@@ -48,7 +48,7 @@ solicitud_recibir_palabra* deserializarSolicitudRecibirPalabra(char* serialized)
 	int offset = 0;
 
 	deserializarDato(&(solicitud->fin_de_archivo), serialized, sizeof(bool), &offset);
-	solicitud->ultimaPalabra = strdup(serialized+offset);
+	solicitud->palabra = strdup(serialized+offset);
 
 	return solicitud;
 }

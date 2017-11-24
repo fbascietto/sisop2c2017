@@ -5,7 +5,7 @@
  *      Author: utnso
  */
 
-#include "../../bibliotecas/estructuras.h"
+#include "interface.h"
 
 #ifndef INTERFACEWORKERWORKER_H_
 #define INTERFACEWORKERWORKER_H_
