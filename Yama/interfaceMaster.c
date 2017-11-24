@@ -72,9 +72,10 @@ uint32_t getLong_items_transformacion(item_transformacion* items_transformacion,
 
 uint32_t getLong_one_item_transformacion(item_transformacion* items_transformacion){
 	uint32_t longitud = 0;
-	longitud += sizeof(uint32_t)*4; //nodo_id, bloque, bytes_ocupados,puerto_worker
-	longitud += sizeof(char[20]); //ip_worker,
-	longitud += sizeof(char[50]);//archivo_temporal
+	longitud += sizeof(uint32_t)*3; //bloque, bytes_ocupados,puerto_worker
+	longitud += sizeof(char[LENGTH_IP]); //ip_worker,
+	longitud += sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]);//archivo_temporal
+	longitud += sizeof(char[NOMBRE_NODO]); //nodo id
 	return longitud;
 }
 
@@ -84,7 +85,7 @@ char* serializar_item_transformacion(item_transformacion* item_transformacion){
 
 	int offset = 0;
 
-	serializarDato(serializedPackage,&(item_transformacion->nodo_id),sizeof(uint32_t),&offset);
+	serializarDato(serializedPackage,&(item_transformacion->nodo_id),sizeof(char[NOMBRE_NODO]),&offset);
 	serializarDato(serializedPackage,&(item_transformacion->ip_worker),sizeof(char[20]),&offset);
 	serializarDato(serializedPackage,&(item_transformacion->puerto_worker),sizeof(uint32_t),&offset);
 	serializarDato(serializedPackage,&(item_transformacion->bloque),sizeof(uint32_t),&offset);
@@ -133,7 +134,7 @@ item_transformacion* deserializar_item_transformacion(char* serialized){
 	item_transformacion* itemTransformacion = malloc(sizeof(item_transformacion));
 	int offset = 0;
 
-	deserializarDato(&(itemTransformacion->nodo_id),serialized,sizeof(uint32_t),&offset);
+	deserializarDato(&(itemTransformacion->nodo_id),serialized,sizeof(char[NOMBRE_NODO]),&offset);
 	deserializarDato(&(itemTransformacion->ip_worker),serialized,sizeof(char[20]),&offset);
 	deserializarDato(&(itemTransformacion->puerto_worker),serialized,sizeof(uint32_t),&offset);
 	deserializarDato(&(itemTransformacion->bloque),serialized,sizeof(uint32_t),&offset);
@@ -143,12 +144,12 @@ item_transformacion* deserializar_item_transformacion(char* serialized){
 	return itemTransformacion;
 }
 
-item_transformacion* crearItemTransformacion(uint32_t nodo,char* ipWorker,uint32_t puerto_worker, uint32_t bloque, uint32_t bytesOcupados, char* archivoTemporal){
+item_transformacion* crearItemTransformacion(char nodo[NOMBRE_NODO],char* ipWorker,uint32_t puerto_worker, uint32_t bloque, uint32_t bytesOcupados, char* archivoTemporal){
 	item_transformacion *item = malloc(sizeof(item_transformacion));
 	strcpy(item->archivo_temporal,archivoTemporal);
 	item->bloque = bloque;
 	item->bytes_ocupados = bytesOcupados;
-	item->nodo_id = nodo;
+	strcpy(item->nodo_id, nodo);
 	strcpy(item->ip_worker,ipWorker);
 	item->puerto_worker = puerto_worker;
 	return item;
@@ -156,9 +157,17 @@ item_transformacion* crearItemTransformacion(uint32_t nodo,char* ipWorker,uint32
 
 void testSerializarSolicitudTrasnformacion(){
 
-	item_transformacion* item1 = crearItemTransformacion(1,"127.0.0.1",8080,2222,12345,"/temp1/archivo1.txt");
-	item_transformacion* item2 = crearItemTransformacion(12,"127.23.0.1",0101,523,5777666,"/temsssssp1211/otro.txt");
-	item_transformacion* item3 = crearItemTransformacion(137,"187.0.56.1",9090,62,643,"/temp655/tercero.txt");
+	char a[NOMBRE_NODO];
+	char b[NOMBRE_NODO];
+	char c[NOMBRE_NODO];
+
+	strcpy(a, "NODO 1");
+	strcpy(b, "NODO 12");
+	strcpy(c, "NODO 137");
+
+	item_transformacion* item1 = crearItemTransformacion(a,"127.0.0.1",8080,2222,12345,"/temp1/archivo1.txt");
+	item_transformacion* item2 = crearItemTransformacion(b,"127.23.0.1",0101,523,5777666,"/temsssssp1211/otro.txt");
+	item_transformacion* item3 = crearItemTransformacion(c,"187.0.56.1",9090,62,643,"/temp655/tercero.txt");
 
 	solicitud_transformacion* solicitudTransformacion = malloc(sizeof(solicitud_transformacion));
 
@@ -182,7 +191,7 @@ void testSerializarSolicitudTrasnformacion(){
 		printf("archivo_temporal = %s\n", solicitudTransfDeserializada->items_transformacion[var2].archivo_temporal );
 		printf("bloque = %d\n", solicitudTransfDeserializada->items_transformacion[var2].bloque );
 		printf("bytes_ocupados = %d\n", solicitudTransfDeserializada->items_transformacion[var2].bytes_ocupados );
-		printf("nodo_id = %d\n", solicitudTransfDeserializada->items_transformacion[var2].nodo_id );
+		printf("nodo_id = %s\n", solicitudTransfDeserializada->items_transformacion[var2].nodo_id );
 		printf("ip_worker = %s\n", solicitudTransfDeserializada->items_transformacion[var2].ip_worker );
 		printf("puerto_worker = %d\n", solicitudTransfDeserializada->items_transformacion[var2].puerto_worker );
 	}
@@ -193,7 +202,7 @@ void agregarItemTransformacion(solicitud_transformacion* solicitudTransformacion
 	strcpy(solicitudTransformacion->items_transformacion[solicitudTransformacion->item_cantidad].archivo_temporal,item->archivo_temporal);
 	solicitudTransformacion->items_transformacion[solicitudTransformacion->item_cantidad].bloque = item->bloque;
 	solicitudTransformacion->items_transformacion[solicitudTransformacion->item_cantidad].bytes_ocupados = item->bytes_ocupados;
-	solicitudTransformacion->items_transformacion[solicitudTransformacion->item_cantidad].nodo_id = item->nodo_id;
+	strcpy(solicitudTransformacion->items_transformacion[solicitudTransformacion->item_cantidad].nodo_id, item->nodo_id);
 	solicitudTransformacion->items_transformacion[solicitudTransformacion->item_cantidad].puerto_worker = item->puerto_worker;
 	strcpy(solicitudTransformacion->items_transformacion[solicitudTransformacion->item_cantidad].ip_worker,item->ip_worker);
 	solicitudTransformacion->item_cantidad++;
@@ -201,7 +210,10 @@ void agregarItemTransformacion(solicitud_transformacion* solicitudTransformacion
 
 void testSerializarItemTransformacion(){
 
-	item_transformacion *item1 = crearItemTransformacion(1,"127.0.0.1",8080,1,12345,"/temp1/archivo1.txt");
+	char a[NOMBRE_NODO];
+	strcpy(a, "NODO 1");
+
+	item_transformacion *item1 = crearItemTransformacion(a,"127.0.0.1",8080,1,12345,"/temp1/archivo1.txt");
 
 	char* itemSerializado = serializar_item_transformacion(item1);
 
@@ -209,7 +221,7 @@ void testSerializarItemTransformacion(){
 	printf("archivo_temporal = %s\n", itemDeserializado->archivo_temporal );
 	printf("bloque = %d\n", itemDeserializado->bloque );
 	printf("bytes_ocupados = %d\n", itemDeserializado->bytes_ocupados );
-	printf("nodo_id = %d\n", itemDeserializado->nodo_id );
+	printf("nodo_id = %s\n", itemDeserializado->nodo_id );
 	printf("ip_worker = %s\n", itemDeserializado->ip_worker );
 	printf("puerto_worker = %d\n", itemDeserializado->puerto_worker );
 }
@@ -260,7 +272,7 @@ char* serializar_item_reduccion_local(item_reduccion_local* item_reduccion_local
 
 	int offset = 0;
 
-	serializarDato(serializedPackage,&(item_reduccion_local->nodo_id),sizeof(uint32_t),&offset);
+	serializarDato(serializedPackage,&(item_reduccion_local->nodo_id),sizeof(char[NOMBRE_NODO]),&offset);
 	serializarDato(serializedPackage,&(item_reduccion_local->ip_worker),sizeof(char[20]),&offset);
 	serializarDato(serializedPackage,&(item_reduccion_local->puerto_worker),sizeof(uint32_t),&offset);
 	serializarDato(serializedPackage,&(item_reduccion_local->archivo_temporal_reduccion_local),sizeof(char[50]),&offset);
@@ -302,9 +314,10 @@ uint32_t getLong_one_item_reduccion_local(item_reduccion_local* items_reduccion_
 	uint32_t size_items = getLong_archivos_temporales(items_reduccion_local->archivos_temporales_transformacion,items_reduccion_local->cantidad_archivos_temp);
 	longitud += sizeof(uint32_t)*2;//campo item_cantidad y size_items
 	longitud += size_items;
-	longitud += sizeof(uint32_t)*2; //nodo_id, puerto_worker
-	longitud += sizeof(char[20]); //ip_worker,
-	longitud += sizeof(char[50]);//archivo_temporal reduccion_local
+	longitud += sizeof(uint32_t); //puerto_worker
+	longitud += sizeof(char[LENGTH_IP]); //ip_worker,
+	longitud += sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]);//archivo_temporal reduccion_local
+	longitud += sizeof(char[NOMBRE_NODO]);
 	return longitud;
 }
 
@@ -347,7 +360,7 @@ item_reduccion_local* deserializar_item_reduccion_local(char* serialized){
 	item_reduccion_local* itemReduccionLocal = malloc(sizeof(item_reduccion_local));
 	int offset = 0;
 
-	deserializarDato(&(itemReduccionLocal->nodo_id),serialized,sizeof(uint32_t),&offset);
+	deserializarDato(&(itemReduccionLocal->nodo_id),serialized,sizeof(char[NOMBRE_NODO]),&offset);
 	deserializarDato(&(itemReduccionLocal->ip_worker),serialized,sizeof(char[20]),&offset);
 	deserializarDato(&(itemReduccionLocal->puerto_worker),serialized,sizeof(uint32_t),&offset);
 	deserializarDato(&(itemReduccionLocal->archivo_temporal_reduccion_local),serialized,sizeof(char[50]),&offset);
@@ -365,11 +378,11 @@ item_reduccion_local* deserializar_item_reduccion_local(char* serialized){
 }
 
 
-item_reduccion_local* crearItemReduccionLocal(uint32_t nodo,char* ipWorker,uint32_t puerto_worker, char* archivoTemporalReduccionLocal){
+item_reduccion_local* crearItemReduccionLocal(char nodo[NOMBRE_NODO],char* ipWorker,uint32_t puerto_worker, char* archivoTemporalReduccionLocal){
 	item_reduccion_local *item = malloc(sizeof(item_reduccion_local));
 	item->cantidad_archivos_temp = 0;
 	strcpy(item->archivo_temporal_reduccion_local,archivoTemporalReduccionLocal);
-	item->nodo_id = nodo;
+	strcpy(item->nodo_id, nodo);
 	item->puerto_worker = puerto_worker;
 	strcpy(item->ip_worker,ipWorker);
 	return item;
@@ -384,7 +397,7 @@ void agregarItemReduccionLocal(solicitud_reduccion_local* solicitudReduccionLoca
 	solicitudReduccionLocal->items_reduccion_local = realloc(solicitudReduccionLocal->items_reduccion_local,sizeof(item_reduccion_local)*(solicitudReduccionLocal->item_cantidad+1));
 	solicitudReduccionLocal->items_reduccion_local[solicitudReduccionLocal->item_cantidad].archivos_temporales_transformacion=(item->archivos_temporales_transformacion);
 	strcpy(solicitudReduccionLocal->items_reduccion_local[solicitudReduccionLocal->item_cantidad].archivo_temporal_reduccion_local,item->archivo_temporal_reduccion_local);
-	solicitudReduccionLocal->items_reduccion_local[solicitudReduccionLocal->item_cantidad].nodo_id = item->nodo_id;
+	strcpy(solicitudReduccionLocal->items_reduccion_local[solicitudReduccionLocal->item_cantidad].nodo_id, item->nodo_id);
 	solicitudReduccionLocal->items_reduccion_local[solicitudReduccionLocal->item_cantidad].cantidad_archivos_temp = item->cantidad_archivos_temp;
 	solicitudReduccionLocal->items_reduccion_local[solicitudReduccionLocal->item_cantidad].puerto_worker = item->puerto_worker;
 	strcpy(solicitudReduccionLocal->items_reduccion_local[solicitudReduccionLocal->item_cantidad].ip_worker,item->ip_worker);
@@ -405,9 +418,17 @@ void agregarArchivoTemporalTransf(item_reduccion_local* item_reduccion_local, ar
 
 void testSerializarSolicitudReduccionLocal(){
 
-	item_reduccion_local* item1 = crearItemReduccionLocal(1,"127.0.0.1",8080,"/tmp/Master1-temp38");
-	item_reduccion_local* item2 = crearItemReduccionLocal(12,"127.23.0.1",0101,"/tmp/Master1-Worker1");
-	item_reduccion_local* item3 = crearItemReduccionLocal(137,"187.0.56.1",9090,"/tmp/Master1-Worker2");
+	char a[NOMBRE_NODO];
+	char b[NOMBRE_NODO];
+	char c[NOMBRE_NODO];
+
+	strcpy(a, "NODO 1");
+	strcpy(b, "NODO 12");
+	strcpy(c, "NODO 137");
+
+	item_reduccion_local* item1 = crearItemReduccionLocal(a,"127.0.0.1",8080,"/tmp/Master1-temp38");
+	item_reduccion_local* item2 = crearItemReduccionLocal(b,"127.23.0.1",0101,"/tmp/Master1-Worker1");
+	item_reduccion_local* item3 = crearItemReduccionLocal(c,"187.0.56.1",9090,"/tmp/Master1-Worker2");
 
 	solicitud_reduccion_local* solicitudReduccionLocal = malloc(sizeof(solicitud_reduccion_local));
 
@@ -457,7 +478,7 @@ void testSerializarSolicitudReduccionLocal(){
 	for (var2 = 0; var2 < solicitudRedLocalDeserializada->item_cantidad; ++var2) {
 		printf("\nNUEVO ITEM DESERIALIZADO//////////////////////////////////////////////\n");
 		printf("archivo_temporal_reduccion_local = %s\n", solicitudRedLocalDeserializada->items_reduccion_local[var2].archivo_temporal_reduccion_local );
-		printf("nodo_id = %d\n", solicitudRedLocalDeserializada->items_reduccion_local[var2].nodo_id );
+		printf("nodo_id = %s\n", solicitudRedLocalDeserializada->items_reduccion_local[var2].nodo_id );
 		printf("ip_worker = %s\n", solicitudRedLocalDeserializada->items_reduccion_local[var2].ip_worker );
 		printf("puerto_worker = %d\n", solicitudRedLocalDeserializada->items_reduccion_local[var2].puerto_worker );
 		printf("cantidad de archivos temporales = %d\n", solicitudRedLocalDeserializada->items_reduccion_local[var2].cantidad_archivos_temp );
@@ -471,7 +492,10 @@ void testSerializarSolicitudReduccionLocal(){
 
 void testSerializarItemReduccionLocal(){
 
-	item_reduccion_local* item1 = crearItemReduccionLocal(1,"127.0.0.1",8080,"/tmp/Master1-temp38");
+	char a[NOMBRE_NODO];
+	strcpy(a, "NODO 1");
+
+	item_reduccion_local* item1 = crearItemReduccionLocal(a,"127.0.0.1",8080,"/tmp/Master1-temp38");
 	archivo_temp *arch_temp1 = crearArchivoTemporal("/tmp/Master1-temp38");
 	archivo_temp *arch_temp2 = crearArchivoTemporal("/tmp/Master1-temp39");
 	archivo_temp *arch_temp3 = crearArchivoTemporal("/tmp/Master1-temp40");

@@ -27,7 +27,7 @@
 //TRANSFORMACION
 
 typedef struct item_transformacion {
-	uint32_t nodo_id;		//nodo
+	char nodo_id[NOMBRE_NODO];		//nodo
 	char ip_worker[LENGTH_IP];		//IP y Puerto del Worker
 	uint32_t puerto_worker;
 	uint32_t bloque;		//bloque a aplicar programa de Transformacion
@@ -47,7 +47,7 @@ typedef struct {
 } archivo_temp;
 
 typedef struct item_reduccion_local {
-	uint32_t nodo_id;		//nodo
+	char nodo_id[NOMBRE_NODO];		//nodo
 	char ip_worker[LENGTH_IP];
 	uint32_t puerto_worker;
 	archivo_temp* archivos_temporales_transformacion;		//archivos temporales de transformacion
@@ -113,14 +113,6 @@ typedef struct {
 } solicitud_programa_reduccion_local;
 
 //REDUCCION GLOBAL
-
-/*typedef struct {
-	uint32_t nodo_id;
-	char ip_worker[LENGTH_IP];
-	uint32_t puerto_worker;
-	char archivo_temp_red_local[LENGTH_RUTA_ARCHIVO_TEMP];
-<<<<<<< Updated upstream
-} t_worker;*/
 
 typedef struct {
 	char programa_reduccion[LENGTH_NOMBRE_PROGRAMA];

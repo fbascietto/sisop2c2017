@@ -36,9 +36,39 @@ char* serializarSolicitudRecibirPalabra(solicitud_recibir_palabra* solicitud){
 
 }
 
-solicitud_leer_y_enviar_archivo_temp* deserializarSolicitudLeerYEnviarArchivoTemp(char* message){
-	solicitud_leer_y_enviar_archivo_temp* mock = malloc(sizeof(solicitud_leer_y_enviar_archivo_temp));
-	return mock;
+uint32_t getLong_SolicitudLeerYEnviarArchivoTemp(solicitud_leer_y_enviar_archivo_temp* solicitud){
+
+	uint32_t total_size = 0;
+
+	total_size += sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]);
+
+	return total_size;
+
+}
+
+char* serializar_solicitud_leer_y_enviar_archivo_temp(solicitud_leer_y_enviar_archivo_temp* solicitud){
+
+	uint32_t total_size = getLong_SolicitudLeerYEnviarArchivoTemp(solicitud);
+
+	char* serializedPackage = malloc(total_size);
+
+	int offset = 0;
+
+	serializarDato(serializedPackage, &(solicitud->ruta_archivo_red_local_temp), sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]), &offset);
+
+	return serializedPackage;
+
+}
+
+solicitud_leer_y_enviar_archivo_temp* deserializarSolicitudLeerYEnviarArchivoTemp(char* serialized){
+
+	solicitud_leer_y_enviar_archivo_temp* solicitud = malloc(sizeof(solicitud_leer_y_enviar_archivo_temp));
+
+	int offset = 0;
+
+	deserializarDato(&(solicitud->ruta_archivo_red_local_temp), serialized, sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]), &offset);
+
+	return solicitud;
 }
 
 solicitud_recibir_palabra* deserializarSolicitudRecibirPalabra(char* serialized){

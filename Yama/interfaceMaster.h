@@ -24,7 +24,7 @@ solicitud_transformacion* deserializar_solicitud_transformacion(char* serialized
 item_transformacion* deserializar_items_transformacion(char* serialized, uint32_t items_cantidad);
 item_transformacion* deserializar_item_transformacion(char* serialized);
 
-item_transformacion* crearItemTransformacion(uint32_t nodo,char* ipWorker,uint32_t puerto_worker, uint32_t bloque, uint32_t bytesOcupados, char* archivoTemporal);
+item_transformacion* crearItemTransformacion(char nodo[NOMBRE_NODO],char* ipWorker,uint32_t puerto_worker, uint32_t bloque, uint32_t bytesOcupados, char* archivoTemporal);
 void agregarItemTransformacion(solicitud_transformacion* solicitudTransformacion, item_transformacion* item);
 
 void testSerializarSolicitudTrasnformacion();
@@ -43,7 +43,7 @@ solicitud_reduccion_local* deserializar_solicitud_reduccion_local(char* serializ
 item_reduccion_local* deserializar_items_reduccion_local(char* serialized, uint32_t items_cantidad);
 item_reduccion_local* deserializar_item_reduccion_local(char* serialized);
 
-item_reduccion_local* crearItemReduccionLocal(uint32_t nodo,char* ipWorker,uint32_t puerto_worker, char* archivoTemporalReduccionLocal);
+item_reduccion_local* crearItemReduccionLocal(char nodo[NOMBRE_NODO],char* ipWorker,uint32_t puerto_worker, char* archivoTemporalReduccionLocal);
 void agregarItemReduccionLocal(solicitud_reduccion_local* solicitudReduccionLocal, item_reduccion_local* item);
 
 void testSerializarSolicitudReduccionLocal();

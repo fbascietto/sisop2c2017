@@ -96,6 +96,8 @@ int recorrerArchivo(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP]){
 		//leo de a un registro (una linea porque ya viene ordenado el archivo) para guardar en buffer y enviar
 		fgets(buffer, longitud_archivo_temporal, f1);
 
+		ultima_palabra = realloc(ultima_palabra, sizeof(bool) + strlen(buffer));
+
 		ultima_palabra->fin_de_archivo = false;
 		ultima_palabra->palabra = buffer;
 
@@ -104,10 +106,12 @@ int recorrerArchivo(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP]){
 	}
 
 	log_trace(worker_log, "Archivo de reduccion local llego al eof");
+	ultima_palabra = realloc(ultima_palabra, sizeof(bool) + 1);
 	ultima_palabra->fin_de_archivo = true;
 	ultima_palabra->palabra = "";
 
 	free(buffer);
+	free(ultima_palabra);
 
 	log_destroy(worker_log);
 	log_destroy(worker_error_log);
@@ -132,6 +136,9 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 	//entero donde almaceno longitud del archivo para reservar memoria en el malloc
 	int longitud_archivo_temporal;
 	int retorno;
+
+	//estructura que se envia al worker encargado
+	solicitud_recibir_palabra* respuesta;
 
 	f1 = fopen(ruta_arch_temp, "r");
 	if(f1 == NULL){
@@ -162,7 +169,7 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 		fgets(buffer, longitud_archivo_temporal, f1);
 
 		log_trace(worker_log, "Se envia al worker encargado un registro para la reduccion global");
-		solicitud_recibir_palabra* respuesta;
+		respuesta = realloc(respuesta, sizeof(bool) + strlen(buffer));
 		respuesta->fin_de_archivo = false;
 		respuesta->palabra = buffer;
 		char* serialized = serializarSolicitudRecibirPalabra(respuesta);
@@ -173,13 +180,15 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 
 	}
 
-	solicitud_recibir_palabra* respuesta_fin;
+	solicitud_recibir_palabra* respuesta_fin = malloc(sizeof(bool) + 1);
 	respuesta_fin->fin_de_archivo = true;
 	respuesta_fin->palabra = "";
 	char* serialized_fin = serializarSolicitudRecibirPalabra(respuesta_fin);
 	enviarMensajeSocket(socket, ACCION_RECIBIR_PALABRA, serialized_fin);
 
 	free(buffer);
+	free(respuesta);
+	free(respuesta_fin);
 
 	log_destroy(worker_log);
 	log_destroy(worker_error_log);
@@ -207,7 +216,11 @@ void prepararParaApareo(t_list* elementos_para_RG, t_worker worker, int posicion
 		}
 	}else{
 		unElemento->socket = conectarseA(ip, worker.puerto_worker);
-		enviarMensajeSocketConLongitud(unElemento->socket, COMENZAR_REDUCCION_GLOBAL, NULL, 0);
+		solicitud_leer_y_enviar_archivo_temp* solicitud = malloc(sizeof(solicitud_leer_y_enviar_archivo_temp));
+		strcpy(solicitud->ruta_archivo_red_local_temp, worker.archivo_temporal_reduccion_local);
+		char* serialized = serializar_solicitud_leer_y_enviar_archivo_temp(solicitud);
+		enviarMensajeSocket(unElemento->socket, COMENZAR_REDUCCION_GLOBAL, serialized);
+		free(solicitud);
 	}
 
 	unElemento->ultima_palabra = "";
@@ -218,6 +231,8 @@ void prepararParaApareo(t_list* elementos_para_RG, t_worker worker, int posicion
 
 	list_add(elementos_para_RG, unElemento);
 
+	free(ip);
+	free(nombreNodo);
 
 
 }

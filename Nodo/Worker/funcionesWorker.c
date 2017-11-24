@@ -273,9 +273,9 @@ solicitud_recibir_palabra* recibirSolicitudWorker(int nuevoSocket){
 
 	case COMENZAR_REDUCCION_GLOBAL:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
-		solicitud_leer_y_enviar_archivo_temp* solicitudEATDeserializada =
+		solicitud_leer_y_enviar_archivo_temp* solicitudLYEATDeserializada =
 				deserializarSolicitudLeerYEnviarArchivoTemp(package->message);
-		exit_code = leerYEnviarArchivoTemp(solicitudEATDeserializada->ruta_archivo_red_local_temp, nuevoSocket);
+		exit_code = leerYEnviarArchivoTemp(solicitudLYEATDeserializada->ruta_archivo_red_local_temp, nuevoSocket);
 		break;
 	case ACCION_RECIBIR_PALABRA:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
