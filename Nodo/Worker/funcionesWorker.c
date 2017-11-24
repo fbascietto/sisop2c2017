@@ -236,7 +236,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 		solicitud_programa_reduccion_global* solicitudRGDeserializada =
 				deserializarSolicitudProgramaReduccionGlobal(package->message);
 		strcpy(ruta_archivo_temp_final, solicitudRGDeserializada->archivo_temporal_resultante);
-		exit_code = reduccionGlobal(solicitudRGDeserializada);
+		exit_code = reduccionGlobal(solicitudRGDeserializada, nombreNodo);
 		responderSolicitudRG(nuevoSocket, exit_code);
 		log_destroy(worker_log);
 		exit(0);

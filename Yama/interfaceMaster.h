@@ -56,7 +56,7 @@ uint32_t getLong_SolicitudReduccionGlobal(solicitud_reduccion_global* solicitudR
 
 solicitud_reduccion_global* deserializar_solicitud_reduccion_global(char* serialized);
 
-t_worker* crearItemWorker(uint32_t nodo,char* ipWorker,uint32_t puerto_worker, char* archivoTemporalReduccionLocal);
+t_worker* crearItemWorker(char nodo[NOMBRE_NODO],char* ipWorker,uint32_t puerto_worker, char* archivoTemporalReduccionLocal);
 void agregarItemWorker(solicitud_reduccion_global* solicitudReduccionGlobal, t_worker* item);
 
 void testSerializarSolicitudReduccionGlobal();

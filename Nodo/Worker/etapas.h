@@ -30,6 +30,7 @@ typedef struct{
 	char* ultima_palabra;	//ultima palabra enviada por este worker al worker encargado
 	bool fin; //booleano que determina si ya recorrio por completo su archivo temporal el worker
 	int socket; 	//socket de conexion entre worker encargado y este worker
+	int posicion; //posicion en la lista
 
 } t_elemento;
 
@@ -43,14 +44,14 @@ int reduccionLocal(solicitud_programa_reduccion_local *);
 void responderSolicitudRL(int, int);
 
 //RG
-int reduccionGlobal(solicitud_programa_reduccion_global *);
+int reduccionGlobal(solicitud_programa_reduccion_global *, char*);
 int recorrerArchivo(char[LENGTH_RUTA_ARCHIVO_TEMP]);
 int leerYEnviarArchivoTemp(char[LENGTH_RUTA_ARCHIVO_TEMP], int);
 solicitud_recibir_palabra* recibirPalabra(int);
 void escribirEnArchivo(char *);
 bool esMenor(char*, char*);
 void aparear(t_list*);
-void prepararParaApareo(t_list*, t_worker);
+void prepararParaApareo(t_list*, t_worker, int, char*);
 void habilitarSemaforo();
 char* contenido_de_archivo(char[LENGTH_RUTA_ARCHIVO_TEMP]);
 void responderSolicitudRG(int, int);

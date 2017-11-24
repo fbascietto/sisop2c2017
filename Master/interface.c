@@ -31,7 +31,9 @@ uint32_t getLong_one_t_worker(t_worker* workers){
 	uint32_t longitud = 0;
 	longitud += sizeof(char[LENGTH_IP]); //ip_worker,
 	longitud += sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]);
-	longitud += sizeof(uint32_t)*2;
+	longitud += sizeof(uint32_t);
+	longitud += sizeof(NOMBRE_NODO);
+
 	return longitud;
 }
 
@@ -44,7 +46,7 @@ char* serializar_workers(t_worker** workers, uint32_t item_cantidad){
 
 	int i;
 	for (i = 0; i < item_cantidad; i++) {
-		char* serialized_worker = serializar_worker(&aux_workers[i]);//TODO: ver como pasarle el puntero como parametro
+		char* serialized_worker = serializar_t_worker(&aux_workers[i]);//TODO: ver como pasarle el puntero como parametro
 		uint32_t size_worker = getLong_one_t_worker(&aux_workers[i]);
 		serializarDato(serializedPackage,&(size_worker),sizeof(uint32_t),&offset);//size_item_transformacion
 		serializarDato(serializedPackage,serialized_worker,sizeof(char)*size_worker,&offset);//item_transformacion
@@ -53,13 +55,13 @@ char* serializar_workers(t_worker** workers, uint32_t item_cantidad){
 	return serializedPackage;
 }
 
-char* serializar_worker(t_worker* worker){
+char* serializar_t_worker(t_worker* worker){
 	uint32_t total_size = getLong_one_t_worker(worker);
 	char *serializedPackage = malloc(sizeof(char)*total_size);
 
 	int offset = 0;
 
-	serializarDato(serializedPackage,&(worker->nodo_id),sizeof(uint32_t),&offset);
+	serializarDato(serializedPackage,&(worker->nodo_id),sizeof(char[NOMBRE_NODO]),&offset);
 	serializarDato(serializedPackage,&(worker->ip_worker),sizeof(char[20]),&offset);
 	serializarDato(serializedPackage,&(worker->puerto_worker),sizeof(uint32_t),&offset);
 	serializarDato(serializedPackage,&(worker->archivo_temporal_reduccion_local),sizeof(char[50]),&offset);
@@ -87,6 +89,7 @@ t_worker* deserializar_t_worker(char* serialized){
 	t_worker* item = malloc(sizeof(t_worker));
 	int offset = 0;
 
+	deserializarDato(&(item->nodo_id), serialized, sizeof(char[NOMBRE_NODO]), &offset);
 	deserializarDato(&(item->ip_worker),serialized,sizeof(char[LENGTH_IP]),&offset);
 	deserializarDato(&(item->puerto_worker),serialized,sizeof(uint32_t),&offset);
 	deserializarDato(&(item->archivo_temporal_reduccion_local),serialized,sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);

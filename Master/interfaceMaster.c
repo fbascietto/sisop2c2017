@@ -513,7 +513,7 @@ char* serializarSolicitudReduccionGlobal(solicitud_reduccion_global* solicitudRe
 	uint32_t size_item_encargado = getLong_one_t_worker(solicitudReduccionGlobal->encargado_worker);
 	serializarDato(serializedPackage,&(size_item_encargado),sizeof(uint32_t),&offset);
 
-	char* serialized_encargado = serializar_worker(solicitudReduccionGlobal->encargado_worker);
+	char* serialized_encargado = serializar_t_worker(solicitudReduccionGlobal->encargado_worker);
 	serializarDato(serializedPackage,serialized_encargado,sizeof(char)*size_item_encargado,&offset);
 	free(serialized_encargado);
 
@@ -571,10 +571,10 @@ solicitud_reduccion_global* deserializar_solicitud_reduccion_global(char* serial
 	return solicitudReduccionGlobal;
 }
 
-t_worker* crearItemWorker(uint32_t nodo,char* ipWorker,uint32_t puerto_worker, char* archivoTemporalReduccionLocal){
+t_worker* crearItemWorker(char nodo[NOMBRE_NODO],char* ipWorker,uint32_t puerto_worker, char* archivoTemporalReduccionLocal){
 	t_worker *item = malloc(sizeof(t_worker));
 	strcpy(item->archivo_temporal_reduccion_local,archivoTemporalReduccionLocal);
-	item->nodo_id = nodo;
+	strcpy(item->nodo_id, nodo);
 	item->puerto_worker = puerto_worker;
 	strcpy(item->ip_worker,ipWorker);
 	return item;
@@ -583,7 +583,7 @@ t_worker* crearItemWorker(uint32_t nodo,char* ipWorker,uint32_t puerto_worker, c
 void agregarItemWorker(solicitud_reduccion_global* solicitudReduccionGlobal, t_worker* item){
 	solicitudReduccionGlobal->workers = realloc(solicitudReduccionGlobal->workers,sizeof(t_worker)*(solicitudReduccionGlobal->item_cantidad+1));
 	strcpy(solicitudReduccionGlobal->workers[solicitudReduccionGlobal->item_cantidad].archivo_temporal_reduccion_local,item->archivo_temporal_reduccion_local);
-	solicitudReduccionGlobal->workers[solicitudReduccionGlobal->item_cantidad].nodo_id = item->nodo_id;
+	strcpy(solicitudReduccionGlobal->workers[solicitudReduccionGlobal->item_cantidad].nodo_id, item->nodo_id);
 	strcpy(solicitudReduccionGlobal->workers[solicitudReduccionGlobal->item_cantidad].ip_worker,item->ip_worker);
 	solicitudReduccionGlobal->workers[solicitudReduccionGlobal->item_cantidad].puerto_worker = item->puerto_worker;
 	solicitudReduccionGlobal->item_cantidad++;
@@ -636,7 +636,7 @@ void testSerializarWorker(){
 
 	t_worker *item1 = crearItemWorker(1,"127.0.0.1",8080,"/tmp/Master1-temp38");
 
-	char* itemSerializado = serializar_worker(item1);
+	char* itemSerializado = serializar_t_worker(item1);
 
 	t_worker *itemDeserializado = deserializar_t_worker(itemSerializado);
 	printf("archivo_temporal_transformacion = %s\n", itemDeserializado->archivo_temporal_reduccion_local );

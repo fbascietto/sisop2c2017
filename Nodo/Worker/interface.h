@@ -16,7 +16,7 @@ void serializarDato(char* buffer, void* dato, int size_to_send, int* offset);
 void deserializarDato(void* dato, char* buffer, int size, int* offset);
 
 char* serializar_workers(t_worker** workers, uint32_t item_cantidad);
-char* serializar_worker(t_worker* worker);
+char* serializar_t_worker(t_worker* worker);
 
 uint32_t getLong_one_t_worker(t_worker* workers);
 uint32_t getLong_workers(t_worker* workers, uint32_t cantidad);

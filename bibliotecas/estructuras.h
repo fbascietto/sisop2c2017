@@ -63,7 +63,7 @@ typedef struct solicitud_reduccion_local {
 //REDUCCION GLOBAL
 
 typedef struct worker {
-	uint32_t nodo_id;		//nodo
+	char nodo_id[NOMBRE_NODO];		//nodo
 	char ip_worker[LENGTH_IP];
 	uint32_t puerto_worker;
 	char archivo_temporal_reduccion_local[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal reduccion local

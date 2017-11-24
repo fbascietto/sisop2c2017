@@ -11,7 +11,7 @@
 #include "../../bibliotecas/sockets.h"
 #include "../../bibliotecas/protocolo.h"
 
-int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada){
+int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada, char* nombreNodo){
 
 	//para recorrer array
 	int i;
@@ -32,7 +32,7 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 	//preparacion para aparear
 	for(i=0; i<solicitudDeserializada->cantidad_item_programa_reduccion; i++){
 
-		prepararParaApareo(lista_de_RG, solicitudDeserializada->workers[i]);
+		prepararParaApareo(lista_de_RG, solicitudDeserializada->workers[i], i, nombreNodo);
 
 	}
 
@@ -189,15 +189,17 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 }
 
 
-void prepararParaApareo(t_list* elementos_para_RG, t_worker worker){
+void prepararParaApareo(t_list* elementos_para_RG, t_worker worker, int posicion, char* nombreNodo_propio){
 
 	t_elemento* unElemento = malloc(sizeof(t_elemento));
 
 	char* ip = malloc(LENGTH_IP);
 	strcpy(ip, worker.ip_worker);
 
-	//todo: verificar nombre
-	if(worker.nodo_id == 0){
+	char* nombreNodo = malloc(NOMBRE_NODO);
+	strcpy(nombreNodo, worker.nodo_id);
+
+	if(nombreNodo_propio == nombreNodo){
 		unElemento->socket = VALOR_SOCKET_WE;
 		pid_t pid = fork();
 		if(pid == 0){
@@ -212,6 +214,7 @@ void prepararParaApareo(t_list* elementos_para_RG, t_worker worker){
 	unElemento->worker = worker;
 	unElemento->pedir = true;
 	unElemento->fin = false;
+	unElemento->posicion = posicion;
 
 	list_add(elementos_para_RG, unElemento);
 
@@ -273,6 +276,8 @@ bool esMenor(char* cadena1, char* cadena2){
 void aparear(t_list* lista){
 
 	char* palabraCandidata;
+	int posicionCandidata;
+	t_elemento* elegido;
 
 	bool termino(t_elemento* elemento){
 
@@ -286,7 +291,7 @@ void aparear(t_list* lista){
 		if(!elemento->fin && elemento->pedir){
 
 			solicitud_recibir_palabra* respuesta = recibirPalabra(elemento->socket);
-			elemento->fin = respuesta->fin_de_archivo; //
+			elemento->fin = respuesta->fin_de_archivo;
 			elemento->ultima_palabra = respuesta->palabra;
 			elemento->pedir = false;
 
@@ -294,14 +299,19 @@ void aparear(t_list* lista){
 
 		if(!elemento->fin && esMenor(elemento->ultima_palabra, palabraCandidata)){
 			palabraCandidata = elemento->ultima_palabra;
-			elemento->pedir = true;
+			posicionCandidata = elemento->posicion;
+
 		}
 
 	}
 
+	//siempre y cuando haya algun elemento de la lista que falte terminar de recorrer el archivo
 	while(list_any_satisfy(lista, !termino)){
 
 		list_iterate(lista, procesarElemento);
+		elegido = list_get(lista, posicionCandidata);
+		elegido->pedir = true;
+		list_replace(lista, posicionCandidata, elegido);
 		escribirEnArchivo(palabraCandidata);
 
 	}
