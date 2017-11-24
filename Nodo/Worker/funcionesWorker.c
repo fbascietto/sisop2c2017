@@ -277,15 +277,11 @@ solicitud_recibir_palabra* recibirSolicitudWorker(int nuevoSocket){
 				deserializarSolicitudLeerYEnviarArchivoTemp(package->message);
 		exit_code = leerYEnviarArchivoTemp(solicitudEATDeserializada->ruta_archivo_red_local_temp, nuevoSocket);
 		break;
-	case CONTINUAR_ENVIO:
-		break;
 	case ACCION_RECIBIR_PALABRA:
 		; //empty statement. Es solucion a un error que genera el lenguaje C
 		palabra = deserializarSolicitudRecibirPalabra(package->message);
 		break;
-	case ARCHIVO_TERMINADO:
-		; //empty statement. Es solucion a un error que genera el lenguaje C
-		palabra = deserializarSolicitudRecibirPalabra(package->message);
+	case CONTINUAR_ENVIO:
 		break;
 
 	}

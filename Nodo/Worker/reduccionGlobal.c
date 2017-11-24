@@ -27,92 +27,32 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 		return retorno;
 	}
 
-	t_list* elementos_de_RG = list_create();
+	t_list* lista_de_RG = list_create();
 
-	//preparacion de estructuras para preparar la reduccion global
+	//preparacion para aparear
 	for(i=0; i<solicitudDeserializada->cantidad_item_programa_reduccion; i++){
 
-		prepararEstructuras(elementos_de_RG, solicitudDeserializada->workers[i], i);
+		prepararParaApareo(lista_de_RG, solicitudDeserializada->workers[i]);
 
 	}
 
-	t_elemento* element_with_socket_to_add;
+	aparear(lista_de_RG);
 
-	//para ver si uno de los archivos de reduccion local reside en el worker encargado
-	for(i=0; i<solicitudDeserializada->cantidad_item_programa_reduccion; i++){
+	char* contenido = contenido_de_archivo(ruta_archivo_temp_final);
 
-		int nodoID; //solo lo pongo para que compile, la idea es que compare con el nombre del nodo
-		//verificacion de si es worker encargado
-		if(nodoID == solicitudDeserializada->workers[i].nodo_id){
+	char* comando = string_from_format("printf \"%s\" | .\"/scripts/%s\" > \"%s\"", contenido,
+			solicitudDeserializada->programa_reduccion, ruta_archivo_temp_final);
 
-			element_with_socket_to_add = list_get(elementos_de_RG, i);
-			element_with_socket_to_add->socket = VALOR_SOCKET_WE;
-			list_replace(elementos_de_RG, i, element_with_socket_to_add);
+	system(comando);
 
-			leerYEnviarArchivoTemp(solicitudDeserializada->workers[i].archivo_temporal_reduccion_local, VALOR_SOCKET_WE);
-
-		}else{
-
-			//se debe pedir los registros mediante puerto/ip
-			socket = conectarseA(solicitudDeserializada->workers[i].ip_worker,
-					solicitudDeserializada->workers[i].puerto_worker);
-
-			element_with_socket_to_add = list_get(elementos_de_RG, i);
-			element_with_socket_to_add->socket = socket;
-			list_replace(elementos_de_RG, i, element_with_socket_to_add);
-
-			enviarInt(socket, PROCESO_WORKER);
-			//Todo: enviar la ruta del archivo temporal
-			enviarMensajeSocketConLongitud(socket, COMENZAR_REDUCCION_GLOBAL, NULL, 0);
-
-		}
-
-	}
-
-	aparear(elementos_de_RG);
-
-	free(element_with_socket_to_add);
+	free(comando);
+	list_destroy_and_destroy_elements(lista_de_RG, free);
 
 	return 0;
-}
-
-void responderSolicitudRG(int socket, int exit_code){
-
-	t_log_level level = LOG_LEVEL_TRACE;
-	t_log_level level_ERROR = LOG_LEVEL_ERROR;
-	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
-	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
-
-	switch(exit_code){
-
-	case 0:
-		log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de reduccion global a Master");
-		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_OK, NULL, 0);
-		break;
-	case -1:
-		//enviar ERROR de creacion de programa de reduccion
-		break;
-	case -2:
-		//enviar ERROR de escritura de programa de reduccion
-		break;
-	case -10:
-		//enviar ERROR de llamada system() al darle permisos al script
-		break;
-	case -9:
-		log_error(worker_error_log, "Se envia aviso de error en etapa de reduccion global a Master");
-		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_ERROR, NULL, 0);
-		break;
-	}
-
-	log_destroy(worker_log);
-	log_destroy(worker_error_log);
 
 }
 
-
-int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int socket){
-
-	//Todo: verificacion usando el socket para ver si es el encargado u otro worker
+int recorrerArchivo(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP]){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
@@ -127,23 +67,6 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 	//entero donde almaceno longitud del archivo para reservar memoria en el malloc
 	int longitud_archivo_temporal;
 	int retorno;
-
-	//	//Inicializacion del semaforo
-	//
-	//	/*pshared = 0 significa que el semaforo no se comparte entre proceso
-	//	**pshared = 1 que si se comparte*/
-	//	int pshared;
-	//	int value;
-	//
-	//	//solo este proceso utiliza el semaforo => 0 de privado
-	//	pshared = 0;
-	//	//inicializo en 1 para que pueda leer un registro y enviar antes de bloquearse
-	//	value = 1;
-	//	retorno = sem_init(&sem, pshared, value);
-	//	if(retorno != 0){
-	//		log_error(worker_error_log, "No se pudo inicializar el semaforo");
-	//		return -5;
-	//	}
 
 	f1 = fopen(ruta_arch_temp, "r");
 	if(f1 == NULL){
@@ -170,32 +93,19 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 
 	while(!feof(f1)){
 
-		//wait(sem);
-
 		//leo de a un registro (una linea porque ya viene ordenado el archivo) para guardar en buffer y enviar
 		fgets(buffer, longitud_archivo_temporal, f1);
 
-		if(socket!= VALOR_SOCKET_WE){
+		ultima_palabra->fin_de_archivo = false;
+		ultima_palabra->palabra = buffer;
 
-			log_trace(worker_log, "Se envia al worker encargado un registro para la reduccion global");
-			solicitud_recibir_palabra* respuesta;
-			respuesta->fin_de_archivo = false;
-			respuesta->palabra = buffer;
-			char* serialized = serializarSolicitudRecibirPalabra(respuesta);
-			enviarMensajeSocket(socket, ACCION_RECIBIR_PALABRA, serialized);
-
-		}
-
-		recibirSolicitudWorker(socket);
-
+		//todo: definir manera que se activa el ciclo nuevamente
 
 	}
 
-	solicitud_recibir_palabra* respuesta_fin;
-	respuesta_fin->fin_de_archivo = true;
-	respuesta_fin->palabra = "";
-	char* serialized_fin = serializarSolicitudRecibirPalabra(respuesta_fin);
-	enviarMensajeSocket(socket, ARCHIVO_TERMINADO, serialized_fin);
+	log_trace(worker_log, "Archivo de reduccion local llego al eof");
+	ultima_palabra->fin_de_archivo = true;
+	ultima_palabra->palabra = "";
 
 	free(buffer);
 
@@ -207,17 +117,104 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 }
 
 
-void prepararEstructuras(t_list* elementos_para_RG, t_worker worker, int posicion){
+int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int socket){
 
-	t_elemento* unElemento;
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+
+	//fichero para recorrer el archivo de reduccion local
+	FILE* f1;
+
+	//buffer donde pongo cada registro (linea) que voy a enviar
+	char* buffer;
+	//entero donde almaceno longitud del archivo para reservar memoria en el malloc
+	int longitud_archivo_temporal;
+	int retorno;
+
+	f1 = fopen(ruta_arch_temp, "r");
+	if(f1 == NULL){
+		log_error(worker_error_log, "No se pudo abrir el archivo temporal de reduccion local para recorrerlo");
+		log_destroy(worker_log);
+		log_destroy(worker_error_log);
+		return -3;
+	}
+
+	//me posiciono al final del archivo
+	retorno = fseek(f1, 0, SEEK_END);
+	if(retorno!=0){
+		log_error(worker_error_log, "No se pudo posicional al final del archivo temporal");
+		log_destroy(worker_log);
+		log_destroy(worker_error_log);
+		return -4;
+	}
+	//determino longitud del archivo
+	longitud_archivo_temporal = ftell(f1);
+	//me posiciono al principio del archivo para poder leer
+	rewind(f1);
+
+	buffer = malloc(longitud_archivo_temporal);
+
+	while(!feof(f1)){
+
+		//leo de a un registro (una linea porque ya viene ordenado el archivo) para guardar en buffer y enviar
+		fgets(buffer, longitud_archivo_temporal, f1);
+
+		log_trace(worker_log, "Se envia al worker encargado un registro para la reduccion global");
+		solicitud_recibir_palabra* respuesta;
+		respuesta->fin_de_archivo = false;
+		respuesta->palabra = buffer;
+		char* serialized = serializarSolicitudRecibirPalabra(respuesta);
+		enviarMensajeSocket(socket, ACCION_RECIBIR_PALABRA, serialized);
+
+		recibirSolicitudWorker(socket);
+
+
+	}
+
+	solicitud_recibir_palabra* respuesta_fin;
+	respuesta_fin->fin_de_archivo = true;
+	respuesta_fin->palabra = "";
+	char* serialized_fin = serializarSolicitudRecibirPalabra(respuesta_fin);
+	enviarMensajeSocket(socket, ACCION_RECIBIR_PALABRA, serialized_fin);
+
+	free(buffer);
+
+	log_destroy(worker_log);
+	log_destroy(worker_error_log);
+
+	return 0;
+
+}
+
+
+void prepararParaApareo(t_list* elementos_para_RG, t_worker worker){
+
+	t_elemento* unElemento = malloc(sizeof(t_elemento));
+
+	char* ip = malloc(LENGTH_IP);
+	strcpy(ip, worker.ip_worker);
+
+	//todo: verificar nombre
+	if(worker.nodo_id == 0){
+		unElemento->socket = VALOR_SOCKET_WE;
+		pid_t pid = fork();
+		if(pid == 0){
+			recorrerArchivo(worker.archivo_temporal_reduccion_local);
+		}
+	}else{
+		unElemento->socket = conectarseA(ip, worker.puerto_worker);
+		enviarMensajeSocketConLongitud(unElemento->socket, COMENZAR_REDUCCION_GLOBAL, NULL, 0);
+	}
 
 	unElemento->ultima_palabra = "";
 	unElemento->worker = worker;
-	unElemento->pedir = false;
+	unElemento->pedir = true;
 	unElemento->fin = false;
-	unElemento->posicion = posicion;
 
 	list_add(elementos_para_RG, unElemento);
+
 
 
 }
@@ -228,11 +225,12 @@ solicitud_recibir_palabra* recibirPalabra(int socket){
 
 	if(socket != VALOR_SOCKET_WE){
 
-		enviarMensajeSocketConLongitud(socket, CONTINUAR_ENVIO, NULL, 0);
 		palabra = recibirSolicitudWorker(socket);
+		enviarMensajeSocketConLongitud(socket, CONTINUAR_ENVIO, NULL, 0);
 
 	}else{
 
+		palabra = ultima_palabra;
 		habilitarSemaforo();
 
 	}
@@ -319,5 +317,60 @@ void habilitarSemaforo(){
 
 	log_trace(sem_log, "Se habilita el semaforo para enviar el siguiente registro");
 	signal(sem);
+
+}
+
+char* contenido_de_archivo(char ruta[LENGTH_RUTA_ARCHIVO_TEMP]){
+
+	FILE* f1 = fopen(ruta, "r");
+	if(f1 == NULL){
+		char* error = "";
+		return error;
+	}
+
+	fseek(f1, 0, SEEK_END);
+	int longitud = ftell(f1);
+	rewind(f1);
+
+	char* buffer = malloc(longitud);
+
+	fread(buffer, 1, longitud, f1);
+
+	fclose(f1);
+
+	return buffer;
+
+}
+
+void responderSolicitudRG(int socket, int exit_code){
+
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+
+	switch(exit_code){
+
+	case 0:
+		log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de reduccion global a Master");
+		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_OK, NULL, 0);
+		break;
+	case -1:
+		//enviar ERROR de creacion de programa de reduccion
+		break;
+	case -2:
+		//enviar ERROR de escritura de programa de reduccion
+		break;
+	case -10:
+		//enviar ERROR de llamada system() al darle permisos al script
+		break;
+	case -9:
+		log_error(worker_error_log, "Se envia aviso de error en etapa de reduccion global a Master");
+		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_ERROR, NULL, 0);
+		break;
+	}
+
+	log_destroy(worker_log);
+	log_destroy(worker_error_log);
 
 }
