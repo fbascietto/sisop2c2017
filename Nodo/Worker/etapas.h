@@ -47,16 +47,15 @@ void responderSolicitudRL(int, int);
 
 //RG
 int reduccionGlobal(solicitud_programa_reduccion_global *, char*);
+void prepararParaApareo(t_list*, t_worker, int, char*);
 int recorrerArchivo(char[LENGTH_RUTA_ARCHIVO_TEMP]);
 int leerYEnviarArchivoTemp(char[LENGTH_RUTA_ARCHIVO_TEMP], int);
-solicitud_recibir_palabra* recibirPalabra(int);
-void escribirEnArchivo(char *);
 bool esMenor(char*, char*);
 bool termino(void*);
-void esCandidato(void*);
-void hayQuePedir(void*);
-void aparear(t_list*);
-void prepararParaApareo(t_list*, t_worker, int, char*);
+void procesarElemento(void*);
+int aparear(t_list*);
+solicitud_recibir_palabra* recibirPalabra(int);
+int escribirEnArchivo(char *);
 void habilitarSemaforo();
 char* contenido_de_archivo(char[LENGTH_RUTA_ARCHIVO_TEMP]);
 void responderSolicitudRG(int, int);

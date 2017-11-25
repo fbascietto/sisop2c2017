@@ -68,7 +68,7 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada, ch
 
 	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
 	char* s = string_from_format("printf \"%s\" | .\"/scripts/%s\" | sort > \"%s\"", buffer,
-									solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
+			solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
 	free(buffer);
 	retorno = system(s);
 	if(retorno == -1){
@@ -103,10 +103,12 @@ void responderSolicitudT(int socket, int exit_code){
 		enviarMensajeSocketConLongitud(socket, TRANSFORMACION_OK, NULL, 0);
 		break;
 	case -1:
-		//enviar ERROR de creacion de programa de transformacion
+		log_error(worker_error_log, "Se envia a Master el error de creacion del programa de transformacion");
+		enviarMensajeSocketConLongitud(socket, TRANSFORMACION_ERROR_CREACION, NULL, 0);
 		break;
 	case -2:
-		//enviar ERROR de escritura de programa de transformacion
+		log_error(worker_error_log, "Se envia a Master el error de escritura del contenido del programa de transformacion");
+		enviarMensajeSocketConLongitud(socket, TRANSFORMACION_ERROR_ESCRITURA, NULL, 0);
 		break;
 	case -3:
 		//enviar ERROR de apertura de data.bin
@@ -115,11 +117,8 @@ void responderSolicitudT(int socket, int exit_code){
 		//enviar ERROR de lectura de data.bin
 		break;
 	case -10:
-		//enviar ERROR de llamada system() al darle permisos al script
-		break;
-	case -5:
-		log_error(worker_error_log, "Se envia aviso de error en etapa de transformacion de un bloque a Master");
-		enviarMensajeSocketConLongitud(socket, TRANSFORMACION_ERROR, NULL, 0);
+		log_error(worker_error_log, "Se envia a Master el error al dar permisos de ejecucion al programa de transformacion");
+		enviarMensajeSocketConLongitud(socket, TRANSFORMACION_ERROR_PERMISOS, NULL, 0);
 		break;
 
 	}

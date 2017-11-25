@@ -88,6 +88,7 @@ int persistirPrograma(char* nombre, char* contenido){
 			log_error(worker_error_log, mensaje_de_error_log);
 			free(ruta);
 			free(mensaje_de_error_log);
+			fclose(f1);
 			log_destroy(worker_log);
 			log_destroy(worker_error_log);
 			return -2;
@@ -196,6 +197,10 @@ void recibirSolicitudMaster(int nuevoSocket){
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
 
+	solicitud_programa_transformacion* solicitudTDeserializada;
+	solicitud_programa_reduccion_local* solicitudRLDeserializada;
+	solicitud_programa_reduccion_global* solicitudRGDeserializada;
+
 
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
@@ -205,45 +210,40 @@ void recibirSolicitudMaster(int nuevoSocket){
 	switch(package->msgCode){
 
 	case ACCION_TRANSFORMACION:
-		; //empty statement. Es solucion a un error que genera el lenguaje C
 		log_trace(worker_log, "Solicitud de transformacion recibida");
 		log_trace(worker_log, "Comienzo de transformacion");
-		solicitud_programa_transformacion* solicitudTDeserializada =
-				deserializarSolicitudProgramaTransformacion(package->message);
+		solicitudTDeserializada = deserializarSolicitudProgramaTransformacion(package->message);
 		exit_code = transformacion(solicitudTDeserializada, rutaNodo);
 		responderSolicitudT(nuevoSocket, exit_code);
 		log_destroy(worker_log);
+		free(solicitudTDeserializada);
 		exit(0);
 		break;
 
 	case ACCION_REDUCCION_LOCAL:
-		; //empty statement. Es solucion a un error que genera el lenguaje C
 		log_trace(worker_log, "Solicitud de reduccion local recibida");
 		log_trace(worker_log, "Comienzo de reduccion local");
-		solicitud_programa_reduccion_local* solicitudRLDeserializada =
-				deserializarSolicitudProgramaReduccionLocal(package->message);
+		solicitudRLDeserializada = deserializarSolicitudProgramaReduccionLocal(package->message);
 		exit_code = reduccionLocal(solicitudRLDeserializada);
 		responderSolicitudRL(nuevoSocket, exit_code);
 		log_destroy(worker_log);
+		free(solicitudRLDeserializada);
 		exit(0);
 		break;
 
 	case ACCION_REDUCCION_GLOBAL:
-		; //empty statement. Es solucion a un error que genera el lenguaje C
 		log_trace(worker_log, "Solicitud de reduccion global recibida");
-
 		log_trace(worker_log, "Comienzo de reduccion global");
-		solicitud_programa_reduccion_global* solicitudRGDeserializada =
-				deserializarSolicitudProgramaReduccionGlobal(package->message);
+		solicitudRGDeserializada = deserializarSolicitudProgramaReduccionGlobal(package->message);
 		strcpy(ruta_archivo_temp_final, solicitudRGDeserializada->archivo_temporal_resultante);
 		exit_code = reduccionGlobal(solicitudRGDeserializada, nombreNodo);
 		responderSolicitudRG(nuevoSocket, exit_code);
 		log_destroy(worker_log);
+		free(solicitudRGDeserializada);
 		exit(0);
 		break;
 
 	case ACCION_ALMACENAMIENTO_FINAL:
-		; //empty statement. Es solucion a un error que genera el lenguaje C
 		log_trace(worker_log, "Solicitud de almacenamiento final recibida");
 		almacenamientoFinal(IP_fs, puerto_fs, ruta_archivo_temp_final);
 		exit(0);
@@ -263,6 +263,7 @@ solicitud_recibir_palabra* recibirSolicitudWorker(int nuevoSocket){
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
 	solicitud_recibir_palabra* palabra;
+	solicitud_leer_y_enviar_archivo_temp* solicitudLYEATDeserializada;
 
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
@@ -272,13 +273,10 @@ solicitud_recibir_palabra* recibirSolicitudWorker(int nuevoSocket){
 	switch(package->msgCode){
 
 	case COMENZAR_REDUCCION_GLOBAL:
-		; //empty statement. Es solucion a un error que genera el lenguaje C
-		solicitud_leer_y_enviar_archivo_temp* solicitudLYEATDeserializada =
-				deserializarSolicitudLeerYEnviarArchivoTemp(package->message);
+		solicitudLYEATDeserializada = deserializarSolicitudLeerYEnviarArchivoTemp(package->message);
 		exit_code = leerYEnviarArchivoTemp(solicitudLYEATDeserializada->ruta_archivo_red_local_temp, nuevoSocket);
 		break;
 	case ACCION_RECIBIR_PALABRA:
-		; //empty statement. Es solucion a un error que genera el lenguaje C
 		palabra = deserializarSolicitudRecibirPalabra(package->message);
 		break;
 	case CONTINUAR_ENVIO:

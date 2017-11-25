@@ -69,20 +69,22 @@ void responderSolicitudRL(int socket, int exit_code){
 		enviarMensajeSocketConLongitud(socket, REDUCCION_LOCAL_OK, NULL, 0);
 		break;
 	case -1:
-		//enviar ERROR de creacion de programa de reduccion
+		log_error(worker_error_log, "Se envia a Master el error de creacion del programa de reduccion");
+		enviarMensajeSocketConLongitud(socket, REDUCCION_LOCAL_ERROR_CREACION, NULL, 0);
 		break;
 	case -2:
-		//enviar ERROR de escritura de programa de reduccion
+		log_error(worker_error_log, "Se envia a Master el error de escritura del contenido del programa de reduccion");
+		enviarMensajeSocketConLongitud(socket, REDUCCION_LOCAL_ERROR_ESCRITURA, NULL, 0);
 		break;
 	case -3:
-		//enviar ERROR de llamada system() al concatenar, sortear y reducir
+		log_error(worker_error_log, "Se envia a Master el error al realizar la llamada system para concatenar los archivos y ejecutar el script");
+		enviarMensajeSocketConLongitud(socket, REDUCCION_LOCAL_ERROR_SYSTEM, NULL, 0);
+		break;
 	case -10:
-		//enviar ERROR de llamada system() al darle permisos al script
+		log_error(worker_error_log, "Se envia a Master el error al dar permisos de ejecucion al programa de reduccion");
+		enviarMensajeSocketConLongitud(socket, REDUCCION_LOCAL_ERROR_PERMISOS, NULL, 0);
 		break;
-	case -6:
-		log_error(worker_error_log, "Se envia aviso de error en etapa de reduccion local a Master");
-		enviarMensajeSocketConLongitud(socket, REDUCCION_LOCAL_ERROR, NULL, 0);
-		break;
+
 	}
 
 	log_destroy(worker_log);

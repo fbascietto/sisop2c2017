@@ -13,6 +13,9 @@
 
 int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada, char* nombreNodo){
 
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+
 	//para recorrer array
 	int i;
 	//para realizar conexion con otros workers
@@ -23,7 +26,7 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada,
 
 	//persisto el programa reductor
 	retorno = persistirPrograma(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa);
-	if(retorno == -1 || retorno == -2 || retorno == -10){
+	if(retorno != 0){
 		return retorno;
 	}
 
@@ -36,17 +39,27 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada,
 
 	}
 
-	aparear(lista_de_RG);
+	retorno = aparear(lista_de_RG);
+	if(retorno != 0){
+		return retorno;
+	}
 
 	char* contenido = contenido_de_archivo(ruta_archivo_temp_final);
 
 	char* comando = string_from_format("printf \"%s\" | .\"/scripts/%s\" > \"%s\"", contenido,
 			solicitudDeserializada->programa_reduccion, ruta_archivo_temp_final);
 
-	system(comando);
+	retorno = system(comando);
+	if(retorno == -1){
+		log_error(worker_error_log, "No se pudo realizar la reduccion global");
+		log_destroy(worker_error_log);
+		free(comando);
+		free(contenido);
+		list_destroy_and_destroy_elements(lista_de_RG, free);
+		return -4;
+	}
 
 	free(comando);
-	free(solicitudDeserializada);
 	free(contenido);
 	list_destroy_and_destroy_elements(lista_de_RG, free);
 
@@ -263,7 +276,9 @@ solicitud_recibir_palabra* recibirPalabra(int socket){
 
 }
 
-void escribirEnArchivo(char* palabra_a_escribir){
+int escribirEnArchivo(char* palabra_a_escribir){
+
+	int retorno;
 
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
@@ -274,23 +289,32 @@ void escribirEnArchivo(char* palabra_a_escribir){
 	if(f1 == NULL){
 		f1 = fopen(ruta_archivo_temp_final, "w");
 		if(f1 == NULL){
-			log_error(worker_error_log, "No se pudo abrir el archivo de reduccion global para escritura");
+			log_error(worker_error_log, "No se pudo abrir el archivo temporal de reduccion global para escritura");
+			return -1;
 		}
 	}
 
 	fseek(f1, 0, SEEK_END);
 
-	fputs(palabra_a_escribir, f1);
+	retorno = fputs(palabra_a_escribir, f1);
+	if(retorno == feof(f1)){
+		log_error(worker_error_log, "No se pudo escribir la palabra en el archivo");
+		fclose(f1);
+		log_destroy(worker_error_log);
+		return -2;
+	}
 
 	fclose(f1);
 
 	log_destroy(worker_error_log);
 
+	return 0;
+
 }
 
 bool esMenor(char* cadena1, char* cadena2){
 
-	return cadena1 <= cadena2;
+	return cadena1 < cadena2;
 
 }
 
@@ -302,7 +326,7 @@ bool termino(void* unElemento){
 
 }
 
-void hayQuePedir(void* unElemento){
+void procesarElemento(void* unElemento){
 
 	t_elemento* elemento = (t_elemento*) unElemento;
 
@@ -315,12 +339,6 @@ void hayQuePedir(void* unElemento){
 
 	}
 
-}
-
-void esCandidato(void* unElemento){
-
-	t_elemento* elemento = (t_elemento*) unElemento;
-
 	if(!elemento->fin && esMenor(elemento->ultima_palabra, palabraCandidata)){
 		palabraCandidata = elemento->ultima_palabra;
 		posicionCandidata = elemento->posicion;
@@ -329,7 +347,14 @@ void esCandidato(void* unElemento){
 
 }
 
-void aparear(t_list* lista){
+int aparear(t_list* lista){
+
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log_level level_error = LOG_LEVEL_ERROR;
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_error);
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+
+	int retorno;
 
 	char* palabraCandidata;
 	t_elemento* elegido;
@@ -339,15 +364,19 @@ void aparear(t_list* lista){
 
 		palabraCandidata = "";
 
-		list_iterate(lista, hayQuePedir);
-		list_iterate(lista, esCandidato);
+		list_iterate(lista, procesarElemento);
 		elegido = list_get(lista, posicionCandidata);
 		elegido->pedir = true;
 		list_replace(lista, posicionCandidata, elegido);
-		escribirEnArchivo(palabraCandidata);
+		retorno = escribirEnArchivo(palabraCandidata);
+		if(retorno != 0){
+			log_error(worker_error_log, "El apareo no fue exitoso");
+			return -3;
+		}
 
 	}
 
+	return 0;
 
 }
 
@@ -398,18 +427,26 @@ void responderSolicitudRG(int socket, int exit_code){
 		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_OK, NULL, 0);
 		break;
 	case -1:
-		//enviar ERROR de creacion de programa de reduccion
+		log_error(worker_error_log, "Se envia a Master el error de creacion del programa de reduccion");
+		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_ERROR_CREACION, NULL, 0);
 		break;
 	case -2:
-		//enviar ERROR de escritura de programa de reduccion
+		log_error(worker_error_log, "Se envia a Master el error de escritura del contenido del programa de reduccion");
+		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_ERROR_ESCRITURA, NULL, 0);
+		break;
+	case -3:
+		log_error(worker_error_log, "Se envia a Master el error en el apareo");
+		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_ERROR_APAREO, NULL, 0);
+		break;
+	case -4:
+		log_error(worker_error_log, "Se envia a Master el error en la llamada system para terminar la reduccion global");
+		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_ERROR_SYSTEM, NULL, 0);
 		break;
 	case -10:
-		//enviar ERROR de llamada system() al darle permisos al script
+		log_error(worker_error_log, "Se envia a Master el error al dar permisos de ejecucion al programa de reduccion");
+		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_ERROR_PERMISOS, NULL, 0);
 		break;
-	case -9:
-		log_error(worker_error_log, "Se envia aviso de error en etapa de reduccion global a Master");
-		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_ERROR, NULL, 0);
-		break;
+
 	}
 
 	log_destroy(worker_log);
