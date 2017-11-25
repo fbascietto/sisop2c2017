@@ -80,9 +80,9 @@ void *esperarConexionMaster(void *args) {
 
 
 solicitud_transformacion* obtenerSolicitudTrasnformacionMock(char* message){
-	item_transformacion* item1 = crearItemTransformacion(1,"127.0.0.1",8080,2222,12345,"/temp1/archivo1.txt");
-	item_transformacion* item2 = crearItemTransformacion(12,"127.23.0.1",0101,523,5777666,"/temsssssp1211/otro.txt");
-	item_transformacion* item3 = crearItemTransformacion(137,"187.0.56.1",9090,62,643,"/temp655/tercero.txt");
+	item_transformacion* item1 = crearItemTransformacion("nodo 1","127.0.0.1",8080,2222,12345,"/temp1/archivo1.txt");
+	item_transformacion* item2 = crearItemTransformacion("nodo 2","127.23.0.1",0101,523,5777666,"/temsssssp1211/otro.txt");
+	item_transformacion* item3 = crearItemTransformacion("nodo 3","187.0.56.1",9090,62,643,"/temp655/tercero.txt");
 
 	solicitud_transformacion* solicitudTransformacion = malloc(sizeof(solicitud_transformacion));
 
@@ -100,13 +100,13 @@ solicitud_transformacion* obtenerSolicitudTrasnformacionMock(char* message){
 solicitud_reduccion_local* obtenerSolicitudReduccionLocalMock(char* message){
 	archivo_temp *arch_temp11 = crearArchivoTemporal("/tmp/Master1-temp11");
 	archivo_temp *arch_temp12 = crearArchivoTemporal("/tmp/Master1-temp12");
-	item_reduccion_local* item1 = crearItemReduccionLocal(1,"127.0.0.1",8080,"/tmp/Master1-temp38");
+	item_reduccion_local* item1 = crearItemReduccionLocal("nodo 1","127.0.0.1",8080,"/tmp/Master1-temp38");
 	agregarArchivoTemporalTransf(item1, arch_temp11);
 	free(arch_temp11);
 	agregarArchivoTemporalTransf(item1, arch_temp12);
 	free(arch_temp12);
 
-	item_reduccion_local* item2 = crearItemReduccionLocal(12,"127.23.0.1",0101,"/tmp/Master1-Worker1");
+	item_reduccion_local* item2 = crearItemReduccionLocal("nodo 2","127.23.0.1",0101,"/tmp/Master1-Worker1");
 	archivo_temp *arch_temp21 = crearArchivoTemporal("/tmp/Master1-temp21");
 	archivo_temp *arch_temp22 = crearArchivoTemporal("/tmp/Master1-temp22");
 	agregarArchivoTemporalTransf(item2, arch_temp21);
@@ -114,7 +114,7 @@ solicitud_reduccion_local* obtenerSolicitudReduccionLocalMock(char* message){
 	agregarArchivoTemporalTransf(item2, arch_temp22);
 	free(arch_temp22);
 
-	item_reduccion_local* item3 = crearItemReduccionLocal(137,"187.0.56.1",9090,"/tmp/Master1-Worker2");
+	item_reduccion_local* item3 = crearItemReduccionLocal("nodo 3","187.0.56.1",9090,"/tmp/Master1-Worker2");
 	archivo_temp *arch_temp31 = crearArchivoTemporal("/tmp/Master1-temp31");
 	archivo_temp *arch_temp32 = crearArchivoTemporal("/tmp/Master1-temp32");
 	agregarArchivoTemporalTransf(item3, arch_temp31);
@@ -136,9 +136,9 @@ solicitud_reduccion_local* obtenerSolicitudReduccionLocalMock(char* message){
 }
 
 solicitud_reduccion_global* obtenerSolicitudReduccionGlobalMock(char* message){
-	t_worker* item1 = crearItemWorker(1,"127.0.0.1",8080,"/tmp/Master1-temp38");
-	t_worker* item2 = crearItemWorker(12,"127.23.0.1",0101,"/tmp/Master1-temp39");
-	t_worker* item3 = crearItemWorker(137,"187.0.56.1",9090,"/tmp/Master1-temp44");
+	t_worker* item1 = crearItemWorker("nodo 1","127.0.0.1",8080,"/tmp/Master1-temp38");
+	t_worker* item2 = crearItemWorker("nodo 2","127.23.0.1",0101,"/tmp/Master1-temp39");
+	t_worker* item3 = crearItemWorker("nodo 3","187.0.56.1",9090,"/tmp/Master1-temp44");
 
 	t_worker* itemEncargado = crearItemWorker(137,"187.0.56.1",9090,"/tmp/ruta_encargado");
 
