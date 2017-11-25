@@ -14,18 +14,19 @@
 
 #define VALOR_SOCKET_WE -2
 
-//ruta del archivo temporal de reduccion global
+//RG (var globales)
 char ruta_archivo_temp_final[LENGTH_RUTA_ARCHIVO_TEMP];
-
+char ruta_archivo_temp_red_local[LENGTH_RUTA_ARCHIVO_TEMP];
 solicitud_recibir_palabra* ultima_palabra;
+int offset_lectura;
+char* palabraCandidata;
+int posicionCandidata;
 
-//semaforo para el recorrido del archivo que se encuentra en el worker encargado
-sem_t sem;
 
 //estructura que define los elementos que maneja el worker encargado en la reduccion global
 typedef struct{
 
-	t_worker worker;	//worker al que representa este elemento
+	t_worker* worker;	//worker al que representa este elemento
 	bool pedir;		//booleano que determina si hay que pedirle el proximo elemento a este worker
 	char* ultima_palabra;	//ultima palabra enviada por este worker al worker encargado
 	bool fin; //booleano que determina si ya recorrio por completo su archivo temporal el worker
@@ -33,9 +34,6 @@ typedef struct{
 	int posicion; //posicion en la lista
 
 } t_elemento;
-
-char* palabraCandidata;
-int posicionCandidata;
 
 //T
 int transformacion(solicitud_programa_transformacion *, char *);
@@ -47,7 +45,7 @@ void responderSolicitudRL(int, int);
 
 //RG
 int reduccionGlobal(solicitud_programa_reduccion_global *, char*);
-void prepararParaApareo(t_list*, t_worker, int, char*);
+void prepararParaApareo(t_list*, t_worker*, int, char*);
 int recorrerArchivo(char[LENGTH_RUTA_ARCHIVO_TEMP]);
 int leerYEnviarArchivoTemp(char[LENGTH_RUTA_ARCHIVO_TEMP], int);
 bool esMenor(char*, char*);
@@ -56,7 +54,6 @@ void procesarElemento(void*);
 int aparear(t_list*);
 solicitud_recibir_palabra* recibirPalabra(int);
 int escribirEnArchivo(char *);
-void habilitarSemaforo();
 char* contenido_de_archivo(char[LENGTH_RUTA_ARCHIVO_TEMP]);
 void responderSolicitudRG(int, int);
 

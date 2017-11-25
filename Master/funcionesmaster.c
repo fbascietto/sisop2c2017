@@ -76,7 +76,7 @@ void *enviarReduccionGlobalWorker(void *args){
 	solicitud->programa = filebuffer;
 	strcpy(&(solicitud->archivo_temporal_resultante),solicitudRedGlobal->archivo_temporal_reduccion_global);
 	solicitud->length_programa = strlen(filebuffer);
-	solicitud->cantidad_item_programa_reduccion = solicitudRedGlobal->item_cantidad;
+	solicitud->cantidad_workers = solicitudRedGlobal->item_cantidad;
 	solicitud->workers = solicitudRedGlobal->workers;
 
 	char* serializado = serializarSolicitudProgramaReduccionGlobal(solicitud);

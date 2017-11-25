@@ -11,7 +11,12 @@
 #include "../../bibliotecas/sockets.h"
 #include "../../bibliotecas/protocolo.h"
 
+
 int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada, char* nombreNodo){
+
+	ultima_palabra = malloc(sizeof(solicitud_recibir_palabra));
+
+	offset_lectura = 0;
 
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
@@ -33,9 +38,9 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada,
 	t_list* lista_de_RG = list_create();
 
 	//preparacion para aparear
-	for(i=0; i<solicitudDeserializada->cantidad_item_programa_reduccion; i++){
+	for(i=0; i<solicitudDeserializada->cantidad_workers; i++){
 
-		prepararParaApareo(lista_de_RG, solicitudDeserializada->workers[i], i, nombreNodo);
+		prepararParaApareo(lista_de_RG, &(solicitudDeserializada->workers[i]), i, nombreNodo);
 
 	}
 
@@ -61,13 +66,14 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada,
 
 	free(comando);
 	free(contenido);
+	free(ultima_palabra);
 	list_destroy_and_destroy_elements(lista_de_RG, free);
 
 	return 0;
 
 }
 
-int recorrerArchivo(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP]){
+int recorrerArchivo(char* ruta_arch_temp){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
@@ -101,32 +107,28 @@ int recorrerArchivo(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP]){
 	}
 	//determino longitud del archivo
 	longitud_archivo_temporal = ftell(f1);
-	//me posiciono al principio del archivo para poder leer
-	rewind(f1);
 
-	buffer = malloc(longitud_archivo_temporal);
+	buffer = malloc(longitud_archivo_temporal - offset_lectura);
 
-	while(!feof(f1)){
+	fseek(f1, offset_lectura, SEEK_SET);
 
-		//leo de a un registro (una linea porque ya viene ordenado el archivo) para guardar en buffer y enviar
-		fgets(buffer, longitud_archivo_temporal, f1);
+	//leo de a un registro (una linea porque ya viene ordenado el archivo) para guardar en buffer y enviar
+	fgets(buffer, longitud_archivo_temporal - offset_lectura, f1);
 
-		ultima_palabra = realloc(ultima_palabra, sizeof(bool) + strlen(buffer));
-
+	if(!feof(f1)){
 		ultima_palabra->fin_de_archivo = false;
 		ultima_palabra->palabra = buffer;
-
-		//todo: definir manera que se activa el ciclo nuevamente
-
+	}else{
+		ultima_palabra->fin_de_archivo = true;
+		ultima_palabra->palabra = "";
+		log_trace(worker_log, "Archivo de reduccion local llego al eof");
 	}
 
-	log_trace(worker_log, "Archivo de reduccion local llego al eof");
-	ultima_palabra = realloc(ultima_palabra, sizeof(bool) + 1);
-	ultima_palabra->fin_de_archivo = true;
-	ultima_palabra->palabra = "";
+	offset_lectura = offset_lectura + strlen(buffer);
 
 	free(buffer);
-	free(ultima_palabra);
+
+	fclose(f1);
 
 	log_destroy(worker_log);
 	log_destroy(worker_error_log);
@@ -136,7 +138,7 @@ int recorrerArchivo(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP]){
 }
 
 
-int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int socket){
+int leerYEnviarArchivoTemp(char* ruta_arch_temp, int socket){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
@@ -197,6 +199,8 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 
 	}
 
+	log_trace(worker_log, "Archivo de reduccion local llego al eof");
+
 	solicitud_recibir_palabra* respuesta_fin = malloc(sizeof(solicitud_recibir_palabra));
 	respuesta_fin->fin_de_archivo = true;
 	respuesta_fin->palabra = "";
@@ -209,6 +213,8 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 	free(respuesta);
 	free(respuesta_fin);
 
+	fclose(f1);
+
 	log_destroy(worker_log);
 	log_destroy(worker_error_log);
 
@@ -217,26 +223,24 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 }
 
 
-void prepararParaApareo(t_list* elementos_para_RG, t_worker worker, int posicion, char* nombreNodo_propio){
+void prepararParaApareo(t_list* elementos_para_RG, t_worker* worker, int posicion, char* nombreNodo_propio){
 
 	t_elemento* unElemento = malloc(sizeof(t_elemento));
 
 	char* ip = malloc(LENGTH_IP);
-	strcpy(ip, worker.ip_worker);
+	strcpy(ip, worker->ip_worker);
 
 	char* nombreNodo = malloc(NOMBRE_NODO);
-	strcpy(nombreNodo, worker.nodo_id);
+	strcpy(nombreNodo, worker->nodo_id);
 
 	if(nombreNodo_propio == nombreNodo){
 		unElemento->socket = VALOR_SOCKET_WE;
-		pid_t pid = fork();
-		if(pid == 0){
-			recorrerArchivo(worker.archivo_temporal_reduccion_local);
-		}
+		strcpy(ruta_archivo_temp_red_local, unElemento->worker->archivo_temporal_reduccion_local);
+		recorrerArchivo(ruta_archivo_temp_red_local);
 	}else{
-		unElemento->socket = conectarseA(ip, worker.puerto_worker);
+		unElemento->socket = conectarseA(ip, worker->puerto_worker);
 		solicitud_leer_y_enviar_archivo_temp* solicitud = malloc(sizeof(solicitud_leer_y_enviar_archivo_temp));
-		strcpy(solicitud->ruta_archivo_red_local_temp, worker.archivo_temporal_reduccion_local);
+		strcpy(solicitud->ruta_archivo_red_local_temp, worker->archivo_temporal_reduccion_local);
 		char* serialized = serializar_solicitud_leer_y_enviar_archivo_temp(solicitud);
 		enviarMensajeSocket(unElemento->socket, COMENZAR_REDUCCION_GLOBAL, serialized);
 		free(solicitud);
@@ -268,7 +272,7 @@ solicitud_recibir_palabra* recibirPalabra(int socket){
 	}else{
 
 		palabra = ultima_palabra;
-		habilitarSemaforo();
+		recorrerArchivo(ruta_archivo_temp_red_local);
 
 	}
 
@@ -380,18 +384,7 @@ int aparear(t_list* lista){
 
 }
 
-
-void habilitarSemaforo(){
-
-	t_log_level level = LOG_LEVEL_TRACE;
-	t_log* sem_log = log_create("logWorker.txt", "WORKER", 1, level);
-
-	log_trace(sem_log, "Se habilita el semaforo para enviar el siguiente registro");
-	signal(sem);
-
-}
-
-char* contenido_de_archivo(char ruta[LENGTH_RUTA_ARCHIVO_TEMP]){
+char* contenido_de_archivo(char* ruta){
 
 	FILE* f1 = fopen(ruta, "r");
 	if(f1 == NULL){

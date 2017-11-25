@@ -117,7 +117,7 @@ solicitud_programa_reduccion_local* deserializarSolicitudProgramaReduccionLocal(
 uint32_t getLong_SolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_global* solicitud){
 	uint32_t total_size = 0;
 
-	uint32_t size_items = getLong_workers(solicitud->workers,solicitud->cantidad_item_programa_reduccion);
+	uint32_t size_items = getLong_workers(solicitud->workers,solicitud->cantidad_workers);
 	total_size += sizeof(uint32_t);//campo cantidad_item_programa_reduccion
 	total_size += sizeof(char[LENGTH_NOMBRE_PROGRAMA]);
 	total_size += sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]);
@@ -137,14 +137,14 @@ char* serializarSolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_gl
 	int size_to_send;
 
 	serializarDato(serializedPackage,&(solicitud->programa_reduccion),sizeof(char[LENGTH_NOMBRE_PROGRAMA]),&offset);
-	serializarDato(serializedPackage,&(solicitud->cantidad_item_programa_reduccion),sizeof(uint32_t),&offset);
+	serializarDato(serializedPackage,&(solicitud->cantidad_workers),sizeof(uint32_t),&offset);
 	serializarDato(serializedPackage,&(solicitud->archivo_temporal_resultante),sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
 
 	//serializar items
-	uint32_t size_items = getLong_workers(solicitud->workers,solicitud->cantidad_item_programa_reduccion);
+	uint32_t size_items = getLong_workers(solicitud->workers,solicitud->cantidad_workers);
 	serializarDato(serializedPackage,&(size_items),sizeof(uint32_t),&offset);
 
-	char* serialized_items = serializar_workers(&(solicitud->workers),solicitud->cantidad_item_programa_reduccion);
+	char* serialized_items = serializar_workers(&(solicitud->workers),solicitud->cantidad_workers);
 	serializarDato(serializedPackage,serialized_items,sizeof(char)*size_items,&offset);
 	free(serialized_items);
 
@@ -159,7 +159,7 @@ solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGloba
 	solicitud_programa_reduccion_global* solicitud = malloc(sizeof(solicitud_programa_reduccion_global));
 	int offset = 0;
 	deserializarDato(&(solicitud->programa_reduccion),serialized,sizeof(char[LENGTH_NOMBRE_PROGRAMA]),&offset);
-	deserializarDato(&(solicitud->cantidad_item_programa_reduccion),serialized,sizeof(uint32_t),&offset);
+	deserializarDato(&(solicitud->cantidad_workers),serialized,sizeof(uint32_t),&offset);
 	deserializarDato(&(solicitud->archivo_temporal_resultante),serialized,sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
 
 	uint32_t size_items;
@@ -167,7 +167,7 @@ solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGloba
 
 	char* serialized_items = malloc(sizeof(char)*size_items);
 	deserializarDato(serialized_items,serialized,size_items,&offset);
-	solicitud->workers = deserializar_t_workers(serialized_items,solicitud->cantidad_item_programa_reduccion);
+	solicitud->workers = deserializar_t_workers(serialized_items,solicitud->cantidad_workers);
 	free(serialized_items);
 
 	deserializarDato(&(solicitud->length_programa),serialized,sizeof(uint32_t),&offset);
