@@ -46,6 +46,8 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada,
 	system(comando);
 
 	free(comando);
+	free(solicitudDeserializada);
+	free(contenido);
 	list_destroy_and_destroy_elements(lista_de_RG, free);
 
 	return 0;
@@ -161,6 +163,8 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 	//me posiciono al principio del archivo para poder leer
 	rewind(f1);
 
+	char* serialized; //char* donde se pone la estructura serializada para enviar
+
 	buffer = malloc(longitud_archivo_temporal);
 
 	while(!feof(f1)){
@@ -169,10 +173,10 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 		fgets(buffer, longitud_archivo_temporal, f1);
 
 		log_trace(worker_log, "Se envia al worker encargado un registro para la reduccion global");
-		respuesta = realloc(respuesta, sizeof(bool) + strlen(buffer));
+		respuesta = realloc(respuesta, sizeof(solicitud_recibir_palabra));
 		respuesta->fin_de_archivo = false;
 		respuesta->palabra = buffer;
-		char* serialized = serializarSolicitudRecibirPalabra(respuesta);
+		serialized = serializarSolicitudRecibirPalabra(respuesta);
 		enviarMensajeSocket(socket, ACCION_RECIBIR_PALABRA, serialized);
 
 		recibirSolicitudWorker(socket);
@@ -180,12 +184,14 @@ int leerYEnviarArchivoTemp(char ruta_arch_temp[LENGTH_RUTA_ARCHIVO_TEMP], int so
 
 	}
 
-	solicitud_recibir_palabra* respuesta_fin = malloc(sizeof(bool) + 1);
+	solicitud_recibir_palabra* respuesta_fin = malloc(sizeof(solicitud_recibir_palabra));
 	respuesta_fin->fin_de_archivo = true;
 	respuesta_fin->palabra = "";
 	char* serialized_fin = serializarSolicitudRecibirPalabra(respuesta_fin);
 	enviarMensajeSocket(socket, ACCION_RECIBIR_PALABRA, serialized_fin);
 
+	free(serialized);
+	free(serialized_fin);
 	free(buffer);
 	free(respuesta);
 	free(respuesta_fin);
@@ -284,46 +290,57 @@ void escribirEnArchivo(char* palabra_a_escribir){
 
 bool esMenor(char* cadena1, char* cadena2){
 
-	return cadena1 < cadena2;
+	return cadena1 <= cadena2;
+
+}
+
+bool termino(void* unElemento){
+
+	t_elemento* elemento = (t_elemento*) unElemento;
+
+	return elemento->fin;
+
+}
+
+void hayQuePedir(void* unElemento){
+
+	t_elemento* elemento = (t_elemento*) unElemento;
+
+	if(!elemento->fin && elemento->pedir){
+
+		solicitud_recibir_palabra* respuesta = recibirPalabra(elemento->socket);
+		elemento->fin = respuesta->fin_de_archivo;
+		elemento->ultima_palabra = respuesta->palabra;
+		elemento->pedir = false;
+
+	}
+
+}
+
+void esCandidato(void* unElemento){
+
+	t_elemento* elemento = (t_elemento*) unElemento;
+
+	if(!elemento->fin && esMenor(elemento->ultima_palabra, palabraCandidata)){
+		palabraCandidata = elemento->ultima_palabra;
+		posicionCandidata = elemento->posicion;
+
+	}
 
 }
 
 void aparear(t_list* lista){
 
 	char* palabraCandidata;
-	int posicionCandidata;
 	t_elemento* elegido;
-
-	bool termino(t_elemento* elemento){
-
-		return elemento->fin;
-
-	}
-
-	void procesarElemento(t_elemento* elemento){
-
-		//si aun no termino y hay que pedir
-		if(!elemento->fin && elemento->pedir){
-
-			solicitud_recibir_palabra* respuesta = recibirPalabra(elemento->socket);
-			elemento->fin = respuesta->fin_de_archivo;
-			elemento->ultima_palabra = respuesta->palabra;
-			elemento->pedir = false;
-
-		}
-
-		if(!elemento->fin && esMenor(elemento->ultima_palabra, palabraCandidata)){
-			palabraCandidata = elemento->ultima_palabra;
-			posicionCandidata = elemento->posicion;
-
-		}
-
-	}
 
 	//siempre y cuando haya algun elemento de la lista que falte terminar de recorrer el archivo
 	while(list_any_satisfy(lista, !termino)){
 
-		list_iterate(lista, procesarElemento);
+		palabraCandidata = "";
+
+		list_iterate(lista, hayQuePedir);
+		list_iterate(lista, esCandidato);
 		elegido = list_get(lista, posicionCandidata);
 		elegido->pedir = true;
 		list_replace(lista, posicionCandidata, elegido);

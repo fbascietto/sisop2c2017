@@ -34,6 +34,8 @@ typedef struct{
 
 } t_elemento;
 
+char* palabraCandidata;
+int posicionCandidata;
 
 //T
 int transformacion(solicitud_programa_transformacion *, char *);
@@ -50,6 +52,9 @@ int leerYEnviarArchivoTemp(char[LENGTH_RUTA_ARCHIVO_TEMP], int);
 solicitud_recibir_palabra* recibirPalabra(int);
 void escribirEnArchivo(char *);
 bool esMenor(char*, char*);
+bool termino(void*);
+void esCandidato(void*);
+void hayQuePedir(void*);
 void aparear(t_list*);
 void prepararParaApareo(t_list*, t_worker, int, char*);
 void habilitarSemaforo();
