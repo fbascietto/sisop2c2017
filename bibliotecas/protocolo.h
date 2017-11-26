@@ -64,5 +64,4 @@
 #define RECIBIR_RUTA_ARCHIVO_FINAL 60
 #define ESTA_VIVO_NODO 61
 
-
 #endif /* PROTOCOLO_H_ */
