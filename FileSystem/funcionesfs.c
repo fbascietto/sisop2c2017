@@ -1194,7 +1194,7 @@ int chequeoEstadoFS(){
 
 	for(;i < size;i++){
 		nodo = list_get(listaNodosRelacionados,i);
-		enviarInt(nodo->socket_nodo,ESTA_VIVO_NODO);
+		enviarInt(nodo->socket_nodo, ESTA_VIVO_NODO);
 		recibirInt(nodo->socket_nodo,&estable);
 	}
 
@@ -1857,7 +1857,7 @@ void renombrarArchivo(char* archivoABuscar, char* nombreNuevo, t_list* folderLis
 	int folderIndex = identificaDirectorio(archivoABuscar, folderList);
 	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, folderIndex);
 
-	if(buscarEnArchivosDat(ruta_metadata)){
+	if(buscoEnArchivosDat(ruta_metadata)){
 		FILE* metadata;
 
 		metadata = fopen(ruta_metadata,"r+");

@@ -227,21 +227,19 @@ void prepararParaApareo(t_list* elementos_para_RG, t_worker* worker, int posicio
 
 	t_elemento* unElemento = malloc(sizeof(t_elemento));
 
-	char* ip = malloc(LENGTH_IP);
-	strcpy(ip, worker->ip_worker);
-
 	char* nombreNodo = malloc(NOMBRE_NODO);
 	strcpy(nombreNodo, worker->nodo_id);
 
-	if(nombreNodo_propio == nombreNodo){
+	if(!strcmp(nombreNodo_propio, nombreNodo)){
 		unElemento->socket = VALOR_SOCKET_WE;
 		strcpy(ruta_archivo_temp_red_local, unElemento->worker->archivo_temporal_reduccion_local);
 		recorrerArchivo(ruta_archivo_temp_red_local);
 	}else{
-		unElemento->socket = conectarseA(ip, worker->puerto_worker);
+		unElemento->socket = conectarseA(worker->ip_worker, worker->puerto_worker);
 		solicitud_leer_y_enviar_archivo_temp* solicitud = malloc(sizeof(solicitud_leer_y_enviar_archivo_temp));
 		strcpy(solicitud->ruta_archivo_red_local_temp, worker->archivo_temporal_reduccion_local);
 		char* serialized = serializar_solicitud_leer_y_enviar_archivo_temp(solicitud);
+		enviarInt(unElemento->socket, PROCESO_WORKER);
 		enviarMensajeSocket(unElemento->socket, COMENZAR_REDUCCION_GLOBAL, serialized);
 		free(solicitud);
 	}
@@ -254,7 +252,6 @@ void prepararParaApareo(t_list* elementos_para_RG, t_worker* worker, int posicio
 
 	list_add(elementos_para_RG, unElemento);
 
-	free(ip);
 	free(nombreNodo);
 
 

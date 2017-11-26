@@ -108,7 +108,7 @@ FILE * crearMetadata(char * destino, char* directorio_yamafs, t_list* folderList
 t_list * obtener_lista_metadata(char * ruta_metadata);
 void recibirDatosBloque(t_nodo * nodo);
 void actualizoArchivosDat(char* ruta_metadata, int flag);
-void buscoEnArchivosDat(char* ruta_metadata);
+int buscoEnArchivosDat(char* ruta_metadata);
 int estaEstable();
 
 /*Funciones de directorio.dat*/

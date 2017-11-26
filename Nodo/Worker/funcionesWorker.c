@@ -245,7 +245,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 
 	case ACCION_ALMACENAMIENTO_FINAL:
 		log_trace(worker_log, "Solicitud de almacenamiento final recibida");
-		almacenamientoFinal(IP_fs, puerto_fs, ruta_archivo_temp_final);
+		almacenamientoFinal(IP_fs, puerto_fs, package->message, ruta_archivo_temp_final);
 		exit(0);
 		break;
 

@@ -27,7 +27,7 @@ int posicionCandidata;
 typedef struct{
 
 	t_worker* worker;	//worker al que representa este elemento
-	bool pedir;		//booleano que determina si hay que pedirle el proximo elemento a este worker
+	bool pedir;		//booleano que determina si hay que pedirle la proxima palabra a este worker
 	char* ultima_palabra;	//ultima palabra enviada por este worker al worker encargado
 	bool fin; //booleano que determina si ya recorrio por completo su archivo temporal el worker
 	int socket; 	//socket de conexion entre worker encargado y este worker
@@ -58,7 +58,7 @@ char* contenido_de_archivo(char[LENGTH_RUTA_ARCHIVO_TEMP]);
 void responderSolicitudRG(int, int);
 
 //AF
-void almacenamientoFinal(char*, int, char*);
+void almacenamientoFinal(char*, int, char*, char*);
 
 
 #endif /* ETAPAS_H_ */
