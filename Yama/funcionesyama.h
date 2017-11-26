@@ -17,7 +17,7 @@
 #include "../bibliotecas/sockets.h"
 #include "../bibliotecas/protocolo.h"
 #include "../bibliotecas/estructuras.h"
-#include "../Master/interfaceMaster.h"
+#include "interfaceMaster.h"
 
 #ifndef YAMA_FUNCIONESYAMA_H_
 #define YAMA_FUNCIONESYAMA_H_

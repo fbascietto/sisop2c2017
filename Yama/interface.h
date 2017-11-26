@@ -16,7 +16,7 @@
 
 
 void serializarDato(char* buffer, void* dato, int size_to_send, int* offset);
-void deserealizarDato(void* dato, char* buffer, int size, int* offset);
+void deserializarDato(void* dato, char* buffer, int size, int* offset);
 
 char* serializar_workers(t_worker** workers, uint32_t item_cantidad);
 char* serializar_t_worker(t_worker* worker);
@@ -35,7 +35,7 @@ char* serializar_archivos_temporales(archivo_temp** archivos_temporales, uint32_
 archivo_temp* deserializar_archivo_temp(char* serialized);
 archivo_temp* deserializar_archivos_temporales(char* serialized, uint32_t items_cantidad);
 
-t_bloques_enviados* deserealizarBloques(char* serialized, uint32_t* idMaster);
+t_bloques_enviados* deserializarBloques(char* serialized, uint32_t* idMaster);
 t_bloque_serializado* deserializar_bloques_serializados(char* serialized, uint32_t items_cantidad);
 t_bloque_serializado* deserializar_bloque_serializado(char* serialized);
 

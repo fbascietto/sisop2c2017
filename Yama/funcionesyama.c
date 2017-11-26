@@ -1,9 +1,11 @@
-#include "../Yama/interface.h"
+
+
 #include <pthread.h>
 #include "funcionesyama.h"
 #include "prePlanificacion.h"
 #include "../bibliotecas/protocolo.h"
 #include "../bibliotecas/estructuras.h"
+#include "interfaceMaster.h"
 
 
 
@@ -385,8 +387,8 @@ void procesarResultadoTransformacion(int nuevoSocket, uint32_t message_long, cha
 	int numeroBloque;
 
 	//todo
-	//deserealizarDato(&numeroBloque, package->message, sizeof(uint32_t), &offset);
-	//deserealizarDato(idNodo, package->message, NOMBRE_NODO, &offset);
+	deserializarDato(&numeroBloque, package->message, sizeof(uint32_t), &offset);
+	deserializarDato(idNodo, package->message, NOMBRE_NODO, &offset);
 
 	int idJob;
 
@@ -488,7 +490,7 @@ t_list* procesarBloquesRecibidos(char* message, int* masterId){
 	uint32_t* idMaster = malloc(sizeof(uint32_t));
 
 	//todo
-	//bloquesRecibidos = deserealizarBloques(message, &idMaster);
+	bloquesRecibidos = deserializarBloques(message, &idMaster);
 	*masterId = *idMaster;
 	free(idMaster);
 
