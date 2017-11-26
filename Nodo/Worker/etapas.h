@@ -7,7 +7,6 @@
 
 #include "../../bibliotecas/estructuras.h"
 #include <commons/collections/list.h>
-#include <semaphore.h>
 
 #ifndef ETAPAS_H_
 #define ETAPAS_H_
@@ -15,6 +14,7 @@
 #define VALOR_SOCKET_WE -2
 
 //RG (var globales)
+char* ruta_archivo_apareo;
 char ruta_archivo_temp_final[LENGTH_RUTA_ARCHIVO_TEMP];
 char ruta_archivo_temp_red_local[LENGTH_RUTA_ARCHIVO_TEMP];
 solicitud_recibir_palabra* ultima_palabra;

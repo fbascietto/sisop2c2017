@@ -14,6 +14,10 @@
 
 int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada, char* nombreNodo){
 
+	ruta_archivo_apareo = string_new();
+	string_append(ruta_archivo_apareo, solicitudDeserializada->archivo_temporal_resultante);
+	string_append(ruta_archivo_apareo, "-Apareo");
+
 	ultima_palabra = malloc(sizeof(solicitud_recibir_palabra));
 
 	offset_lectura = 0;
@@ -49,9 +53,7 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada,
 		return retorno;
 	}
 
-	char* contenido = contenido_de_archivo(ruta_archivo_temp_final);
-
-	char* comando = string_from_format("printf \"%s\" | .\"/scripts/%s\" > \"%s\"", contenido,
+	char* comando = string_from_format("cat \"%s\" | .\"/scripts/%s\" > \"%s\"", ruta_archivo_apareo,
 			solicitudDeserializada->programa_reduccion, ruta_archivo_temp_final);
 
 	retorno = system(comando);
@@ -59,14 +61,13 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada,
 		log_error(worker_error_log, "No se pudo realizar la reduccion global");
 		log_destroy(worker_error_log);
 		free(comando);
-		free(contenido);
 		list_destroy_and_destroy_elements(lista_de_RG, free);
 		return -4;
 	}
 
 	free(comando);
-	free(contenido);
 	free(ultima_palabra);
+	free(ruta_archivo_apareo);
 	list_destroy_and_destroy_elements(lista_de_RG, free);
 
 	return 0;
@@ -286,11 +287,11 @@ int escribirEnArchivo(char* palabra_a_escribir){
 
 	FILE* f1;
 
-	f1 = fopen(ruta_archivo_temp_final, "r+");
+	f1 = fopen(ruta_archivo_apareo, "r+");
 	if(f1 == NULL){
-		f1 = fopen(ruta_archivo_temp_final, "w");
+		f1 = fopen(ruta_archivo_apareo, "w");
 		if(f1 == NULL){
-			log_error(worker_error_log, "No se pudo abrir el archivo temporal de reduccion global para escritura");
+			log_error(worker_error_log, "No se pudo abrir el archivo temporal de apareo para escritura");
 			return -1;
 		}
 	}
@@ -378,28 +379,6 @@ int aparear(t_list* lista){
 	}
 
 	return 0;
-
-}
-
-char* contenido_de_archivo(char* ruta){
-
-	FILE* f1 = fopen(ruta, "r");
-	if(f1 == NULL){
-		char* error = "";
-		return error;
-	}
-
-	fseek(f1, 0, SEEK_END);
-	int longitud = ftell(f1);
-	rewind(f1);
-
-	char* buffer = malloc(longitud);
-
-	fread(buffer, 1, longitud, f1);
-
-	fclose(f1);
-
-	return buffer;
 
 }
 
