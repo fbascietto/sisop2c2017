@@ -386,7 +386,6 @@ void procesarResultadoTransformacion(int nuevoSocket, uint32_t message_long, cha
 	char idNodo[NOMBRE_NODO];
 	int numeroBloque;
 
-	//todo
 	deserializarDato(&numeroBloque, package->message, sizeof(uint32_t), &offset);
 	deserializarDato(idNodo, package->message, NOMBRE_NODO, &offset);
 
@@ -487,12 +486,9 @@ void procesarSolicitudArchivoMaster(int nuevoSocket, uint32_t message_long, char
 //se obtiene ademas el id del master (va primero en la serializacion ((todo))
 t_list* procesarBloquesRecibidos(char* message, int* masterId){
 	t_bloques_enviados* bloquesRecibidos;
-	uint32_t* idMaster = malloc(sizeof(uint32_t));
 
 	//todo
-	bloquesRecibidos = deserializarBloques(message, &idMaster);
-	*masterId = *idMaster;
-	free(idMaster);
+	bloquesRecibidos = deserializarBloques(message, masterId);
 
 	t_list* bloques = list_create();
 

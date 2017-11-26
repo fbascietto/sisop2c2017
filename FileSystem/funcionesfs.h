@@ -16,6 +16,7 @@
 #include <commons/bitarray.h>
 #include <commons/collections/list.h>
 #include "../bibliotecas/protocolo.h"
+#include "../bibliotecas/estructuras.h"
 
 
 #ifndef FUNCIONESFS_H_
@@ -124,6 +125,17 @@ t_directory * cambiarAdirectorio(char* nombre, t_directory* carpetaActual, t_lis
 t_directory * cambiarAdirectorioConChequeo(char* nombre, t_directory* carpetaActual, t_list* folderList);
 t_nodo* getDirectorioPorNombre(char* carpeta, t_list* folderList);
 void actualizarDirectorioDat(t_list* folderList);
+
+/*Funciones de serializacion y envio y recepcion de mensajes con Yama*/
+void serializarDato(char* buffer, void* dato, int size_to_send, int* offset);
+void deserializarDato(void* dato, char* buffer, int size, int* offset);
+char* serializar_un_bloque(t_bloque_serializado* unBloque);
+char* serialize_blocks(t_bloque_serializado** bloques, uint32_t item_cantidad);
+uint32_t getLongitud_bloques(uint32_t item_cantidad);
+uint32_t longitudBloques(t_bloques_enviados* bloques);
+char* serializar_bloques(t_bloques_enviados* bloques, uint32_t* id_master, uint32_t* longitud);
+int serializar_y_enviar_yama(t_bloques_enviados* bloques, uint32_t id_master, int socketYama);
+
 
 /*Misc*/
 char* replace_char(char* str, char find, char replace);
