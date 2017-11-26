@@ -2,6 +2,7 @@
 #include "funcionesyama.h"
 
 void agregarNodoALaPlanificacion(t_bloque* bloque, t_nodo* nodo, t_list* planificacionNodos){
+
 	nodo->disponibilidad--;
 	nodo->cargaDeTrabajoActual++;
 
@@ -29,7 +30,7 @@ void asignarDisponibilidades(t_list* nodos, char* tipoAlgoritmo){
 		nodo = list_get(nodos, i);
 		nodo->disponibilidad = disponibilidad(nodo, tipoAlgoritmo);
 		nodo->cargaDeTrabajoActual = 0;
-		printf("disponibilidad de %d: %d\n", nodo->idNodo, nodo->disponibilidad);
+		printf("disponibilidad de %s: %d\n", nodo->idNodo, nodo->disponibilidad);
 	}
 }
 
@@ -74,7 +75,7 @@ void actualizarWL(t_list* planificacionNodos){
  * a su disponibilidad
  */
 void agregarDisponibilidadNodos(void* nodosSinDisponibilidad, int valorBase){
-	t_list* nodos = list_create();
+	t_list* nodos;
 	nodos = (t_list*) nodosSinDisponibilidad;
 
 	valorBaseTemporal = valorBase;
@@ -105,21 +106,27 @@ t_nodo* siguienteNodo(int* numNodo, t_list* nodos) {
 
 
 bool tieneElBloque(t_nodo* nodo, t_bloque* bloque){
-	int * unBloque = NULL;
-	int i;
-	int cantBloques;
+//	int * unBloque = NULL;
+//	int i;
+//	int cantBloques;
+//
+//	cantBloques = list_size(nodo->bloques);
+//
+//	for (i=0; i<cantBloques; i++){
+//		unBloque = list_get(nodo->bloques, i);
+//		if(*unBloque == bloque->numeroBloque){
+//			return true;
+//		}
+//	}
+//
+//
+//	return false;
 
-	cantBloques = list_size(nodo->bloques);
-
-	for (i=0; i<cantBloques; i++){
-		unBloque = list_get(nodo->bloques, i);
-		if(*unBloque == bloque->numeroBloque){
+		if(strcmp(nodo->idNodo, bloque->idNodo) == 0){
 			return true;
+		}else{
+			return false;
 		}
-	}
-
-
-	return false;
 }
 
 /*
@@ -143,10 +150,10 @@ bool hayUnaCopiaDeCadaBloque(t_list* listaNodos, t_list* bloques){
 		for (j=0; j < tamanioListaNodos; j++){
 
 			if(tieneElBloque(list_get(listaNodos, j), bloque)){
-						i++;
-						j=0;
-						recorridoListaNodos=0;
-						break;
+				i++;
+				j=0;
+				recorridoListaNodos=0;
+				break;
 			}
 			recorridoListaNodos++;
 		}
@@ -210,28 +217,71 @@ t_nodo* nodoConMenorCargaTrabajo(t_list* nodos){
 	unsigned long int menorCargaDeTrabajo = 999999;
 
 	for(i=0; i < tamanioLista; i++){
-			nodo = list_get(nodos, i);
-			cargaDeTrabajoNodo = nodo->cargaDeTrabajoActual;
-			if(menorCargaDeTrabajo > cargaDeTrabajoNodo){
-				menorCargaDeTrabajo = cargaDeTrabajoNodo;
-				nodoConMenosCargaTrabajo = nodo;
-			}
+		nodo = list_get(nodos, i);
+		cargaDeTrabajoNodo = nodo->cargaDeTrabajoActual;
+		if(menorCargaDeTrabajo > cargaDeTrabajoNodo){
+			menorCargaDeTrabajo = cargaDeTrabajoNodo;
+			nodoConMenosCargaTrabajo = nodo;
+		}
 	}
 	return nodoConMenosCargaTrabajo;
 }
 
 
-void seleccionarNodoParaReduccionFinal(t_list* nodos, char* tipoAlgoritmo, t_list* planificacionNodos, int cantBloques){
+//todo
+void loguear_nodos_asignados(t_list* planificacion){
+	int i;
+	int cantidadBloques = list_size(planificacion);
+
+	t_planificacion* unaPlanificacion;
+
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log* yama_log = log_create("logYama.txt", "YAMA", 0, level);
+
+
+
+	for(i=0; i<cantidadBloques; i++){
+		unaPlanificacion = list_get(planificacion, i);
+		log_trace(yama_log, "bloque %d  asignado al nodo: %s",
+				unaPlanificacion->bloque->numeroBloque, unaPlanificacion->nodo->idNodo);
+		log_trace(yama_log, "con disponibilidad restante : %d  y reduccionGlobal (deberia estar en 0): %d\n",
+				unaPlanificacion->nodo->disponibilidad, unaPlanificacion->reduccionGlobal);
+	}
+
+	free(yama_log);
+}
+
+void* obtenerIdNodoPlanificado(void* nodo){
+	t_planificacion* nodoPlanificado = (t_planificacion*) nodo;
+	char* idNodo = malloc(NOMBRE_NODO);
+	strncpy(idNodo, nodoPlanificado->nodo->idNodo, NOMBRE_NODO);
+	return idNodo;
+}
+
+/*
+ * cada nodo distinto va a tener un solo archivo de reduccion local
+ * con n archivos de transformacion
+ * usando la lista de nodos (asumo que todos son distintos)
+ * obtengo la cantidad de archivos resultantes voy a tener
+ */
+void seleccionarNodoParaReduccionFinal(t_list* nodos, t_list* planificacionNodos){
+
+	int cantidadArchivosReduccionLocal;
+
 	t_nodo* nodo;
-	nodo = nodoConMenorCargaTrabajo(nodos);
 	t_planificacion* planificacionRG = malloc(sizeof(t_planificacion));
+
+	nodo = nodoConMenorCargaTrabajo(nodos);
 	planificacionRG->nodo = nodo;
+	planificacionRG->bloque = NULL;
+
+	cantidadArchivosReduccionLocal = list_size(nodos);
 
 	//mitad redondeada para arriba de cantidad de bloques a reducir para reduccion final
-	if(cantBloques % 2 == 0){
-		planificacionRG->reduccionGlobal = cantBloques/2;
+	if(cantidadArchivosReduccionLocal % 2 == 0){
+		planificacionRG->reduccionGlobal = cantidadArchivosReduccionLocal/2;
 	}else{
-		planificacionRG->reduccionGlobal = (cantBloques/2) +1;
+		planificacionRG->reduccionGlobal = (cantidadArchivosReduccionLocal/2) +1;
 	}
 	list_add(planificacionNodos,planificacionRG);
 }
@@ -245,23 +295,28 @@ void seleccionarNodoParaReduccionFinal(t_list* nodos, char* tipoAlgoritmo, t_lis
  * el bloque seleccionado para reduccion global
  */
 t_list* prePlanificacion(t_list* bloques, int valorBase, t_list* listaNodos, char* tipoAlgoritmo){
-		int contadorBloques;
-		t_bloque* bloque;
-		int numNodo = 0;
-		int cantBloques = list_size(bloques);
+	int contadorBloques;
+	t_bloque* bloque;
+	int numNodo = 0;
+	int cantBloques = list_size(bloques);
 
-		//recorren los nodos de la lista de nodos
-		t_nodo* nodo = NULL;
-		t_nodo* aux = NULL;
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* yama_log = log_create("logYama.txt", "YAMA", 1, level);
+	t_log* yama_error_log = log_create("logYama.txt", "YAMA", 1, level_ERROR);
 
-		t_list* planificacionNodos = list_create();
+	//recorren los nodos de la lista de nodos
+	t_nodo* nodo = NULL;
+	t_nodo* aux = NULL;
 
-		valorBaseTemporal = valorBase;
-		asignarDisponibilidades(listaNodos, tipoAlgoritmo);
+	t_list* planificacionNodos = list_create();
 
-		nodo = nodoConMayorDisponibilidad(listaNodos, &numNodo, tipoAlgoritmo);
+	valorBaseTemporal = valorBase;
+	asignarDisponibilidades(listaNodos, tipoAlgoritmo);
 
-		for(contadorBloques=0;contadorBloques < cantBloques;){
+	nodo = nodoConMayorDisponibilidad(listaNodos, &numNodo, tipoAlgoritmo);
+
+	for(contadorBloques=0;contadorBloques < cantBloques;){
 
 		bloque = list_get(bloques, contadorBloques);
 
@@ -318,9 +373,17 @@ t_list* prePlanificacion(t_list* bloques, int valorBase, t_list* listaNodos, cha
 		}
 	}
 
-		seleccionarNodoParaReduccionFinal(listaNodos, tipoAlgoritmo, planificacionNodos, cantBloques);
-		actualizarWL(planificacionNodos);
-		return planificacionNodos;
+
+
+	log_destroy(yama_log);
+	log_destroy(yama_error_log);
+
+	seleccionarNodoParaReduccionFinal(listaNodos, planificacionNodos);
+	actualizarWL(planificacionNodos);
+
+	//loguear_nodos_asignados(planificacionNodos);
+
+	return planificacionNodos;
 }
 
 /*
@@ -335,15 +398,21 @@ t_list* prePlanificacion(t_list* bloques, int valorBase, t_list* listaNodos, cha
  * si no hay una copia de cada bloque
  * devuelve NULL
  */
-t_list* replanificacion(t_list* listaNodos, int nodoFallado, t_list* bloques, int dispBase, char* tipoAlgoritmo){
+t_list* replanificacion(char* nodoFallado, t_list* bloques, int dispBase, char* tipoAlgoritmo){
+
+//	t_nodo* nodoEliminado;
+//
+//	nodoEliminado = list_remove(listaNodos, nodoFallado);
+//
+//	printf("se ejecuta rePlanificacion porque fallo el nodo %s \n", nodoEliminado->idNodo);
+//	printf("se eliminino el nodo %s\n", nodoEliminado->idNodo);
+//	printf("nuevo tamanio de la lista: %d\n", list_size(listaNodos));
+//
+	t_list* listaNodos;
+	listaNodos = obtenerEInicializarNodosDeBloques(bloques);
 
 	t_nodo* nodoEliminado;
-
-	nodoEliminado = list_remove(listaNodos, nodoFallado);
-
-	printf("se ejecuta rePlanificacion porque fallo el nodo %d \n", nodoEliminado->idNodo);
-	printf("se eliminino el nodo %d\n", nodoEliminado->idNodo);
-	printf("nuevo tamanio de la lista: %d\n", list_size(listaNodos));
+	//nodoEliminado = quitarNodoFallado(nodoFallado, listaNodos);
 
 	if (hayUnaCopiaDeCadaBloque(listaNodos, bloques)){
 
@@ -354,33 +423,57 @@ t_list* replanificacion(t_list* listaNodos, int nodoFallado, t_list* bloques, in
 		//pendiente: definir que devolver en caso de que no haya una copia de cada bloque
 		return NULL;
 	}
+
+
+}
+
+bool sePuedeReplanificar(t_list* bloques){
+	t_list* nodos;
+	nodos = obtenerNodosParticipantes(bloques);
+	if(hayUnaCopiaDeCadaBloque(nodos, bloques)){
+		return true;
+	}else{
+		return false;
+	}
 }
 
 
+/*
+ * quita el t_nodo*
+ * que corresponde de la
+ * lista nodosConectados
+ */
+void desconectarNodo(char* idNodo){
+	int i;
+	int cantidadNodos = list_size(nodosConectados);
+	t_nodo* unNodo;
+
+	for(i=0; i<cantidadNodos; i++){
+		unNodo = list_get(nodosConectados, i);
+		if(strcmp(unNodo->idNodo, idNodo)==0){
+			unNodo = list_remove(nodosConectados, i);
+			free(unNodo);
+			break;
+		}
+	}
+}
 
 void estadisticas(void* unaPlanif){
 	t_estado* unaPlanificacion = (t_estado*) unaPlanif;
 	if(unaPlanificacion->nodoPlanificado->reduccionGlobal == 0){
 		printf("bloque: %d nodo: %d cargaDeTrabajoActual: %d \n",
-			unaPlanificacion->nodoPlanificado->bloque->numeroBloque,
-			unaPlanificacion->nodoPlanificado->nodo->idNodo,
-			unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajoActual);
+				unaPlanificacion->nodoPlanificado->bloque->numeroBloque,
+				unaPlanificacion->nodoPlanificado->nodo->idNodo,
+				unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajoActual);
 	}else{
 		printf("nodo de reduccion final: %d con una cargaDeTrabajoActual: %d \n",
-			unaPlanificacion->nodoPlanificado->nodo->idNodo,
-			unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajoActual);
+				unaPlanificacion->nodoPlanificado->nodo->idNodo,
+				unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajoActual);
 	}
 
 }
 
-bool verificarReduccionLocal(void* estado){
-	t_estado* unEstado = (t_estado*) estado;
-	if (strcmp(unEstado->etapa, "reduccion local") == 0){
-		return false;
-	}else{
-		return true;
-	}
-}
+
 
 
 

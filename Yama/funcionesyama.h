@@ -6,12 +6,16 @@
  */
 
 #include <sys/socket.h>
-#include <commons/config.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
 #include <string.h>
+#include <commons/config.h>
+#include <commons/log.h>
 #include <commons/collections/list.h>
 #include "../bibliotecas/sockets.h"
 #include "../bibliotecas/protocolo.h"
-#include <stdint.h>
 #include "../bibliotecas/estructuras.h"
 #include "../Master/interfaceMaster.h"
 
@@ -23,12 +27,15 @@ typedef struct {
 } t_esperar_mensaje;
 
 t_config* infoConfig;
+
 int dispBase;
 char* fsIP;
 int fsPort;
 int retardoPlanificacion; //en milisegundos
 char* algoritmoBalanceo;
-uint32_t nombreRutaTemporal;
+
+int socketFS;
+uint32_t idMaster;
 uint32_t rutaGlobal;
 
 
@@ -60,6 +67,8 @@ typedef struct{
 	uint32_t numeroBloque;
 	uint32_t bytesOcupados;
 	char idNodo[NOMBRE_NODO];
+	char ip[LENGTH_IP];
+	uint32_t puerto;
 }t_bloque;
 
 
@@ -70,8 +79,7 @@ typedef struct{
 	uint32_t cargaDeTrabajo;
 	uint32_t cargaDeTrabajoHistorica;
 	uint32_t cargaDeTrabajoActual;
-	t_list * bloques;
-	char ipWorker[20];
+	char ipWorker[LENGTH_IP];
 	uint32_t puerto;
 }t_nodo;
 
@@ -86,8 +94,7 @@ typedef struct {
 typedef struct{
 	t_planificacion* nodoPlanificado;
 	char archivoTemporal[LENGTH_RUTA_ARCHIVO_TEMP];
-	char* estado[LENGTH_ESTADO];
-	char* etapa[LENGTH_ETAPA];
+	char estado[LENGTH_ESTADO];
 } t_estado;
 
 typedef struct{
@@ -96,16 +103,29 @@ typedef struct{
 	t_list* estadosTransformaciones;
 	t_list* estadosReduccionesLocales;
 	t_estado* reduccionGlobal;
+	t_list* planificacion;
 }t_job;
 
-void *esperarConexionMaster(void *args);
+void *esperarConexionMasterYFS(void *args);
 void inicializarConfigYama();
+void cargarValoresPlanificacion();
+void recargarConfiguracion(int signal);
 void hacerPedidoDeTransformacionYRL();
 
 solicitud_transformacion* obtenerSolicitudTrasnformacion(t_job* job);
 solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job);
 solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job);
 solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_job* job);
+
+t_list* procesarBloquesRecibidos(char* message, int* masterId);
+char* serializarSolicitudJob(char* solicitudArchivo, uint32_t masterId, uint32_t* tamanioSerializado);
+void adaptarBloques(t_bloques_enviados* bloquesRecibidos, t_list* bloques);
+bool resultadoOk(char* resultado);
+void actualizarEstado(char* idNodo, int numeroBloque, int etapa, int idJob, char* resultado);
+bool finalizoTransformacionesNodo(char* idNodo, int numeroBloque, int idJob);
+bool termino(void* elemento);
+void procesarSolicitudMaster(int nuevoSocket);
+
 
 
 #endif /* YAMA_FUNCIONESYAMA_H_ */

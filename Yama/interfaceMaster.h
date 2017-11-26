@@ -9,6 +9,8 @@
 #define INTERFACEMASTER_H_
 
 #include "../bibliotecas/estructuras.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 
 /*SERIALIZACION DE SOLICUTUD TRANSFORMACION*/

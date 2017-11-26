@@ -21,6 +21,7 @@ t_job* crearJob(t_list* bloques, t_list* listaNodos, char* tipoAlgoritmo, int id
 
 	nuevoJob->idMaster = idMaster;
 	nuevoJob->idJob = jobsID;
+	nuevoJob->planificacion = nuevaPrePlanificacion;
 	generarEstados(nuevaPrePlanificacion, nuevoJob);
 
 	jobsID++;
@@ -42,48 +43,81 @@ void generarEstados(t_list* unaPreplanificacion, t_job* job){
 	int i;
 	int tamanioPreplanificacion = list_size(unaPreplanificacion);
 
+	job->estadosReduccionesLocales = crearEstadosReduccionesLocales(unaPreplanificacion);
+
 	for(i=0; i<tamanioPreplanificacion; i++){
 		t_planificacion* unNodoPlanificado = list_get(unaPreplanificacion, i);
 		if(unNodoPlanificado->reduccionGlobal == 0){
 			list_add(job->estadosTransformaciones, crearEstadoTransformacion(unNodoPlanificado));
-			list_add(job->estadosReduccionesLocales, crearEstadoReduccionLocal(unNodoPlanificado));
 		} else{
 			job->reduccionGlobal = crearEstadoReduccionGlobal(unNodoPlanificado);
+			//job->almacenadoFinal = crearEstadoAlmacenadoFinal(unNodoPlanificado);
 		}
 	}
 
 }
 
 t_estado* crearEstadoTransformacion(t_planificacion* unNodoPlanificado){
-	t_estado* unEstado = malloc(sizeof(LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_ESTADO + LENGTH_ETAPA));
+	t_estado* unEstado = malloc(sizeof(t_estado));
 
 	unEstado->nodoPlanificado = unNodoPlanificado;
-	strcpy(unEstado->archivoTemporal, generarRutaTemporal());
-	strcpy(unEstado->etapa, "transformacion");
-	strcpy(unEstado->estado, "en proceso");
-
+	strncpy(unEstado->archivoTemporal, generarRutaTemporal(), LENGTH_RUTA_ARCHIVO_TEMP);
+	strncpy(unEstado->estado, "en proceso", LENGTH_ETAPA);
 	return unEstado;
 }
 
-t_estado* crearEstadoReduccionLocal(t_planificacion* unNodoPlanificado){
-	t_estado* unEstado = malloc(sizeof(LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_ESTADO + LENGTH_ETAPA));
+t_estado* crearEstadoReduccionLocal(t_planificacion* unNodoPlanificado, char* rutaReduccionLocal){
+	t_estado* unEstado = malloc(sizeof(t_estado));
 
 	unEstado->nodoPlanificado = unNodoPlanificado;
-	strcpy(unEstado->archivoTemporal, generarRutaTemporal());
-	strcpy(unEstado->etapa, "reduccion local");
-	strcpy(unEstado->estado, "esperando transformacion");
+	strncpy(unEstado->archivoTemporal, rutaReduccionLocal, LENGTH_RUTA_ARCHIVO_TEMP);
+	strncpy(unEstado->estado, "esperando transformacion", LENGTH_ETAPA);
 
 	return unEstado;
 }
 
 t_estado* crearEstadoReduccionGlobal(t_planificacion* unNodoPlanificado){
-	t_estado* unEstado = malloc(sizeof(LENGTH_RUTA_ARCHIVO_TEMP + LENGTH_ESTADO + LENGTH_ETAPA));
+	t_estado* unEstado = malloc(sizeof(t_estado));
 	unEstado->nodoPlanificado = unNodoPlanificado;
-	strcpy(unEstado->archivoTemporal, generarRutaTemporal());
-	strcpy(unEstado->etapa, "reduccion global");
-	strcpy(unEstado->estado, "esperando reducciones locales");
+	strncpy(unEstado->archivoTemporal, generarRutaTemporal(), LENGTH_RUTA_ARCHIVO_TEMP);
+	strncpy(unEstado->estado, "esperando reducciones locales", LENGTH_ETAPA);
 
 	return unEstado;
+}
+
+t_list* crearEstadosReduccionesLocales(t_list* unaPreplanificacion){
+
+	t_planificacion* unNodoPlanificado;
+
+	t_estado* nuevoEstado;
+
+	t_list* idNodosTransformacion;
+	t_list* rutasTemporales = list_create();
+	t_list* estadosReduccionesLocales = list_create();
+
+	int i, j;
+	int tamanioPreplanificacion = list_size(unaPreplanificacion);
+
+
+	idNodosTransformacion = list_map(unaPreplanificacion, obtenerIdNodoPlanificado);
+
+	int cantidadNodos = list_size(idNodosTransformacion);
+
+	for(i=0; i<cantidadNodos; i++){
+		list_add(rutasTemporales, generarRutaTemporal());
+	}
+
+	for(i=0; i<tamanioPreplanificacion; i++){
+		unNodoPlanificado = list_get(unaPreplanificacion, i);
+		for(j=0; j<cantidadNodos; j++){
+			if(strcmp(unNodoPlanificado->nodo->idNodo, list_get(idNodosTransformacion, j)) == 0){
+				nuevoEstado = crearEstadoReduccionLocal(unNodoPlanificado, list_get(rutasTemporales, j));
+				list_add(estadosReduccionesLocales, nuevoEstado);
+			}
+		}
+	}
+
+	return estadosReduccionesLocales;
 }
 
 
@@ -102,35 +136,51 @@ t_job* obtenerJob(int idJob, t_list* jobs){
 	return NULL;
 }
 
-char* proximaEtapa(char* etapa){
+int obtenerIdJob(int idMaster, t_list* jobs){
+	int i;
+	int tamanioJobs = list_size(jobs);
+	t_job* unJob;
+	for(i=0; i<tamanioJobs; i++){
+		unJob = list_get(jobs, i);
+		if(unJob->idMaster == idMaster){
+			return unJob->idJob;
+		}
+	}
+	return NULL;
+}
+
+char* proximaEtapa(int etapa){
 	char* siguienteEtapa = malloc(LENGTH_ETAPA);
-	if(strcmp(etapa, "transformacion") == 0){
-		strcpy(siguienteEtapa, "reduccion local");
+	if(etapa == RESULTADO_TRANSFORMACION){
+		strncpy(siguienteEtapa, "reduccion local", LENGTH_REDUCCION_LOCAL);
+		return siguienteEtapa;
+	} else if(etapa == RESULTADO_REDUCCION_LOCAL){
+		strncpy(siguienteEtapa, "reduccion global", LENGTH_REDUCCION_GLOBAL);
 		return siguienteEtapa;
 	} else{
-		strcpy(siguienteEtapa, "reduccion global");
+		strncpy(siguienteEtapa, "almacenado final", LENGTH_ALMACENADO_FINAL);
 		return siguienteEtapa;
 	}
 }
 
-void enProcesoSiguienteEtapa(char* idWorker, char* etapa, t_job* job){
+void enProcesoSiguienteEtapa(char* idWorker, int etapa, t_job* job){
 	t_estado* unEstado;
 	char* siguienteEtapa = proximaEtapa(etapa);
 
-	if(strcmp(siguienteEtapa, "reduccion local")){
+	if(strcmp(siguienteEtapa, "reduccion local") == 0){
 		int tamanioEstados = list_size(job->estadosReduccionesLocales);
 		int i;
 		for(i=0; i<tamanioEstados; i++){
 			unEstado = list_get(job->estadosReduccionesLocales, i);
 			if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idWorker) == 0){
-				strcpy(unEstado->estado,"en proceso");
+				strncpy(unEstado->estado, "en proceso", LENGTH_EN_PROCESO);
 			}
 		}
 	}
 	else if(strcmp(siguienteEtapa, "reduccion global") == 0){
-		strcpy(unEstado->estado, "en proceso");
+		strncpy(unEstado->estado, "en proceso", LENGTH_EN_PROCESO);
 	} else{
-		printf("no se pudo cambiar el estado de la siguiente etapa");
+		strncpy(unEstado->estado, "en proceso", LENGTH_EN_PROCESO);
 	}
 }
 
@@ -187,7 +237,7 @@ int cambiarEtapaOK(char* idWorker, char* etapa, int bloque, t_job* job){
 			unEstado = list_get(job->estadosTransformaciones, i);
 			if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idWorker) == 0 &&
 					unEstado->nodoPlanificado->bloque->numeroBloque == bloque){
-				strcpy(unEstado->estado, "finalizado");
+				strncpy(unEstado->estado, "finalizado", LENGTH_FINALIZADO);
 				if(chequearReduccionLocalNodo(idWorker, bloque, job)){
 					enProcesoSiguienteEtapa(idWorker, etapa, job);
 					return 1;
@@ -202,13 +252,13 @@ int cambiarEtapaOK(char* idWorker, char* etapa, int bloque, t_job* job){
 		for (i=0; i<tamanioEstados; i++){
 			unEstado = list_get(job->estadosReduccionesLocales, i);
 			if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idWorker) == 0){
-				strcpy(unEstado->estado, "finalizado");
+				strncpy(unEstado->estado, "finalizado", LENGTH_FINALIZADO);
 				enProcesoSiguienteEtapa(idWorker, etapa, job);
 				return 1;
 			}
 		}
 	} else if(strcmp(etapa, "reduccion global") == 0){
-		strcpy(job->reduccionGlobal->estado, "finalizado");
+		strncpy(job->reduccionGlobal->estado, "finalizado", LENGTH_FINALIZADO);
 		return 2;
 	}
 
@@ -225,43 +275,252 @@ void respuestaWorker(char* respuesta, int bloque, char* etapa, int idWorker, int
 	}
 }
 
+t_list* obtenerBloques(t_job* job){
+	int i;
+	int cantidadTransformaciones = list_size(job->estadosTransformaciones);
+	t_estado* unEstado;
+	t_list* bloques = list_create();
 
-/**
- * todo
- * recibe una planificacion
- * y restaura todos los valores de
- * las cargas de trabajo
+	for(i=0; i<cantidadTransformaciones; i++){
+		unEstado = list_get(job->estadosTransformaciones, i);
+		list_add(bloques, unEstado->nodoPlanificado->bloque);
+	}
+
+	return bloques;
+}
+
+/*
+ * la lista de bloques posee en cada bloque el id del nodo
+ * que lo tiene en su data.bin
  */
-void terminarJob(t_job* job){
-	printf("finalizando job, mostrando estadisticas (pueden repetirse los nodos)\n\n");
+t_list* obtenerNodosParticipantes(t_list* bloques){
 
+	t_list* nodosDeLosBloques;
+	t_bloque* unBloque;
+
+	nodosDeLosBloques = obtenerEInicializarNodosDeBloques(bloques);
+	setearNodos(nodosDeLosBloques);
+
+	return nodosDeLosBloques;
+}
+
+
+t_list* obtenerEInicializarNodosDeBloques(t_list* bloques){
+
+	int i;
+	int cantidadBloques = list_size(bloques);
+
+	t_bloque* unBloque;
+	t_list* listaNodos = list_create();
+	t_nodo* nuevoNodo;
+
+	for(i=0; i<cantidadBloques; i++){
+		unBloque = list_get(bloques, i);
+		if(!estaElNodo((unBloque->idNodo), listaNodos)){
+			nuevoNodo = inicializarNodo(unBloque->idNodo);
+			list_add(listaNodos, nuevoNodo);
+		}
+	}
+
+	return listaNodos;
+}
+
+t_nodo* inicializarNodo(char* id){
+	t_nodo* nodo = malloc(sizeof(t_nodo));
+	strncpy(nodo->idNodo, id, NOMBRE_NODO);
+	nodo->cargaDeTrabajo = 0;
+	nodo->cargaDeTrabajoActual = 0;
+	nodo->cargaDeTrabajoHistorica = 0;
+	nodo->disponibilidad = 0;
+	return nodo;
+}
+
+bool estaElNodo(char* id, t_list* nodos){
+	int i;
+	int cantidadNodos = list_size(nodos);
+
+	t_nodo* unNodo;
+
+	for(i=0; i<cantidadNodos; i++){
+		unNodo = list_get(nodos, i);
+		if(strcmp(unNodo->idNodo, id) == 0){
+			return true;
+		}
+	}
+	return false;
+}
+
+void setearNodos(t_list* nodos){
+
+	int i;
+	int cantidadNodos = list_size(nodos);
+
+	t_nodo* unNodo;
+	t_nodo* nodoConectado;
+
+	for(i=0; i<cantidadNodos; i++){
+		unNodo = list_get(nodos, i);
+		if(!estaConectado(unNodo)){
+			list_add(nodosConectados, unNodo);
+		}else{
+			nodoConectado = obtenerNodoConectado(unNodo->idNodo);
+			actualizar(unNodo, nodoConectado);
+		}
+	}
+}
+
+
+bool estaConectado(t_nodo* unNodo){
+	return estaElNodo(unNodo->idNodo, nodosConectados);
+}
+
+t_nodo* obtenerNodoConectado(char* id){
+	int i;
+	int cantidadNodosConectados = list_size(nodosConectados);
+
+	t_nodo* unNodoConectado;
+
+	for(i=0; i<cantidadNodosConectados; i++){
+		unNodoConectado = list_get(nodosConectados, i);
+		if(strcmp(unNodoConectado->idNodo, id) == 0){
+			return unNodoConectado;
+		}
+	}
+	return NULL;
+}
+
+
+void actualizar(t_nodo* nodo, t_nodo* nodoConectado){
+	nodo->cargaDeTrabajo = nodoConectado->cargaDeTrabajo;
+	nodo->cargaDeTrabajoActual = nodoConectado->cargaDeTrabajoActual;
+	nodo->cargaDeTrabajoHistorica = nodoConectado->cargaDeTrabajoHistorica;
+	nodo->disponibilidad = nodoConectado->disponibilidad;
+	strncpy(nodo->idNodo, nodoConectado->idNodo, NOMBRE_NODO);
+	strncpy(nodo->ipWorker, nodoConectado->ipWorker, LENGTH_IP);
+	nodo->puerto = nodoConectado->puerto;
+}
+
+
+void quitarBloquesNodo(char* idNodo, t_list* bloques){
+	int i;
+	int cantidadBloques = list_size(bloques);
+	t_bloque* unBloque;
+
+	for(i=0; i<cantidadBloques; i++){
+		unBloque = list_get(bloques, i);
+		if(strcmp(unBloque->idNodo, idNodo) == 0){
+			unBloque = list_remove(bloques, i);
+			free(unBloque);
+		}
+	}
+}
+
+
+
+void actualizarValores(t_planificacion* unaPlanificacion, t_list* nodos, int cantidad){
+	int i;
+	int cantidadNodos = list_size(nodos);
+	t_nodo* unNodo;
+
+	for(i=0; i<cantidadNodos; i++){
+		unNodo = list_get(nodos, i);
+		if(strcmp(unaPlanificacion->nodo->idNodo, unNodo->idNodo)==0){
+			unNodo->cargaDeTrabajo -= cantidad;
+
+			if(unaPlanificacion->reduccionGlobal == 0){
+				unNodo->disponibilidad ++;
+			}
+		}
+	}
+}
+
+/*
+ * restaura en la lista de los nodos conectados
+ * las cargas de trabajo y las disponibilidades
+ * excepto que se trate de una red Global
+ * cuyo caso restaura solo la carga de trabajo
+ */
+void restaurarValoresJob(t_job* job){
 	int tamanioPlanificacion = list_size(job->estadosTransformaciones);
 	int i;
 	t_estado* unaPlanificacion;
 
-
-
 	for(i=0; i<tamanioPlanificacion; i++){
 		unaPlanificacion = list_get(job->estadosTransformaciones, i);
+
 		unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajo--;
-		if(unaPlanificacion->nodoPlanificado->reduccionGlobal == 0){
-		}	else{
-		}
 		unaPlanificacion->nodoPlanificado->nodo->disponibilidad++;
+
+		actualizarValores(unaPlanificacion, nodosConectados, 1);
 	}
 	unaPlanificacion = job->reduccionGlobal;
-	unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajo -= unaPlanificacion->nodoPlanificado->reduccionGlobal;
-	unaPlanificacion->nodoPlanificado->nodo->disponibilidad++;
+	actualizarValores(unaPlanificacion, nodosConectados, unaPlanificacion->nodoPlanificado->reduccionGlobal);
+}
 
-	/**estadisticas**/
+int obtenerPosicionJob(int idJob, t_list* jobs){
+	int i;
+	int cantidadJobs = list_size(jobs);
+	t_job* unJob;
 
-	printf("id del master: %d\nid del job: %d\n", job->idMaster, job->idJob);
-	list_iterate(job->estadosTransformaciones,estadisticas);
-	estadisticas(unaPlanificacion);
+	for(i=0; i<cantidadJobs; i++){
+		unJob = list_get(jobs, i);
 
-	/** fin estadisticas**/
+		if(unJob->idJob == idJob){
+			return i;
+		}
+	}
+
+	return NULL;
+}
+
+/*
+ * dado el id del job
+ * quita un job de jobsActivos
+ * y lo agrega a jobsFinalizados
+ */
+t_job* moverJobAFinalizados(int idJob){
+
+	int posicion = obtenerPosicionJob(idJob, jobsActivos);
+	t_job* job;
+
+	job = list_remove(jobsActivos, posicion);
 
 	list_add(jobsFinalizados, job);
+
+	return job;
+}
+
+
+/**
+ * todo
+ * recibe un id de job
+ * y restaura todos los valores de
+ * las cargas de trabajo y disponibilidades
+ * ademas mueve el job a la lista de jobs finalizados
+ * de la lista de jobs activos
+ * y devuelve el job fallado
+ */
+t_job* terminarJob(int idJob){
+
+
+	//	printf("finalizando job, mostrando estadisticas (pueden repetirse los nodos)\n\n");
+
+
+	// todo
+	//	/**estadisticas**/
+	//	printf("id del master: %d\nid del job: %d\n", job->idMaster, job->idJob);
+	//	list_iterate(job->estadosTransformaciones,estadisticas);
+	//	estadisticas(unaPlanificacion);
+	//
+	//	/** fin estadisticas**/
+
+	t_job* job;
+
+	job = moverJobAFinalizados(idJob);
+
+	restaurarValoresJob(job);
+
 	printf("job finalizado exitosamente\n");
+	return job;
 }
 

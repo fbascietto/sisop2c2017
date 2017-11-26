@@ -21,12 +21,20 @@
 /* Formatos YAMA */
 #define NOMBRE_NODO 10
 
+/* Tamaños de strings para strncpy */
+#define LENGTH_TRANSFORMACION 14
+#define LENGTH_REDUCCION_LOCAL 16
+#define LENGTH_REDUCCION_GLOBAL 17
+#define LENGTH_ALMACENADO_FINAL 17
+#define LENGTH_EN_PROCESO 11
+#define LENGTH_FINALIZADO 11
+
 
 /*Structs de comunicacion YAMA con MASTER*/
 
 //TRANSFORMACION
 
-typedef struct item_transformacion {
+typedef struct {
 	char nodo_id[NOMBRE_NODO];		//nodo
 	char ip_worker[LENGTH_IP];		//IP y Puerto del Worker
 	uint32_t puerto_worker;
@@ -35,7 +43,7 @@ typedef struct item_transformacion {
 	char archivo_temporal[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal
 } item_transformacion;
 
-typedef struct solicitud_transformacion {
+typedef struct {
 	item_transformacion* items_transformacion;		//array de item_transformacion
 	uint32_t item_cantidad; //cantidad de items
 } solicitud_transformacion;
@@ -143,5 +151,20 @@ typedef struct {
 
 //-------------------------------------------------------------------------------------------------------------------
 
+
+/*Structs de comunicacion YAMA con FS*/
+
+typedef struct{
+	uint32_t numero_bloque;
+	uint32_t bytes_ocupados;
+	char ip[LENGTH_IP];
+	uint32_t puerto;
+	char idNodo[NOMBRE_NODO];
+} t_bloque_serializado;
+
+typedef struct{
+	t_bloque_serializado* lista_bloques;
+	uint32_t cantidad_bloques;
+} t_bloques_enviados;
 
 #endif /* ESTRUCTURAS_H_ */

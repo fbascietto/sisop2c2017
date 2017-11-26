@@ -16,10 +16,14 @@
 #include "prePlanificacion.h"
 
 void main() {
+	int socketConn;
 	int socketEscucha;
 	fd_set fdSocketsEscucha;
 	FD_ZERO(&fdSocketsEscucha);
 
+	printf("pid de yama %d \nusarlo para enviar seniales\n", getpid());
+	if (signal(SIGUSR1, recargarConfiguracion) == SIG_ERR)
+		printf("\nerror agarrando la senial SIGUSR1\n");
 
 	socketEscucha= escuchar(4004);
 	FD_SET(socketEscucha, &fdSocketsEscucha);
@@ -27,23 +31,30 @@ void main() {
 
 	t_esperar_conexion *esperarConexion;
 
-/*
+	/*
 	hacerPedidoDeTransformacionYRL();
 	printf("finaliza pedido transformacion y reduccion\n");
-*/
+	 */
 	//cargo config.txt
-	//inicializarConfigYama();
+	inicializarConfigYama();
 
-	ejemploPrePlanificacion();
+
+	socketFS = conectarseA(fsIP, fsPort);
+	while(socketConn == 0){
+		socketFS = conectarseA(fsIP, fsPort);
+		sleep(3);
+	}
+
+	enviarInt(socketFS,PROCESO_YAMA);
+
 
 	esperarConexion = malloc(sizeof(t_esperar_conexion));
 
 	esperarConexion->fdSocketEscucha = fdSocketsEscucha;
 	esperarConexion->socketEscucha = socketEscucha;
 
-	//Espero conexión de procesos master
-	esperarConexionMaster((void*) esperarConexion);
-
+		//Espero conexión de procesos master
+		esperarConexionMasterYFS((void*) esperarConexion);
 
 
 }

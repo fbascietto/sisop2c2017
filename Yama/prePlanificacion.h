@@ -23,11 +23,14 @@ int valorBaseTemporal;
 
 
 t_list* prePlanificacion(t_list* bloques, int valorBase, t_list* listaNodos, char* tipoAlgoritmo);
-t_list* replanificacion(t_list* listaNodos, int nodoFallado, t_list* bloques, int dispBase, char* tipoAlgoritmo);
-void terminarJob(t_job* job);
+t_list* replanificacion(char* nodoFallado, t_list* bloques, int dispBase, char* tipoAlgoritmo);
+t_job* terminarJob(int idJob);
+
 void estadisticas(void* unaPlanif);
+void loguear_nodos_asignados(t_list* planificacion);
 
 char* generarRutaTemporal();
+void* obtenerIdNodoPlanificado(void* nodoPlanificado);
 
 void agregarDisponibilidad(void* unNodo);
 void agregarDisponibilidadNodos(void* nodosDisponibles, int valorBase);
@@ -47,14 +50,14 @@ bool estaElBloque(void* bloqueAVerificar);
 bool tieneElBloque(t_nodo* nodo, t_bloque* bloque);
 bool hayUnaCopiaDeCadaBloque(t_list* listaNodos, t_list* bloques);
 
-void seleccionarNodoParaReduccionFinal(t_list* nodos, char* tipoAlgoritmo, t_list* planificacionNodos, int cantBloques);
+void seleccionarNodoParaReduccionFinal(t_list* nodos, t_list* planificacionNodos);
 void* quitarNodo(t_list* listaNodos, int indiceNodoFallado);
 void* obtenerNodos(void* elemento);
 
 
 //prueba de preplanificacion
-void inicializarNodo(t_nodo* nodo, char* id);
-void asignarBloque(t_nodo* nodo, int numeroBloque, int bytesOcupados);
+void inicializarNodoTest(t_nodo* nodo, char* id);
+void inicializarBloque(t_nodo* nodo, t_bloque* bloque, int numeroBloque);
 void ejemploPrePlanificacion();
 
 #endif /* PREPLANIFICACION_H_ */

@@ -49,13 +49,17 @@ void main() {
 
 	//TODO: crear un hilo para manejar esta comunicacion con Yama.
 	socketConn = conectarseA(yamaIP, yamaPort);
-
+	while(socketConn == 0){
+		socketConn = conectarseA(yamaIP, yamaPort);
+		sleep(3);
+	}
 	enviarInt(socketConn,PROCESO_MASTER);
 	char* archivoMensage = "sent.txt";
 	int len = strlen(archivoMensage);
 	uint32_t message_long = sizeof(char)*len;
 	enviarMensajeSocketConLongitud(socketConn,ACCION_PROCESAR_ARCHIVO,archivoMensage,len);
 	while(1){
+		sleep(1);
 		Package* package = createPackage();
 		printf("esperando mensaje de yama: %d\n",socketConn);
 		int leidos = recieve_and_deserialize(package, socketConn);
@@ -78,6 +82,7 @@ void main() {
 				enviarMensajeSocketConLongitud(socketConn,RESULTADO_ALMACENADO_FINAL,archivoMensage,len);
 				break;
 		}
+
 	}
 }
 

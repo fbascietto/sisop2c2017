@@ -1,0 +1,134 @@
+[TRACE] 16:57:50:930 YAMA/(7183:7183): Inicializacion de la configuracion de Yama
+[TRACE] 16:57:50:930 YAMA/(7183:7183): Carga de valores de planificacion
+[TRACE] 16:57:50:930 YAMA/(7183:7183): Carga exitosa del archivo de configuracion
+[TRACE] 16:57:50:931 YAMA/(7183:7183): bloque 34  asignado al nodo: 0  
+[TRACE] 16:57:50:931 YAMA/(7183:7183): con disponibilidad restante : 0  y reduccionGlobal (deberia estar en 0): 0 
+
+[TRACE] 16:57:50:931 YAMA/(7183:7183): bloque 19  asignado al nodo: 1  
+[TRACE] 16:57:50:931 YAMA/(7183:7183): con disponibilidad restante : 1  y reduccionGlobal (deberia estar en 0): 0 
+
+[TRACE] 16:57:50:931 YAMA/(7183:7183): bloque 66  asignado al nodo: 2  
+[TRACE] 16:57:50:931 YAMA/(7183:7183): con disponibilidad restante : 1  y reduccionGlobal (deberia estar en 0): 0 
+
+[TRACE] 16:57:50:931 YAMA/(7183:7183): bloque 1  asignado al nodo: 1  
+[TRACE] 16:57:50:931 YAMA/(7183:7183): con disponibilidad restante : 1  y reduccionGlobal (deberia estar en 0): 0 
+
+[TRACE] 16:57:50:931 YAMA/(7183:7183): bloque 93  asignado al nodo: 0  
+[TRACE] 16:57:50:931 YAMA/(7183:7183): con disponibilidad restante : 0  y reduccionGlobal (deberia estar en 0): 0 
+
+[TRACE] 16:57:50:931 YAMA/(7183:7183): bloque 5  asignado al nodo: 0  
+[TRACE] 16:57:50:931 YAMA/(7183:7183): con disponibilidad restante : 0  y reduccionGlobal (deberia estar en 0): 0 
+
+[TRACE] 16:59:15:93 YAMA/(7225:7225): Inicializacion de la configuracion de Yama
+[TRACE] 16:59:15:94 YAMA/(7225:7225): Carga de valores de planificacion
+[TRACE] 16:59:15:94 YAMA/(7225:7225): Carga exitosa del archivo de configuracion
+[TRACE] 17:00:48:62 YAMA/(7225:7225): bloque 34  asignado al nodo: 0  
+[TRACE] 17:00:48:62 YAMA/(7225:7225): con disponibilidad restante : 0  y reduccionGlobal (deberia estar en 0): 0 
+
+[TRACE] 17:00:48:62 YAMA/(7225:7225): bloque 19  asignado al nodo: 1  
+[TRACE] 17:00:48:62 YAMA/(7225:7225): con disponibilidad restante : 1  y reduccionGlobal (deberia estar en 0): 0 
+
+[TRACE] 17:00:48:62 YAMA/(7225:7225): bloque 66  asignado al nodo: 2  
+[TRACE] 17:00:48:62 YAMA/(7225:7225): con disponibilidad restante : 1  y reduccionGlobal (deberia estar en 0): 0 
+
+[TRACE] 17:00:48:62 YAMA/(7225:7225): bloque 1  asignado al nodo: 1  
+[TRACE] 17:00:48:62 YAMA/(7225:7225): con disponibilidad restante : 1  y reduccionGlobal (deberia estar en 0): 0 
+
+[TRACE] 17:00:48:62 YAMA/(7225:7225): bloque 93  asignado al nodo: 0  
+[TRACE] 17:00:48:62 YAMA/(7225:7225): con disponibilidad restante : 0  y reduccionGlobal (deberia estar en 0): 0 
+
+[TRACE] 17:00:48:62 YAMA/(7225:7225): bloque 5  asignado al nodo: 0  
+[TRACE] 17:00:48:62 YAMA/(7225:7225): con disponibilidad restante : 0  y reduccionGlobal (deberia estar en 0): 0 
+
+[TRACE] 17:09:00:136 YAMA/(7585:7585): Inicializacion de la configuracion de Yama
+[TRACE] 17:09:00:136 YAMA/(7585:7585): Carga de valores de planificacion
+[TRACE] 17:09:00:137 YAMA/(7585:7585): Carga exitosa del archivo de configuracion
+[TRACE] 17:09:00:137 YAMA/(7585:7585): bloque 34  asignado al nodo: 0
+[TRACE] 17:09:00:137 YAMA/(7585:7585): con disponibilidad restante : 0  y reduccionGlobal (deberia estar en 0): 0
+
+[TRACE] 17:09:00:137 YAMA/(7585:7585): bloque 19  asignado al nodo: 1
+[TRACE] 17:09:00:137 YAMA/(7585:7585): con disponibilidad restante : 1  y reduccionGlobal (deberia estar en 0): 0
+
+[TRACE] 17:09:00:137 YAMA/(7585:7585): bloque 66  asignado al nodo: 2
+[TRACE] 17:09:00:137 YAMA/(7585:7585): con disponibilidad restante : 1  y reduccionGlobal (deberia estar en 0): 0
+
+[TRACE] 17:09:00:137 YAMA/(7585:7585): bloque 1  asignado al nodo: 1
+[TRACE] 17:09:00:137 YAMA/(7585:7585): con disponibilidad restante : 1  y reduccionGlobal (deberia estar en 0): 0
+
+[TRACE] 17:09:00:137 YAMA/(7585:7585): bloque 93  asignado al nodo: 0
+[TRACE] 17:09:00:137 YAMA/(7585:7585): con disponibilidad restante : 0  y reduccionGlobal (deberia estar en 0): 0
+
+[TRACE] 17:09:00:137 YAMA/(7585:7585): bloque 5  asignado al nodo: 0
+[TRACE] 17:09:00:137 YAMA/(7585:7585): con disponibilidad restante : 0  y reduccionGlobal (deberia estar en 0): 0
+
+[TRACE] 17:12:03:0 YAMA/(7645:7645): Inicializacion de la configuracion de Yama
+[TRACE] 17:12:03:1 YAMA/(7645:7645): Carga de valores de planificacion
+[TRACE] 17:12:03:1 YAMA/(7645:7645): Carga exitosa del archivo de configuracion
+[TRACE] 17:46:09:737 YAMA/(2821:2821): Inicializacion de la configuracion de Yama
+[TRACE] 17:46:09:775 YAMA/(2821:2821): Carga de valores de planificacion
+[TRACE] 17:46:09:775 YAMA/(2821:2821): Carga exitosa del archivo de configuracion
+[TRACE] 17:46:38:70 YAMA/(2821:2821): Carga de valores de planificacion
+[TRACE] 17:52:32:915 YAMA/(2965:2965): Inicializacion de la configuracion de Yama
+[TRACE] 17:52:32:915 YAMA/(2965:2965): Carga de valores de planificacion
+[TRACE] 17:52:32:915 YAMA/(2965:2965): Carga exitosa del archivo de configuracion
+[TRACE] 17:52:44:697 YAMA/(2965:2965): Carga de valores de planificacion
+[TRACE] 17:54:13:708 YAMA/(3006:3006): Inicializacion de la configuracion de Yama
+[TRACE] 17:54:13:708 YAMA/(3006:3006): Carga de valores de planificacion
+[TRACE] 17:54:13:708 YAMA/(3006:3006): Carga exitosa del archivo de configuracion
+[TRACE] 17:54:30:169 YAMA/(3006:3006): Carga de valores de planificacion
+[TRACE] 17:55:18:810 YAMA/(3031:3031): Inicializacion de la configuracion de Yama
+[TRACE] 17:55:18:810 YAMA/(3031:3031): Carga de valores de planificacion
+[TRACE] 17:55:18:810 YAMA/(3031:3031): Carga exitosa del archivo de configuracion
+[TRACE] 17:56:58:536 YAMA/(3050:3050): Inicializacion de la configuracion de Yama
+[TRACE] 17:56:58:536 YAMA/(3050:3050): Carga de valores de planificacion
+[TRACE] 17:56:58:536 YAMA/(3050:3050): Carga exitosa del archivo de configuracion
+[TRACE] 17:57:35:610 YAMA/(3093:3093): Inicializacion de la configuracion de Yama
+[TRACE] 17:57:35:611 YAMA/(3093:3093): Carga de valores de planificacion
+[TRACE] 17:57:35:611 YAMA/(3093:3093): Carga exitosa del archivo de configuracion
+[TRACE] 17:57:51:520 YAMA/(3121:3121): Inicializacion de la configuracion de Yama
+[TRACE] 17:57:51:521 YAMA/(3121:3121): Carga de valores de planificacion
+[TRACE] 17:57:51:521 YAMA/(3121:3121): Carga exitosa del archivo de configuracion
+[TRACE] 19:41:26:853 YAMA/(7338:7338): Inicializacion de la configuracion de Yama
+[TRACE] 19:41:26:853 YAMA/(7338:7338): Carga de valores de planificacion
+[TRACE] 19:41:26:853 YAMA/(7338:7338): Carga exitosa del archivo de configuracion
+[TRACE] 02:52:07:72 YAMA/(17241:17241): Inicializacion de la configuracion de Yama
+[TRACE] 02:52:07:72 YAMA/(17241:17241): Carga de valores de planificacion
+[TRACE] 02:52:07:72 YAMA/(17241:17241): Carga exitosa del archivo de configuracion
+[TRACE] 02:52:49:709 YAMA/(17285:17285): Inicializacion de la configuracion de Yama
+[TRACE] 02:52:49:709 YAMA/(17285:17285): Carga de valores de planificacion
+[TRACE] 02:52:49:710 YAMA/(17285:17285): Carga exitosa del archivo de configuracion
+[TRACE] 02:52:56:362 YAMA/(17285:17285): Carga de valores de planificacion
+[TRACE] 02:53:26:365 YAMA/(17315:17315): Inicializacion de la configuracion de Yama
+[TRACE] 02:53:26:365 YAMA/(17315:17315): Carga de valores de planificacion
+[TRACE] 02:53:26:366 YAMA/(17315:17315): Carga exitosa del archivo de configuracion
+[TRACE] 02:54:38:373 YAMA/(17406:17406): Inicializacion de la configuracion de Yama
+[TRACE] 02:54:38:373 YAMA/(17406:17406): Carga de valores de planificacion
+[TRACE] 02:54:38:373 YAMA/(17406:17406): Carga exitosa del archivo de configuracion
+[TRACE] 02:58:17:509 YAMA/(17463:17463): Inicializacion de la configuracion de Yama
+[TRACE] 02:58:17:509 YAMA/(17463:17463): Carga de valores de planificacion
+[TRACE] 02:58:17:509 YAMA/(17463:17463): Carga exitosa del archivo de configuracion
+[TRACE] 16:42:23:728 YAMA/(2448:2448): Inicializacion de la configuracion de Yama
+[TRACE] 16:42:23:744 YAMA/(2448:2448): Carga de valores de planificacion
+[TRACE] 16:42:23:744 YAMA/(2448:2448): Carga exitosa del archivo de configuracion
+[TRACE] 16:42:49:910 YAMA/(2448:2448): Carga de valores de planificacion
+[TRACE] 16:44:24:111 YAMA/(2532:2532): Inicializacion de la configuracion de Yama
+[TRACE] 16:44:24:113 YAMA/(2532:2532): Carga de valores de planificacion
+[TRACE] 16:44:24:114 YAMA/(2532:2532): Carga exitosa del archivo de configuracion
+[TRACE] 16:44:32:330 YAMA/(2532:2532): Carga de valores de planificacion
+[TRACE] 16:44:43:973 YAMA/(2532:2532): Carga de valores de planificacion
+[TRACE] 16:44:44:851 YAMA/(2532:2532): Carga de valores de planificacion
+[TRACE] 16:44:45:536 YAMA/(2532:2532): Carga de valores de planificacion
+[TRACE] 16:44:46:295 YAMA/(2532:2532): Carga de valores de planificacion
+[TRACE] 16:44:46:969 YAMA/(2532:2532): Carga de valores de planificacion
+[TRACE] 03:24:35:197 YAMA/(7210:7210): Inicializacion de la configuracion de Yama
+[TRACE] 03:24:35:197 YAMA/(7210:7210): Carga de valores de planificacion
+[TRACE] 03:24:35:198 YAMA/(7210:7210): Carga exitosa del archivo de configuracion
+[TRACE] 03:25:35:34 YAMA/(7225:7225): Inicializacion de la configuracion de Yama
+[TRACE] 03:25:35:34 YAMA/(7225:7225): Carga de valores de planificacion
+[TRACE] 03:25:35:34 YAMA/(7225:7225): Carga exitosa del archivo de configuracion
+[TRACE] 03:26:48:58 YAMA/(7242:7242): Inicializacion de la configuracion de Yama
+[TRACE] 03:26:48:58 YAMA/(7242:7242): Carga de valores de planificacion
+[TRACE] 03:26:48:58 YAMA/(7242:7242): Carga exitosa del archivo de configuracion
+[TRACE] 03:29:07:868 YAMA/(7356:7356): Inicializacion de la configuracion de Yama
+[TRACE] 03:29:07:868 YAMA/(7356:7356): Carga de valores de planificacion
+[TRACE] 03:29:07:869 YAMA/(7356:7356): Carga exitosa del archivo de configuracion

@@ -26,8 +26,7 @@ void hacerPedidoDeTransformacionYRL(){
 	bloque->bytesOcupados=999;
 	bloque->numeroBloque=10;
 
-	nodo->bloques = bloques;
-	list_add((nodo->bloques), bloque);
+
 	strcpy(nodo->idNodo, "nodo1");
 	strcpy(nodo->ipWorker, "127.0.0.1");
 	nodo->puerto = 5555;
@@ -57,7 +56,7 @@ void hacerPedidoDeTransformacionYRL(){
 	items = solicitud->items_transformacion;
 
 	printf("deberia haber 1 elemento, hay %d elemento(s)\n", solicitud->item_cantidad);
-	printf("primer elemento tiene al nodo %d, bloque %d, ip %s\n\n", items[0].nodo_id, items[0].bloque, items[0].ip_worker);
+	printf("primer elemento tiene al nodo %s, bloque %d, ip %s\n\n", items[0].nodo_id, items[0].bloque, items[0].ip_worker);
 	printf("la ruta temporal es %s\n", items[0].archivo_temporal);
 
 
@@ -72,7 +71,7 @@ void hacerPedidoDeTransformacionYRL(){
 	itemsRL = solicitudRL->items_reduccion_local;
 
 	printf("deberia haber 1 elemento, hay %d elemento(s)\n", solicitud->item_cantidad);
-	printf("primer elemento tiene al nodo %d, ruta del primer archivo temporal de transformacion %s, ip %s\n\n", itemsRL[0].nodo_id, itemsRL[0].archivos_temporales_transformacion[0].archivo_temp, itemsRL[0].ip_worker);
+	printf("primer elemento tiene al nodo %s, ruta del primer archivo temporal de transformacion %s, ip %s\n\n", itemsRL[0].nodo_id, itemsRL[0].archivos_temporales_transformacion[0].archivo_temp, itemsRL[0].ip_worker);
 	printf("la ruta temporal del archivo de reduccion local es %s\n", itemsRL[0].archivo_temporal_reduccion_local);
 }
 
@@ -110,17 +109,28 @@ void ejemploPrePlanificacion(){
 		t_list* listaBloques = list_create();
 
 		//bloques
-		int bl0=34;
+		t_bloque* bl0 = malloc(sizeof(t_bloque));
+				bl0->bytesOcupados = 100;
 		list_add(listaBloques, &bl0);
-		int bl1=19;
+
+		t_bloque* bl1 = malloc(sizeof(t_bloque));
+				bl1->bytesOcupados = 150;
 		list_add(listaBloques, &bl1);
-		int bl2=66;
+
+		t_bloque* bl2 = malloc(sizeof(t_bloque));
+						bl2->bytesOcupados = 10294;
 		list_add(listaBloques, &bl2);
-		int bl3=01;
+
+		t_bloque* bl3 = malloc(sizeof(t_bloque));
+						bl3->bytesOcupados = 2;
 		list_add(listaBloques, &bl3);
-		int bl4=93;
+
+		t_bloque* bl4 = malloc(sizeof(t_bloque));
+						bl4->bytesOcupados = 720;
 		list_add(listaBloques, &bl4);
-		int bl5=5;
+
+		t_bloque* bl5 = malloc(sizeof(t_bloque));
+						bl5->bytesOcupados = 102492;
 		list_add(listaBloques, &bl5);
 
 		int cantidadBloques = list_size(listaBloques);
@@ -137,21 +147,21 @@ void ejemploPrePlanificacion(){
 		//le agrego aparte un valor a cargaDeTrabajo
 		//para que quede igual que en el ejemplo del PPT
 		t_nodo* nodo0 = malloc(sizeof(t_nodo));
-		inicializarNodo(nodo0, "0");
-		asignarBloque(nodo0, bl0, 10);
-		asignarBloque(nodo0, bl4, 230);
-		asignarBloque(nodo0, bl5, 329);
+		inicializarNodoTest(nodo0, "0");
+		inicializarBloque(nodo0, bl0, 10);
+		inicializarBloque(nodo0, bl4, 230);
+		inicializarBloque(nodo0, bl5, 329);
 		nodo0->cargaDeTrabajo++;
 		list_add(listaNodos, nodo0);
 		printf("nodo %s agregado a la lista\n", nodo0->idNodo);
 
 		//inicializacion nodo1
 		t_nodo* nodo1 = malloc(sizeof(t_nodo));
-		inicializarNodo(nodo1, "1");
-		asignarBloque(nodo1, bl1, 1248);
-		asignarBloque(nodo1, bl2, 128);
-		asignarBloque(nodo1, bl3, 256);
-		asignarBloque(nodo1, bl5, 929);
+		inicializarNodoTest(nodo1, "1");
+		inicializarBloque(nodo1, bl1, 1248);
+		inicializarBloque(nodo1, bl2, 128);
+		inicializarBloque(nodo1, bl3, 256);
+		inicializarBloque(nodo1, bl5, 929);
 		nodo1->cargaDeTrabajo++;
 		nodo1->cargaDeTrabajoActual++;
 		list_add(listaNodos, nodo1);
@@ -159,12 +169,12 @@ void ejemploPrePlanificacion(){
 
 		//inicializacion nodo2
 		t_nodo* nodo2 = malloc(sizeof(t_nodo));
-		inicializarNodo(nodo2, "2");
-		asignarBloque(nodo2, bl0, 999);
-		asignarBloque(nodo2, bl1, 1024);
-		asignarBloque(nodo2, bl2, 1999);
-		asignarBloque(nodo2, bl3, 1996);
-		asignarBloque(nodo2, bl4, 2777);
+		inicializarNodoTest(nodo2, "2");
+		inicializarBloque(nodo2, bl0, 999);
+		inicializarBloque(nodo2, bl1, 1024);
+		inicializarBloque(nodo2, bl2, 1999);
+		inicializarBloque(nodo2, bl3, 1996);
+		inicializarBloque(nodo2, bl4, 2777);
 		nodo2->cargaDeTrabajo++;
 		nodo2->cargaDeTrabajoActual++;
 		list_add(listaNodos, nodo2);
@@ -189,7 +199,7 @@ void ejemploPrePlanificacion(){
 
 
 		t_list* nuevaReplanificacion;
-		nuevaReplanificacion = replanificacion(listaNodos, ejemploNodoFallado, listaBloques, valorBase, tipoAlgoritmo);
+		nuevaReplanificacion = replanificacion(ejemploNodoFallado, listaBloques, valorBase, tipoAlgoritmo);
 
 
 		if(nuevaReplanificacion==NULL){
@@ -215,25 +225,25 @@ void ejemploPrePlanificacion(){
 
 		}
 
+		printf("destruccion de listas para testear en vvalgrind\n");
+		free(unaPlanificacion);
+		list_destroy(planificacion);
+		list_destroy(nuevaReplanificacion);
 }
 
 
-void inicializarNodo(t_nodo* nodo, char* id){
-	t_list* bloquesNodo = list_create();
-	strcpy(nodo->idNodo, id);
-	nodo->bloques = bloquesNodo;
+void inicializarNodoTest(t_nodo* nodo, char* id){
+	strncpy(nodo->idNodo, id, NOMBRE_NODO);
 	nodo->cargaDeTrabajo = 0;
 	nodo->cargaDeTrabajoActual = 0;
 	nodo->cargaDeTrabajoHistorica = 0;
 	nodo->disponibilidad = 0;
 }
 
-void asignarBloque(t_nodo* nodo, int numeroBloque, int bytesOcupados){
-	t_bloque* bloque = malloc(sizeof(t_bloque));
+void inicializarBloque(t_nodo* nodo, t_bloque* bloque, int numeroBloque){
 	bloque->numeroBloque = numeroBloque;
-	bloque->bytesOcupados = bytesOcupados;
-	list_add(nodo->bloques, bloque);
-	printf("se agrega bloque %d al nodo %s\n", bloque->numeroBloque, nodo->idNodo);
+	strcpy(bloque->idNodo, nodo->idNodo);
+	printf("el nodo %s tiene un bloque en el lugar %d\n", nodo->idNodo, bloque->numeroBloque);
 }
 
 
