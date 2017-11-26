@@ -19,7 +19,7 @@
 #include <commons/config.h>
 #include <commons/collections/list.h>
 
-void main(){
+void main(int argc, char *argv[]){
 	t_log_level LogL = LOG_LEVEL_TRACE;
 	t_log* logFS = log_create("log.txt","YAMAFS",0,LogL);
 
@@ -30,12 +30,11 @@ void main(){
 	/*creo carpeta para archivos*/
 	status = mkdir("metadata/archivos", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
-
 	nodos_file = "nodos.bin";
+	archivos_file = "archivos.dat";
+	cantNodos = 0;
 	nodos = list_create();
 	pthread_mutex_init(&mx_nodobin, NULL);
-
-
 
 	int socketEscucha;
 	fd_set fdSocketsEscucha;
@@ -49,8 +48,14 @@ void main(){
 	pthread_t threadEscucharConsola;
 	t_esperar_conexion *esperarConexion;
 
-
-	levantarNodos(1);
+	if(argc == 2 && !strcmp(argv[1],"--clean")){
+		levantarNodos(1);
+	} else if (argc == 1){
+		levantarNodos(0);
+	} else if (argc > 2){
+		printf("Demasiados parámetros. YamaFS se inicializa con --clean o sin argumentos.\n");
+		exit(1);
+	}
 
 	esperarConexion = malloc(sizeof(t_esperar_conexion));
 	esperarConexion->fdSocketEscucha = fdSocketsEscucha;

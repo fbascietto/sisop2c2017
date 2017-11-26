@@ -26,7 +26,10 @@
 #define CANTIDAD_BLOQUES_ARCHIVO(FILE_SIZE, BLOCK_SIZE) ((FILE_SIZE > 0) ? ROUNDUP(FILE_SIZE, BLOCK_SIZE) : 1)
 
 char* nodos_file;
+char* archivos_file;
 t_list * nodos;
+int cantNodos;
+int estable;
 
 typedef struct {
 	int socketEscucha;
@@ -65,8 +68,11 @@ void *escucharConsola();
 void *esperarConexiones(void *args);
 void procesarSolicitudMaster(int nuevoSocket);
 int recibirConexionDataNode(int nuevoSocket);
+void levantarNodos(int clean);
 void actualizarNodosBin();
 void imprimeNodosBin();
+int traeBloquesLibres();
+void creoListaNodosDesdeNodosBin();
 void deserializar_a_nodo(void* serializado, t_nodo *nodo);
 t_nodo* getNodoPorNombre(char* nombre_nodo, t_list* listaABuscar);
 t_list* getNodosMenosCargados(t_list* listaABuscar);
@@ -76,7 +82,7 @@ t_bitarray* creaAbreBitmap(int tamNodo, char nombreNodo[10]);
 t_bitarray *crearBitmapVacio(int tamNodo);
 t_bitarray *leerBitmap(FILE* bitmap_file, int tamNodo);
 int findFreeBloque(int tamNodo, t_bitarray* t_fs_bitmap);
-bool escribirBitMap(int tamNodo, char* nombreNodo[10], t_bitarray* t_fs_bitmap);
+bool escribirBitMap(int tamNodo, char nombreNodo[10], t_bitarray* t_fs_bitmap);
 int cuentaBloquesLibre(int tamNodo, t_bitarray* t_fs_bitmap);
 t_bitarray *limpiar_bitmap(int tamNodo, char* nomNodo[10], t_bitarray* bitmap);
 void destruir_bitmap(t_bitarray* bitmap);
@@ -84,17 +90,26 @@ void destruir_bitmap(t_bitarray* bitmap);
 /*Funciones de Filesys*/
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList);
 void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList);
-int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList);
-int obtenerMD5Archivo(char * archivo, t_list* folderList);
-void * imprimeMetadata(char* rutaEnYamafs, t_list* folderList);
-void escucharConexionNodo(void* socket);
+int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList, int md5flag);
+void copioBloque(char* archivoABuscar, char* nodoDestino, t_list* folderList);
 
+void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList);
+void moverArchivo(char* archivoABuscar, char* destino);
+void renombrarArchivo(char* archivoABuscar, char* nombreNuevo, t_list* folderList);
+
+int obtenerMD5Archivo(char * archivo, t_list* folderList);
+void imprimeMetadata(char* rutaEnYamafs, t_list* folderList);
+int chequeoEstadoFS();
+void * cls();
 
 int escribirBloque(int socketnodo, int bloque, void * buffer, int largoAMandar);
 int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer);
 FILE * crearMetadata(char * destino, char* directorio_yamafs, t_list* folderList, char* tipo, int tamanio);
 t_list * obtener_lista_metadata(char * ruta_metadata);
 void recibirDatosBloque(t_nodo * nodo);
+void actualizoArchivosDat(char* ruta_metadata, int flag);
+void buscoEnArchivosDat(char* ruta_metadata);
+int estaEstable();
 
 /*Funciones de directorio.dat*/
 t_list* inicializarDirectorios();
@@ -104,8 +119,16 @@ void crearDirectorio(t_list* folderList, t_directory* carpetaActual, char* nombr
 int identificaDirectorio(char* directorio_yamafs, t_list* folderList);
 char* getRutaMetadata(char* ruta_archivo, t_list* folderList, int carpeta);
 char* getNombreArchivo(char* path);
+int obtenerDirectorioFaltante(t_list* folderList);
+t_directory * cambiarAdirectorio(char* nombre, t_directory* carpetaActual, t_list* folderList);
+t_directory * cambiarAdirectorioConChequeo(char* nombre, t_directory* carpetaActual, t_list* folderList);
+t_nodo* getDirectorioPorNombre(char* carpeta, t_list* folderList);
+void actualizarDirectorioDat(t_list* folderList);
 
 /*Misc*/
 char* replace_char(char* str, char find, char replace);
+
+/*Deprecated*/
+void escucharConexionNodo(void* socket);
 
 #endif /* FUNCIONESFS_H_ */
