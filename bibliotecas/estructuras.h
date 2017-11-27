@@ -133,6 +133,15 @@ typedef struct {
 } solicitud_programa_reduccion_global;
 
 
+//ALMACENAMIENTO FINAL
+
+typedef struct {
+
+	char ruta_archivo_temporal_resultante_reduccion_global[LENGTH_RUTA_ARCHIVO_TEMP];
+	char ruta_archivo_final_fs[LENGTH_RUTA_ARCHIVO_TEMP];
+
+} solicitud_realizar_almacenamiento_final;
+
 //-------------------------------------------------------------------------------------------------------------------
 
 

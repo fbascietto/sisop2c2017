@@ -175,3 +175,40 @@ solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGloba
 
 	return solicitud;
 }
+
+
+uint32_t getLong_SolicitudRealizarAlmacenadoFinal(solicitud_realizar_almacenamiento_final* solicitud){
+
+	uint32_t total_size = sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP])*2; //ruta archivo red global y ruta final del fs
+
+	return total_size;
+
+}
+
+char* serializarSolicitudRealizarAlmacenadoFinal(solicitud_realizar_almacenamiento_final* solicitud){
+
+	uint32_t total_size = getLong_SolicitudRealizarAlmacenadoFinal(solicitud);
+
+	char* serializedPackage = malloc(total_size);
+
+	int offset = 0;
+
+	serializarDato(serializedPackage,&(solicitud->ruta_archivo_temporal_resultante_reduccion_global),sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
+	serializarDato(serializedPackage,&(solicitud->ruta_archivo_final_fs),sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
+
+	return serializedPackage;
+
+}
+
+solicitud_realizar_almacenamiento_final* deserializarSolicitudRealizarAlmacenadoFinal(char* serialized){
+
+	solicitud_realizar_almacenamiento_final* solicitud = malloc(sizeof(solicitud_realizar_almacenamiento_final));
+
+	int offset = 0;
+
+	deserializarDato(&(solicitud->ruta_archivo_temporal_resultante_reduccion_global),serialized,sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
+	deserializarDato(&(solicitud->ruta_archivo_final_fs),serialized,sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
+
+	return solicitud;
+
+}

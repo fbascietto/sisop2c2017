@@ -36,29 +36,29 @@ typedef struct{
 } t_elemento;
 
 //T
-int transformacion(solicitud_programa_transformacion *, char *);
+int transformacion(solicitud_programa_transformacion*, char*);
 void responderSolicitudT(int, int);
 
 //RL
-int reduccionLocal(solicitud_programa_reduccion_local *);
+int reduccionLocal(solicitud_programa_reduccion_local*);
 void responderSolicitudRL(int, int);
 
 //RG
-int reduccionGlobal(solicitud_programa_reduccion_global *, char*);
+int reduccionGlobal(solicitud_programa_reduccion_global*, char*);
 void prepararParaApareo(t_list*, t_worker*, int, char*);
-int recorrerArchivo(char[LENGTH_RUTA_ARCHIVO_TEMP]);
-int leerYEnviarArchivoTemp(char[LENGTH_RUTA_ARCHIVO_TEMP], int);
+int recorrerArchivo(char*);
+int leerYEnviarArchivoTemp(char*, int);
 bool esMenor(char*, char*);
 bool termino(void*);
 void procesarElemento(void*);
 int aparear(t_list*);
 solicitud_recibir_palabra* recibirPalabra(int);
 int escribirEnArchivo(char *);
-char* contenido_de_archivo(char[LENGTH_RUTA_ARCHIVO_TEMP]);
 void responderSolicitudRG(int, int);
 
 //AF
-void almacenamientoFinal(char*, int, char*, char*);
+void almacenamientoFinal(char*, int, solicitud_realizar_almacenamiento_final*);
+void responderSolicitudAlmacenadoFinal(int);
 
 
 #endif /* ETAPAS_H_ */

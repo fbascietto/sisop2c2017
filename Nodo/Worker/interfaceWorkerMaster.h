@@ -30,4 +30,9 @@ uint32_t getLong_SolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_g
 char* serializarSolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_global* solicitud);
 solicitud_programa_reduccion_global* deserializarSolicitudProgramaReduccionGlobal(char* serialized);
 
+uint32_t getLong_SolicitudRealizarAlmacenadoFinal(solicitud_realizar_almacenamiento_final*);
+
+char* serializarSolicitudRealizarAlmacenadoFinal(solicitud_realizar_almacenamiento_final*);
+solicitud_realizar_almacenamiento_final* deserializarSolicitudRealizarAlmacenadoFinal(char* serialized);
+
 #endif /* INTERFACEWORKER_H_ */

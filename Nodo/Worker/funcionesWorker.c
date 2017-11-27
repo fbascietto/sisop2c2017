@@ -200,6 +200,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 	solicitud_programa_transformacion* solicitudTDeserializada;
 	solicitud_programa_reduccion_local* solicitudRLDeserializada;
 	solicitud_programa_reduccion_global* solicitudRGDeserializada;
+	solicitud_realizar_almacenamiento_final* solicitudAFDeserializada;
 
 
 	Package* package = createPackage();
@@ -245,7 +246,11 @@ void recibirSolicitudMaster(int nuevoSocket){
 
 	case ACCION_ALMACENAMIENTO_FINAL:
 		log_trace(worker_log, "Solicitud de almacenamiento final recibida");
-		almacenamientoFinal(IP_fs, puerto_fs, package->message, ruta_archivo_temp_final);
+		solicitudAFDeserializada = deserializarSolicitudRealizarAlmacenadoFinal(package->message);
+		almacenamientoFinal(IP_fs, puerto_fs, solicitudAFDeserializada);
+		responderSolicitudAlmacenadoFinal(nuevoSocket);
+		log_destroy(worker_log);
+		free(solicitudAFDeserializada);
 		exit(0);
 		break;
 
