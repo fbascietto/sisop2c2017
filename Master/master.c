@@ -14,15 +14,28 @@
 #include "../bibliotecas/protocolo.h"
 #include "interfaceMaster.h"
 
-#define PROCESO_MASTER 4
+char* ruta_programa_transformador;
+char* ruta_programa_reductor;
+char* ruta_archivo_del_job;
+char* ruta_archivo_final_fs;
 
-void main() {
+void main(int argc, char* argv[argc]) {
 	//testSerializarSolicitudTrasnformacion();
 	//testSerializarItemTransformacion();
 	//testSerializarSolicitudReduccionLocal();
 	//testSerializarSolicitudReduccionGlobal();
 	//testSerializarSolicitudAlmacenadoFinal();
 	//testSerializarSolicitudReduccionGlobal();
+
+	ruta_programa_transformador = malloc(LENGTH_NOMBRE_PROGRAMA);
+	ruta_programa_reductor = malloc(LENGTH_NOMBRE_PROGRAMA);
+	ruta_archivo_del_job = malloc(LENGTH_RUTA_ARCHIVO_TEMP);
+	ruta_archivo_final_fs = malloc(LENGTH_RUTA_ARCHIVO_TEMP);
+
+	strcpy(ruta_programa_transformador, argv[1]);
+	strcpy(ruta_programa_reductor, argv[2]);
+	strcpy(ruta_archivo_del_job, argv[3]);
+	strcpy(ruta_archivo_final_fs, argv[4]);
 
 	t_config* infoConfig;
 	char* yamaIP;
