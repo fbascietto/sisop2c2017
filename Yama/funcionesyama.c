@@ -627,7 +627,7 @@ void inicializarConfigYama(){
 
 	if(config_has_property(infoConfig,"PUERTO_FILESYSTEM")){
 		fsPort = config_get_int_value(infoConfig,"PUERTO_FILESYSTEM");
-		printf("Puerto del filsystem: %d\n", fsPort);
+		printf("Puerto del filesystem: %d\n", fsPort);
 	}
 	cargarValoresPlanificacion();
 
@@ -647,7 +647,7 @@ void cargarValoresPlanificacion(){
 
 	log_trace(yama_log, "Carga de valores de planificacion");
 
-	t_config* infoConfig = config_create("config.txt");
+	t_config* infoConfig = config_create("/home/utnso/git/tp-2017-2c-sapnu-puas/Yama");
 
 	if(config_has_property(infoConfig,"RETARDO_PLANIFICACION")){
 		retardoPlanificacion = config_get_int_value(infoConfig,"RETARDO_PLANIFICACION");
@@ -664,7 +664,7 @@ void cargarValoresPlanificacion(){
 
 	log_destroy(yama_log);
 	log_destroy(yama_error_log);
-	config_destroy(infoConfig);
+
 }
 
 void recargarConfiguracion(int signal){

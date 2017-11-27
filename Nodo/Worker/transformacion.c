@@ -16,8 +16,8 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada, ch
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
-	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
-	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+	t_log* worker_log = log_create(ruta_archivo_log, "WORKER", 1, level);
+	t_log* worker_error_log = log_create(ruta_archivo_log, "WORKER", 1, level_ERROR);
 
 	//fichero para leer el data.bin
 	FILE* f1;
@@ -93,8 +93,8 @@ void responderSolicitudT(int socket, int exit_code){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
-	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
-	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+	t_log* worker_log = log_create(ruta_archivo_log, "WORKER", 1, level);
+	t_log* worker_error_log = log_create(ruta_archivo_log, "WORKER", 1, level_ERROR);
 
 	switch(exit_code){
 

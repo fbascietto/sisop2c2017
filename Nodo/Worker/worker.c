@@ -14,12 +14,14 @@
 
 void main() {
 
+	ruta_archivo_log = "/home/utnso/git/tp-2017-2c-sapnu-puas/Nodo/Worker/logWorker.txt";
+
 	int retorno_mkdir;
 
 	t_log_level level = LOG_LEVEL_TRACE;
-	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log* worker_log = log_create(ruta_archivo_log, "WORKER", 1, level);
 	t_log_level level_INFO = LOG_LEVEL_INFO;
-	t_log* worker_log_info = log_create("logWorker.txt", "WORKER", 1, level_INFO);
+	t_log* worker_log_info = log_create(ruta_archivo_log, "WORKER", 1, level_INFO);
 
 
 	//creo directorio de scripts

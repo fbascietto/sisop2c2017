@@ -1,0 +1,5 @@
+[INFO] 20:44:01:938 MASTER/(8832:8832): El programa transformador que se utilizara para el job es: /scripts/transformador.sh
+[INFO] 20:44:01:938 MASTER/(8832:8832): El programa reductor que se utilizara para el job es: /scripts/reductor.rb
+[INFO] 20:44:01:938 MASTER/(8832:8832): La ruta del archivo que se procesara en el job es: yamafs:/datos.csv
+[INFO] 20:44:01:939 MASTER/(8832:8832): La ruta del archivo resultante del job es: yamafs:/analisis/resultado.json
+[ERROR] 20:44:40:651 MASTER/(8928:8928): Cantidad de parametros incorrectos.

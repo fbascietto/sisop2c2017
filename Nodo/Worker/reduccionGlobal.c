@@ -23,7 +23,7 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada,
 	offset_lectura = 0;
 
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
-	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+	t_log* worker_error_log = log_create(ruta_archivo_log, "WORKER", 1, level_ERROR);
 
 	//para recorrer array
 	int i;
@@ -78,8 +78,8 @@ int recorrerArchivo(char* ruta_arch_temp){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
-	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
-	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+	t_log* worker_log = log_create(ruta_archivo_log, "WORKER", 1, level);
+	t_log* worker_error_log = log_create(ruta_archivo_log, "WORKER", 1, level_ERROR);
 
 	//fichero para recorrer el archivo de reduccion local
 	FILE* f1;
@@ -143,8 +143,8 @@ int leerYEnviarArchivoTemp(char* ruta_arch_temp, int socket){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
-	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
-	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+	t_log* worker_log = log_create(ruta_archivo_log, "WORKER", 1, level);
+	t_log* worker_error_log = log_create(ruta_archivo_log, "WORKER", 1, level_ERROR);
 
 	//fichero para recorrer el archivo de reduccion local
 	FILE* f1;
@@ -283,7 +283,7 @@ int escribirEnArchivo(char* palabra_a_escribir){
 	int retorno;
 
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
-	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+	t_log* worker_error_log = log_create(ruta_archivo_log, "WORKER", 1, level_ERROR);
 
 	FILE* f1;
 
@@ -353,8 +353,8 @@ int aparear(t_list* lista){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_error = LOG_LEVEL_ERROR;
-	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_error);
-	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log* worker_error_log = log_create(ruta_archivo_log, "WORKER", 1, level_error);
+	t_log* worker_log = log_create(ruta_archivo_log, "WORKER", 1, level);
 
 	int retorno;
 
@@ -386,8 +386,8 @@ void responderSolicitudRG(int socket, int exit_code){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
-	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
-	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+	t_log* worker_log = log_create(ruta_archivo_log, "WORKER", 1, level);
+	t_log* worker_error_log = log_create(ruta_archivo_log, "WORKER", 1, level_ERROR);
 
 	switch(exit_code){
 

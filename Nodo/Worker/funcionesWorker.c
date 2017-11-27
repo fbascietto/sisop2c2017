@@ -13,7 +13,7 @@ void iniciarWorker(){
 	//--------------WORKER LEE ARCHIVO DE CONFIGURACION--------------------
 
 
-	infoConfig = config_create("../config.txt");
+	infoConfig = config_create("/home/utnso/git/tp-2017-2c-sapnu-puas/Nodo/config.txt");
 
 
 	if(config_has_property(infoConfig,"NOMBRE_NODO")){
@@ -28,20 +28,16 @@ void iniciarWorker(){
 
 	if(config_has_property(infoConfig, "PUERTO_WORKER")){
 		puerto = config_get_int_value(infoConfig, "PUERTO_WORKER");
-		printf("Puerto: %d\n", puerto);
 	}
 
 	if(config_has_property(infoConfig,"IP_FILESYSTEM")){
 		IP_fs = config_get_string_value(infoConfig,"IP_FILESYSTEM");
-		printf("IP: %s\n", IP_fs);
 	}
 
 	if(config_has_property(infoConfig,"PUERTO_FILESYSTEM")){
 		puerto_fs = config_get_int_value(infoConfig,"PUERTO_FILESYSTEM");
 
 	}
-
-	//---------------ESPERA CONEXIONES-------------------------------
 
 
 }

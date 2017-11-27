@@ -13,6 +13,8 @@
 
 #define VALOR_SOCKET_WE -2
 
+char* ruta_archivo_log;
+
 //RG (var globales)
 char* ruta_archivo_apareo;
 char ruta_archivo_temp_final[LENGTH_RUTA_ARCHIVO_TEMP];

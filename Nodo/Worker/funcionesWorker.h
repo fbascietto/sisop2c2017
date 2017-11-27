@@ -30,7 +30,6 @@ typedef struct {
 	fd_set fdSocketEscucha;
 } t_esperar_conexion;
 
-
 t_config* infoConfig;
 char* nombreNodo;
 char* rutaNodo;

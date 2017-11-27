@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <commons/config.h>
+#include <commons/log.h>
+#include <commons/string.h>
 #include "../bibliotecas/sockets.c"
 #include "../bibliotecas/sockets.h"
 #include "../bibliotecas/protocolo.h"
@@ -19,7 +21,7 @@ char* ruta_programa_reductor;
 char* ruta_archivo_del_job;
 char* ruta_archivo_final_fs;
 
-void main(int argc, char* argv[argc]) {
+void main(int args, char* argv[]) {
 	//testSerializarSolicitudTrasnformacion();
 	//testSerializarItemTransformacion();
 	//testSerializarSolicitudReduccionLocal();
@@ -27,15 +29,38 @@ void main(int argc, char* argv[argc]) {
 	//testSerializarSolicitudAlmacenadoFinal();
 	//testSerializarSolicitudReduccionGlobal();
 
-	ruta_programa_transformador = malloc(LENGTH_NOMBRE_PROGRAMA);
-	ruta_programa_reductor = malloc(LENGTH_NOMBRE_PROGRAMA);
-	ruta_archivo_del_job = malloc(LENGTH_RUTA_ARCHIVO_TEMP);
-	ruta_archivo_final_fs = malloc(LENGTH_RUTA_ARCHIVO_TEMP);
+	ruta_archivo_log = "/home/utnso/git/tp-2017-2c-sapnu-puas/Master/logMaster.txt";
 
-	strcpy(ruta_programa_transformador, argv[1]);
-	strcpy(ruta_programa_reductor, argv[2]);
-	strcpy(ruta_archivo_del_job, argv[3]);
-	strcpy(ruta_archivo_final_fs, argv[4]);
+	t_log_level level_INFO = LOG_LEVEL_INFO;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* worker_info_log = log_create(ruta_archivo_log, "MASTER", 1, level_INFO);
+	t_log* worker_error_log = log_create(ruta_archivo_log, "MASTER", 1, level_ERROR);
+
+	if(args != 5){
+
+		log_error(worker_error_log, "Cantidad de parametros incorrectos.");
+		exit(0);
+
+	}
+
+	ruta_programa_transformador = argv[1];
+	ruta_programa_reductor = argv[2];
+	ruta_archivo_del_job = argv[3];
+	ruta_archivo_final_fs = argv[4];
+
+	char* info = string_from_format("El programa transformador que se utilizara para el job es: %s", ruta_programa_transformador);
+	log_info(worker_info_log, info);
+	free(info);
+	info = string_from_format("El programa reductor que se utilizara para el job es: %s", ruta_programa_reductor);
+	log_info(worker_info_log, info);
+	free(info);
+	info = string_from_format("La ruta del archivo que se procesara en el job es: %s", ruta_archivo_del_job);
+	log_info(worker_info_log, info);
+	free(info);
+	info = string_from_format("La ruta del archivo resultante del job es: %s", ruta_archivo_final_fs);
+	log_info(worker_info_log, info);
+	free(info);
+
 
 	t_config* infoConfig;
 	char* yamaIP;
@@ -43,7 +68,8 @@ void main(int argc, char* argv[argc]) {
 	int yamaPort;
 	int socketConn;
 
-	infoConfig = config_create("config.txt");
+
+	infoConfig = config_create("/home/utnso/git/tp-2017-2c-sapnu-puas/Master/config.txt");
 
 	if(config_has_property(infoConfig,"YAMA_IP")){
 		yamaIP = config_get_string_value(infoConfig,"YAMA_IP");
@@ -78,24 +104,28 @@ void main(int argc, char* argv[argc]) {
 		int leidos = recieve_and_deserialize(package, socketConn);
 		printf("codigo de mensaje: %d\n",	package->msgCode);
 		switch(package->msgCode){
-			case ACCION_PROCESAR_TRANSFORMACION:
-				procesarSolicitudTransformacion(socketConn, package->message_long, package->message);
-				enviarMensajeSocketConLongitud(socketConn,RESULTADO_TRANSFORMACION,archivoMensage,len);
-				break;
-			case ACCION_PROCESAR_REDUCCION_LOCAL:
-				procesarSolicitudReduccionLocal(socketConn, package->message_long, package->message);
-				enviarMensajeSocketConLongitud(socketConn,RESULTADO_REDUCCION_LOCAL,archivoMensage,len);
-				break;
-			case ACCION_PROCESAR_REDUCCION_GLOBAL:
-				procesarSolicitudReduccionGlobal(socketConn, package->message_long, package->message);
-				enviarMensajeSocketConLongitud(socketConn,RESULTADO_REDUCCION_GLOBAL,archivoMensage,len);
-				break;
-			case ACCION_PROCESAR_ALMACENADO_FINAL:
-				procesarSolicitudAlmacenadoFinal(socketConn, package->message_long, package->message);
-				enviarMensajeSocketConLongitud(socketConn,RESULTADO_ALMACENADO_FINAL,archivoMensage,len);
-				break;
+		case ACCION_PROCESAR_TRANSFORMACION:
+			procesarSolicitudTransformacion(socketConn, package->message_long, package->message);
+			enviarMensajeSocketConLongitud(socketConn,RESULTADO_TRANSFORMACION,archivoMensage,len);
+			break;
+		case ACCION_PROCESAR_REDUCCION_LOCAL:
+			procesarSolicitudReduccionLocal(socketConn, package->message_long, package->message);
+			enviarMensajeSocketConLongitud(socketConn,RESULTADO_REDUCCION_LOCAL,archivoMensage,len);
+			break;
+		case ACCION_PROCESAR_REDUCCION_GLOBAL:
+			procesarSolicitudReduccionGlobal(socketConn, package->message_long, package->message);
+			enviarMensajeSocketConLongitud(socketConn,RESULTADO_REDUCCION_GLOBAL,archivoMensage,len);
+			break;
+		case ACCION_PROCESAR_ALMACENADO_FINAL:
+			procesarSolicitudAlmacenadoFinal(socketConn, package->message_long, package->message);
+			enviarMensajeSocketConLongitud(socketConn,RESULTADO_ALMACENADO_FINAL,archivoMensage,len);
+			break;
 		}
 
 	}
+
+	log_destroy(worker_info_log);
+	log_destroy(worker_error_log);
+
 }
 

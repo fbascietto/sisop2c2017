@@ -110,3 +110,10 @@
 [INFO] 21:57:45:177 WORKER/(4308:4308): El directorio scripts ya existe
 [TRACE] 21:57:45:521 WORKER/(4308:4308): Lectura de archivo de configuracion
 [TRACE] 21:58:31:911 WORKER/(4308:4308): Creacion socket para conexion con Master
+[INFO] 20:29:58:825 WORKER/(8103:8103): El directorio scripts ya existe
+[INFO] 20:30:30:996 WORKER/(8138:8138): El directorio scripts ya existe
+[INFO] 20:31:05:157 WORKER/(8182:8182): El directorio scripts ya existe
+[INFO] 20:31:40:441 WORKER/(8241:8241): El directorio scripts ya existe
+[TRACE] 20:31:40:447 WORKER/(8241:8241): Lectura de archivo de configuracion
+[TRACE] 20:31:40:447 WORKER/(8241:8241): Creacion socket para conexion con Master
+[TRACE] 20:31:40:447 WORKER/(8241:8241): Esperando conexiones de Master
