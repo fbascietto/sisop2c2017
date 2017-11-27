@@ -112,6 +112,8 @@ void actualizoArchivosDat(char* ruta_metadata, int flag);
 int buscoEnArchivosDat(char* ruta_metadata);
 int estaEstable();
 
+int procesarSolicitudWorker(int nuevoSocket);
+
 /*Funciones de directorio.dat*/
 t_list* inicializarDirectorios();
 void listarDirectorios(t_list* folderList, t_directory* carpetaActual);

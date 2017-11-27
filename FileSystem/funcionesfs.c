@@ -1,14 +1,16 @@
 
 #include "funcionesfs.h"
-#include "../bibliotecas/sockets.c"
-#include "../bibliotecas/sockets.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <dirent.h>
+#include "../bibliotecas/sockets.c"
+#include "../bibliotecas/sockets.h"
 #include "../bibliotecas/protocolo.h"
+#include "../bibliotecas/estructuras.h"
 #include "../bibliotecas/serializacion.h"
 #include "../bibliotecas/serializacion.c"
-#include <dirent.h>
+
 
 #define ANSI_COLOR_CYAN		"\x1b[36m"
 #define ANSI_COLOR_GREEN	"\x1b[32m"
@@ -80,6 +82,7 @@ void formatFs(){
 	}
 
 	fclose(nodosbin);
+	pthread_mutex_unlock(&mx_nodobin);
 
 	printf("Formato finalizado con éxito.\n");
 	imprimeNodosBin();
@@ -549,13 +552,15 @@ int identificaDirectorio(char* directorio_yamafs, t_list* folderList){
 	ruta = replace_str(directorio_yamafs,"yamafs:","");
 	char** arrayString = string_split(ruta,"/");
 	while (arrayString[i]!= NULL){
-		/*if((strchr(arrayString[i],'.') != NULL) && (arrayString[i+1] == NULL)){ //ignoro el componente "archivo" de la ruta, considero el fin cuando lo recibí
-			break;
-		}*/
 		carpetaActual = cambiarAdirectorioConChequeo(arrayString[i],carpetaActual,folderList);
 		i++;
 	}
+
+	if(strcmp(ruta,"/")){
 	strcpy(directorio_yamafs,arrayString[i-1]);
+	}
+	//free(ruta);
+	//free(arrayString);
 	return carpetaActual->index;
 
 }
@@ -605,8 +610,10 @@ void *esperarConexiones(void *args) {
 				case PROCESO_NODO:
 					recibirConexionDataNode(nuevoSocket);
 					break;
-				case PROCESO_MASTER:
-					procesarSolicitudMaster(nuevoSocket);
+				case PROCESO_WORKER:
+					//etapa de transformación final
+					//procesarSolicitudWorker(nuevoSocket);
+					break;
 			}
 		}
 	}
@@ -641,7 +648,7 @@ int recibirConexionDataNode(int nuevoSocket){
 	}
 
 	printf("Se conecto el nodo %s\n", nodo->nombre_nodo);
-	printf("Cuenta con %d bloques en total.\n", nodo->tamanio/(1024*1024));
+	printf("Cuenta con %d bloques en total.\n", nodo->tamanio/TAMANIO_BLOQUE);
 
 	t_fs_bitmap = creaAbreBitmap(nodo->tamanio,nodo->nombre_nodo);
 	int bloquesLibresNodo = cuentaBloquesLibre(nodo->tamanio,t_fs_bitmap);
@@ -1291,6 +1298,11 @@ char* getRutaMetadata(char* ruta_archivo, t_list* folderList, int carpeta){
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList){
 
 	FILE* origen = fopen(path_archivo_origen, "rb");
+	if (origen == NULL){
+				fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
+				return;
+			}
+
 	int fd = fileno(origen);
 
 	struct stat fileStat;
@@ -1299,10 +1311,6 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 				  return;
 			}
 
-	if (origen == NULL){
-			fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
-			return;
-		}
 
 	int bloquesLibres = traeBloquesLibres();
 
@@ -1403,14 +1411,12 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 }
 
 void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList){
-/*
-	int carpeta = 0;
-	carpeta = identificaDirectorio(directorio_yamafs, folderList);
-*/
-
-	//size_t bytesRead;
 
 	FILE* origen = fopen(path_archivo_origen, "rb");
+	if (origen == NULL){
+				fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
+				return;
+			}
 	int fd = fileno(origen);
 	struct stat fileStat;
 			if (fstat(fd, &fileStat) < 0){
@@ -1418,10 +1424,7 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 				  return;
 			}
 
-	if (origen == NULL){
-			fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
-			return;
-		}
+
 
 	int bloquesLibres = traeBloquesLibres();
 
@@ -1560,6 +1563,7 @@ int escribirBloque(int socketnodo, int bloque, void * buffer, int largoAMandar){
 }
 
 FILE * crearMetadata(char * destino, char* directorio_yamafs, t_list* folderList, char* tipo, int tamanio){
+
 	int carpeta = 0;
 	carpeta = identificaDirectorio(directorio_yamafs, folderList);
 	if(carpeta == -2){
@@ -1568,19 +1572,25 @@ FILE * crearMetadata(char * destino, char* directorio_yamafs, t_list* folderList
 
 	char* ruta_metadata = getRutaMetadata(destino, folderList, carpeta);
 
-		FILE* metadata = fopen(ruta_metadata,"w+");
+	FILE* metadata = fopen(ruta_metadata, "r");
+	if (metadata != NULL){
+		fprintf(stderr, "Archivo ya existe en FS.\n");
+		return NULL;
+	}
 
-		if (metadata == NULL){
-				fprintf(stderr, "Fallo al guardar metadata en %s %s\n",metadata, strerror(errno));
-				//exit(EXIT_FAILURE);
-			}
+	metadata = fopen(ruta_metadata,"w+");
 
-		fprintf(metadata,"%s%s",ruta_metadata,"\n");
-		actualizoArchivosDat(ruta_metadata, 1);
-		fprintf(metadata,"%s%s%s","TAMANIO=",string_itoa(tamanio),"\n");
-		fprintf(metadata,"%s%s%s","TIPO=",tipo,"\n");
+	if (metadata == NULL){
+			fprintf(stderr, "Fallo al guardar metadata en %s %s\n",metadata, strerror(errno));
+			return NULL;
+		}
 
-		return metadata;
+	fprintf(metadata,"%s%s",ruta_metadata,"\n");
+	actualizoArchivosDat(ruta_metadata, 1);
+	fprintf(metadata,"%s%s%s","TAMANIO=",string_itoa(tamanio),"\n");
+	fprintf(metadata,"%s%s%s","TIPO=",tipo,"\n");
+
+	return metadata;
 
 }
 
@@ -1695,7 +1705,8 @@ t_list * obtener_lista_metadata(char * ruta_metadata){
 
 	metadata = fopen(ruta_metadata,"r");
 	if (metadata == NULL){
-		exit(EXIT_FAILURE);}
+		printf("Error al acceder a metadata.\n");
+		return NULL;}
 
 	t_list *listaBloques;
 	listaBloques = list_create();
@@ -2011,6 +2022,11 @@ void imprimeMetadata(char* rutaEnYamafs, t_list* folderList){
 	size_t len = 0;
 
 	metadata = fopen(ruta_metadata,"r");
+
+	if(metadata == NULL){
+			printf("Error al acceder al archivo.\n");
+			return;
+	}
 
 	do {
 		getline(&line, &len, metadata);
