@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
+#include <pthread.h>
 #include "../bibliotecas/sockets.c"
 #include "../bibliotecas/sockets.h"
 #include "../bibliotecas/protocolo.h"
@@ -422,6 +423,7 @@ t_directory * cambiarAdirectorio(char* nombre, t_directory* carpetaActual, t_lis
 	t_directory* carpetaNueva;
 	int comparacion = strcmp(nombre, "..");
 	if(!comparacion){
+		if(carpetaActual->padre == -1){return carpetaActual;}
 		return list_find(folderList,matcheaCarpetaConIndice);
 
 	} else {
@@ -431,9 +433,7 @@ t_directory * cambiarAdirectorio(char* nombre, t_directory* carpetaActual, t_lis
 			return (strcmp(dir->nombre,nombre) == 0);
 		}
 
-
 		t_list* carpetas = list_filter(folderList,carpetasConMismoNombre);
-
 
 		int encontrado = 0;
 		int i = 0;
@@ -594,7 +594,7 @@ void *esperarConexiones(void *args) {
 	t_log* logSockets = log_create("log.txt","Yamafs",0,logL);
 	t_esperar_conexion *argumentos = (t_esperar_conexion*) args;
 	printf("Esperando conexiones...\n");
-
+	pthread_t threadSolicitudYama;
 
 
 	// ---------------ME QUEDO ESPERANDO UNA CONEXION NUEVA--------------
@@ -620,9 +620,8 @@ void *esperarConexiones(void *args) {
 					break;
 				case PROCESO_YAMA:
 					//respondo solicitud de bloques de archivo
-					pthread_t threadSolicitudYama;
-					int er1 = pthread_create(&threadSolicitudYama, NULL, procesarSolicitudYama, nuevoSocket);
-					pthread_join(threadSolicitudYama);
+					pthread_create(&threadSolicitudYama, NULL, procesarSolicitudYama, nuevoSocket);
+					pthread_join(threadSolicitudYama, NULL);
 					break;
 			}
 		}
@@ -1889,8 +1888,8 @@ void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList){
 
 }
 
-void moverArchivo(char* archivoABuscar, char* destino){
-
+void moverArchivo(char* archivoABuscar, char* destino, t_list* folderList){
+	int folderIndex = identificaDirectorio(archivoABuscar, folderList);
 }
 
 void renombrarArchivo(char* archivoABuscar, char* nombreNuevo, t_list* folderList){
@@ -2228,7 +2227,52 @@ void transformacionFinalWorker(int nuevoSocket){
 
 void procesarSolicitudYama(int nuevoSocket){
 
+	int numMaster;
+	int err = recibirInt(nuevoSocket,numMaster);
 
+	if(err){printf("Error recibiendo num. de Master.\n");}
 
-	return;
+	char* ruta_archivo;
+	ruta_archivo = recibirMensaje(nuevoSocket);
+
+	int carpeta = identificaDirectorio(ruta_archivo,carpetas);
+
+	char* ruta_metadata = getRutaMetadata(ruta_archivo,carpetas, carpeta);
+	t_list * lista_bloques = obtener_lista_metadata(ruta_metadata);
+	int i = 0;
+
+	char ** parametros1;
+	char ** parametros2;
+
+	/*
+	Ejemplo para usar:
+	t_bloques_enviados* bloquesEnviados = malloc(sizeof(t_bloques_enviados));
+	t_bloque_serializado* bloqueAAgregar1 = crearBloqueSerializado(numeroBloque, bytesOcupados, ip, puerto, idNodo, idBloque);
+	t_bloque_serializado* bloqueAAgregar2 = crearBloqueSerializado(numeroBloque2, bytesOcupados2, ip2, puerto2, idNodo2, idBloque2);
+	bloquesEnviados->cantidad_bloques = 0; //inicializo en cero antes de agregar bloques
+	agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar1);
+	agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar2);
+	return bloquesEnviados;
+	 */
+
+	t_bloques_enviados* bloquesEnviados;
+	for(;i < list_size(lista_bloques);i++){
+
+		bloquesEnviados = malloc(sizeof(t_bloques_enviados));
+		t_bloque* bloque = list_get(lista_bloques,i);
+		parametros1 = string_get_string_as_array(bloque->Copia0);
+		t_nodo* nodo1 = getNodoPorNombre(parametros1[0],nodos);
+
+		t_bloque_serializado* bloqueAAgregar1 = crearBloqueSerializado(parametros1[1], bloque->tamanio_bloque, nodo1->ip, nodo1->puerto, nodo1->nombre_nodo, bloque->bloque);
+
+		parametros2 = string_get_string_as_array(bloque->Copia1);
+		t_nodo* nodo2 = getNodoPorNombre(parametros2[0],nodos);
+
+		t_bloque_serializado* bloqueAAgregar2 = crearBloqueSerializado(parametros2[1], bloque->tamanio_bloque, nodo2->ip, nodo2->puerto, nodo2->nombre_nodo, bloque->bloque);
+		agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar1);
+		agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar2);
+	}
+
+	serializar_y_enviar_yama(bloquesEnviados,numMaster,nuevoSocket);
+
 }
