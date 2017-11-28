@@ -205,9 +205,7 @@ t_nodo* getNodoPorNombre(char* nombre_nodo, t_list* listaABuscar){
 
 }
 
-void getNodosMenosCargados(int* indexs){
-
-
+int getNodosMenosCargados(int* indexs){
 
 	t_list* chequeoNodos = list_create();
 
@@ -226,16 +224,20 @@ void getNodosMenosCargados(int* indexs){
 	for(;i < list_size(nodos);i++){
 		t_bitarray* t_fs_bitmap;
 		t_nodo* nodo = list_get(nodos,i);
-		t_repartNodo* element = malloc(sizeof(t_repartNodo));
-
-		t_fs_bitmap = creaAbreBitmap(nodo->tamanio, nodo->nombre_nodo);
-		bOcupados = cuentaBloquesUsados(nodo->tamanio, t_fs_bitmap);
-		destruir_bitmap(t_fs_bitmap);
-		element->bitsOcupados = bOcupados;
-		element->indexNodo = i;
-		list_add(chequeoNodos, element);
+		if(nodo->bloquesLibres!=0){ //si el nodo no tiene bloques libres lo ignoro
+			t_repartNodo* element = malloc(sizeof(t_repartNodo));
+			t_fs_bitmap = creaAbreBitmap(nodo->tamanio, nodo->nombre_nodo);
+			bOcupados = cuentaBloquesUsados(nodo->tamanio, t_fs_bitmap);
+			destruir_bitmap(t_fs_bitmap);
+			element->bitsOcupados = bOcupados;
+			element->indexNodo = i;
+			list_add(chequeoNodos, element);
+		}
 	}
 
+	if(list_size(chequeoNodos)<1){
+		return 0;
+	}
 
 	list_sort(chequeoNodos,comparadorBloquesOcup);
 	int j = 0;
@@ -246,7 +248,7 @@ void getNodosMenosCargados(int* indexs){
 	}
 
 	list_destroy_and_destroy_elements(chequeoNodos,free);
-
+	return 1;
 
 }
 
@@ -1411,9 +1413,14 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 		t_bitarray* t_fs_bitmap2;
 		t_list * nodosAusar;
 
+		int err = getNodosMenosCargados(indexs);
 
+		if(err){
+			printf("Escasez de bloques libres en el FS.\n");
+			//evaluar limpiar lo que se escribio??
+			return;
 
-		getNodosMenosCargados(indexs);
+		}
 
 		nodo = list_get(nodos,indexs[0]);
 		socketnodo = nodo->socket_nodo;

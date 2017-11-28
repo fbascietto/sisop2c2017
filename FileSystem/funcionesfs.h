@@ -87,7 +87,7 @@ int traeBloquesLibres();
 void creoListaNodosDesdeNodosBin();
 void deserializar_a_nodo(void* serializado, t_nodo *nodo);
 t_nodo* getNodoPorNombre(char* nombre_nodo, t_list* listaABuscar);
-void getNodosMenosCargados(int* indexs);
+int getNodosMenosCargados(int* indexs);
 void getNodosRelacionadosDeMetadata(char* ruta_metadata, t_list* listaNodosRelacionados);
 
 /*Funciones de bitmap*/
