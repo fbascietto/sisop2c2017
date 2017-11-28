@@ -212,7 +212,7 @@ t_list* getNodosMenosCargados(t_list* listaABuscar){
 	bool* comparadorBloquesLibres(void* parametro, void* parametro2) {
 	t_nodo* nodo = (t_nodo*) parametro;
 	t_nodo* nodo2 = (t_nodo*) parametro2;
-	return (nodo->bloquesLibres < nodo2->bloquesLibres);
+	return (nodo->bloquesLibres > nodo2->bloquesLibres);
 	}
 
 	list_sort(listaABuscar,comparadorBloquesLibres);
