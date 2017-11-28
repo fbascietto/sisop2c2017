@@ -29,11 +29,11 @@ void cambiarEtapaOk(int idWorker, char* etapa, int bloque, t_job* job);
 void respuestaWorker(char* respuesta, int bloque, char* etapa, int idWorker, int idJob);
 
 t_list* obtenerEInicializarNodosDeBloques(t_list* bloques);
-t_nodo* inicializarNodo(char* id);
+t_nodo* inicializarNodo(t_bloque* bloque);
 bool estaElNodo(char* id, t_list* nodos);
 void setearNodos(t_list* nodos);
 bool estaConectado(t_nodo* unNodo);
-t_nodo* obtenerNodoConectado(char* id);
+t_nodo* obtenerNodoConectado(t_nodo* unNodo);
 void actualizar(t_nodo* nodo, t_nodo* nodoConectado);
 
 #endif /* JOB_H_ */

@@ -413,7 +413,7 @@ t_nodo* obtenerNodoConectado(t_nodo* unNodo){
 	for(i=0; i<cantidadNodosConectados; i++){
 		unNodoConectado = list_get(nodosConectados, i);
 		if(strcmp(unNodoConectado->idNodo, unNodo->idNodo) == 0){
-			list_add_all(unNodoConectado->bloquesAsignados, unNodo->bloquesAsignados)
+			list_add_all(unNodoConectado->bloquesAsignados, unNodo->bloquesAsignados);
 			return unNodoConectado;
 		}
 	}

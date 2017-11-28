@@ -87,7 +87,7 @@ void recibirMensajeFS(void *args){
 	t_job* nuevoJob;
 	char* algoritmo = algoritmoBalanceo;
 
-	int idMaster;
+	uint32_t idMaster;
 
 	solicitud_transformacion* solicitudTransformacion;
 	char* solicitudTransfSerializado;
@@ -498,18 +498,53 @@ void procesarResultadoReduccionLocal(int nuevoSocket, uint32_t message_long, cha
 
 }
 
-void procesarResultadoReduccionGlobal(int nuevoSocket, uint32_t message_long, char* message){
-	//solicitud_almacenado_final* solicitudAlmacenadoFinal = obtenerSolicitudAlmacenadoFinal(message);
-	solicitud_almacenado_final* solicitudAlmacenadoFinal = obtenerSolicitudAlmacenadoFinalMock(message);
-	char* solicitudSerializado = serializarSolicitudAlmacenadoFinal(solicitudAlmacenadoFinal);
-	uint32_t longitud = getLong_SolicitudAlmacenadoFinal(solicitudAlmacenadoFinal);
-	int enviados = enviarMensajeSocketConLongitud(nuevoSocket,ACCION_PROCESAR_ALMACENADO_FINAL,solicitudSerializado,longitud);
+void procesarResultadoReduccionGlobal(int nuevoSocket, uint32_t message_long, char* message, uint32_t resultado){
+
+	Package* package = createPackage();
+	recieve_and_deserialize(package, nuevoSocket);
+
+	int offset = 0;
+	char idNodo[NOMBRE_NODO];
+	uint32_t numeroBloque;
+
+	deserializarDato(idNodo, package->message, NOMBRE_NODO, &offset);
+
+	int idJob;
+
+	idJob = obtenerIdJob(nuevoSocket, jobsActivos);
+	actualizarEstado(idNodo, NULL, RESULTADO_REDUCCION_GLOBAL, idJob, resultado);
+
+	t_job* job = obtenerJob(idJob, jobsActivos);
+
+	if(resultado == REDUCCION_GLOBAL_OK){
+		solicitud_almacenado_final* solicitudAlmacenadoFinal = obtenerSolicitudAlmacenadoFinal(job);
+		char* solicitudSerializado = serializarSolicitudAlmacenadoFinal(solicitudAlmacenadoFinal);
+		uint32_t longitud = getLong_SolicitudAlmacenadoFinal(solicitudAlmacenadoFinal);
+		int enviados = enviarMensajeSocketConLongitud(nuevoSocket,ACCION_PROCESAR_ALMACENADO_FINAL,solicitudSerializado,longitud);
+	}else{
+		job = terminarJob(idJob);
+	}
 
 }
 
-void procesarResultadoAlmacenadoFinal(int nuevoSocket, uint32_t message_long, char* message){
-	exit(0);
-	//TODO: fin
+void procesarResultadoAlmacenadoFinal(int nuevoSocket, uint32_t message_long, char* message, uint32_t resultado){
+
+
+	Package* package = createPackage();
+	recieve_and_deserialize(package, nuevoSocket);
+
+	int offset = 0;
+	char idNodo[NOMBRE_NODO];
+	uint32_t numeroBloque;
+
+	deserializarDato(idNodo, package->message, NOMBRE_NODO, &offset);
+
+	int idJob;
+
+	idJob = obtenerIdJob(nuevoSocket, jobsActivos);
+	actualizarEstado(idNodo, NULL, RESULTADO_REDUCCION_GLOBAL, idJob, resultado);
+
+	terminarJob(idJob);
 }
 
 void procesarSolicitudArchivoMaster(int nuevoSocket, uint32_t message_long, char* message){
@@ -535,7 +570,7 @@ void procesarSolicitudArchivoMaster(int nuevoSocket, uint32_t message_long, char
 }
 
 //se obtiene ademas el id del master (va primero en la serializacion ((todo))
-t_list* procesarBloquesRecibidos(char* message, int* masterId){
+t_list* procesarBloquesRecibidos(char* message, uint32_t* masterId){
 	t_bloques_enviados* bloquesRecibidos;
 
 	//todo
@@ -658,9 +693,14 @@ bool finalizoTransformacionesNodo(char* idNodo, int numeroBloque, int idJob){
 	return true;
 }
 
+
+bool finalizaronReduccionesLocalesNodos(t_job* job){
+	return list_all_satisfy(job->estadosReduccionesLocales, termino);
+}
+
 bool termino(void* elemento){
 	t_estado* nodo = (t_estado*) elemento;
-	return strcmp(nodo->estado, "finalizado");
+	return !strcmp(nodo->estado, "finalizado");
 }
 
 void procesarSolicitudMaster(int nuevoSocket){
@@ -692,11 +732,11 @@ char* generarRutaTemporal(){
 void inicializarConfigYama(){
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
-	t_log* yama_log = log_create("logYama.txt", "YAMA", 0, level);
+	t_log* yama_log = log_create("../Yama/config.txt", "YAMA", 0, level);
 
 	log_trace(yama_log, "Inicializacion de la configuracion de Yama");
 
-	t_config* infoConfig = config_create("config.txt");
+	t_config* infoConfig = config_create("/home/utnso/git/tp-2017-2c-sapnu-puas/Yama/config.txt");
 
 	if(config_has_property(infoConfig,"IP_FILESYSTEM")){
 		fsIP = config_get_string_value(infoConfig,"IP_FILESYSTEM");
@@ -719,13 +759,11 @@ void inicializarConfigYama(){
 
 void cargarValoresPlanificacion(){
 	t_log_level level = LOG_LEVEL_TRACE;
-	t_log_level level_ERROR = LOG_LEVEL_ERROR;
-	t_log* yama_log = log_create("logYama.txt", "YAMA", 0, level);
-	t_log* yama_error_log = log_create("logYama.txt", "YAMA", 0, level_ERROR);
+	t_log* yama_log = log_create("../Yama/config.txt", "YAMA", 0, level);
 
 	log_trace(yama_log, "Carga de valores de planificacion");
 
-	t_config* infoConfig = config_create("/home/utnso/git/tp-2017-2c-sapnu-puas/Yama");
+	t_config* infoConfig = config_create("/home/utnso/git/tp-2017-2c-sapnu-puas/Yama/config.txt");
 
 	if(config_has_property(infoConfig,"RETARDO_PLANIFICACION")){
 		retardoPlanificacion = config_get_int_value(infoConfig,"RETARDO_PLANIFICACION");
@@ -741,7 +779,6 @@ void cargarValoresPlanificacion(){
 	}
 
 	log_destroy(yama_log);
-	log_destroy(yama_error_log);
 
 }
 

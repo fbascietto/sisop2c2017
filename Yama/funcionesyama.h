@@ -119,12 +119,13 @@ solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job);
 solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job);
 solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_job* job);
 
-t_list* procesarBloquesRecibidos(char* message, int* masterId);
+t_list* procesarBloquesRecibidos(char* message, uint32_t* masterId);
 char* serializarSolicitudJob(char* solicitudArchivo, uint32_t masterId, uint32_t* tamanioSerializado);
 void adaptarBloques(t_bloques_enviados* bloquesRecibidos, t_list* bloques);
 bool resultadoOk(char* resultado);
-void actualizarEstado(char* idNodo, int numeroBloque, int etapa, int idJob, char* resultado);
+void actualizarEstado(char* idNodo, int numeroBloque, int etapa, int idJob, int resultado);
 bool finalizoTransformacionesNodo(char* idNodo, int numeroBloque, int idJob);
+bool finalizaronReduccionesLocalesNodos(t_job* job);
 bool termino(void* elemento);
 void procesarSolicitudMaster(int nuevoSocket);
 
