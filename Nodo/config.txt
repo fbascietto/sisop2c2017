@@ -2,4 +2,4 @@ IP_FILESYSTEM=127.0.0.1
 PUERTO_FILESYSTEM=5140
 NOMBRE_NODO=NODO2
 PUERTO_WORKER=5051
-RUTA_DATABIN=../data.bin
+RUTA_DATABIN=/home/utnso/git/tp-2017-2c-sapnu-puas/Nodo/DataNode/Debug/data.bin

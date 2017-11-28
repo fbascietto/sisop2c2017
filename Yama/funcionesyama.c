@@ -751,7 +751,6 @@ void inicializarConfigYama(){
 
 	log_trace(yama_log, "Carga exitosa del archivo de configuracion");
 
-	config_destroy(infoConfig);
 	log_destroy(yama_log);
 
 
