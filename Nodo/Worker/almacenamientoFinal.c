@@ -25,15 +25,21 @@ void almacenamientoFinal(char* IP_fs, int puerto_fs, solicitud_realizar_almacena
 
 	char* ruta_final = malloc(LENGTH_RUTA_ARCHIVO_TEMP);
 	strcpy(ruta_final, solicitudDeserializada->ruta_archivo_final_fs);
+	char* ruta_red_global = malloc(LENGTH_RUTA_ARCHIVO_TEMP);
+	strcpy(ruta_red_global, solicitudDeserializada->ruta_archivo_temporal_resultante_reduccion_global);
+
 
 	//le envio el archivo temporal de reduccion global resultante al fs
-	enviarMensajeSocketConLongitud(socketConn, RECIBIR_RUTA_ARCHIVO_FINAL, ruta_final, strlen(ruta_final));
+	enviarMensaje(socketConn, ruta_final);
+	enviarMensaje(socketConn, ruta_red_global);
+
 	log_trace(worker_log, "Comienzo de envio de archivo");
-	envioArchivo(socketConn, solicitudDeserializada->ruta_archivo_temporal_resultante_reduccion_global);
+	envioArchivo(socketConn, ruta_red_global);
 	log_trace(worker_log, "Finalizacion de envio de archivo");
 
 	log_destroy(worker_log);
 	free(ruta_final);
+	free(ruta_red_global);
 
 }
 

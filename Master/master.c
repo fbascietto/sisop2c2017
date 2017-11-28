@@ -16,10 +16,6 @@
 #include "../bibliotecas/protocolo.h"
 #include "interfaceMaster.h"
 
-char* ruta_programa_transformador;
-char* ruta_programa_reductor;
-char* ruta_archivo_del_job;
-char* ruta_archivo_final_fs;
 
 void main(int args, char* argv[]) {
 	//testSerializarSolicitudTrasnformacion();
@@ -94,10 +90,9 @@ void main(int args, char* argv[]) {
 	}
 
 	enviarInt(socketConn,PROCESO_MASTER);
-	char* archivoMensage = "sent.txt";
-	int len = strlen(archivoMensage);
+	int len = strlen(ruta_archivo_del_job);
 	uint32_t message_long = sizeof(char)*len;
-	enviarMensajeSocketConLongitud(socketConn,ACCION_PROCESAR_ARCHIVO,archivoMensage,len);
+	enviarMensajeSocketConLongitud(socketConn,ACCION_PROCESAR_ARCHIVO,ruta_archivo_del_job,len);
 	while(1){
 		sleep(1);
 		Package* package = createPackage();
