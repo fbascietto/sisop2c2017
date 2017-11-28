@@ -13,7 +13,7 @@ void iniciarWorker(){
 	//--------------WORKER LEE ARCHIVO DE CONFIGURACION--------------------
 
 
-	infoConfig = config_create("/home/utnso/git/tp-2017-2c-sapnu-puas/Nodo/config.txt");
+	infoConfig = config_create("config.txt");
 
 
 	if(config_has_property(infoConfig,"NOMBRE_NODO")){

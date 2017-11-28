@@ -14,14 +14,13 @@
 
 void main() {
 
-	ruta_archivo_log = "/home/utnso/git/tp-2017-2c-sapnu-puas/Nodo/Worker/logWorker.txt";
 
 	int retorno_mkdir;
 
 	t_log_level level = LOG_LEVEL_TRACE;
-	t_log* worker_log = log_create(ruta_archivo_log, "WORKER", 1, level);
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
 	t_log_level level_INFO = LOG_LEVEL_INFO;
-	t_log* worker_log_info = log_create(ruta_archivo_log, "WORKER", 1, level_INFO);
+	t_log* worker_log_info = log_create("logWorker.txt", "WORKER", 1, level_INFO);
 
 
 	//creo directorio de scripts
@@ -33,7 +32,7 @@ void main() {
 	}
 
 	/*testeo de la funcion de persistencia de programas.OK
-	**persistirPrograma("script_test.sh", "abcdefghijklmnopqrstuvwxyz 123456789101112131415161718192021222324252627282930 ea funciono");*/
+	 **persistirPrograma("script_test.sh", "abcdefghijklmnopqrstuvwxyz 123456789101112131415161718192021222324252627282930 ea funciono");*/
 	iniciarWorker();
 	log_trace(worker_log, "Lectura de archivo de configuracion");
 
@@ -58,10 +57,8 @@ void main() {
 	log_destroy(worker_log);
 	log_destroy(worker_log_info);
 
-	while(1){
 
-		esperarConexionesMasterYWorker((void*) esperarConexion);
+	esperarConexionesMasterYWorker((void*) esperarConexion);
 
-	}
 
 }

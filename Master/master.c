@@ -25,12 +25,11 @@ void main(int args, char* argv[]) {
 	//testSerializarSolicitudAlmacenadoFinal();
 	//testSerializarSolicitudReduccionGlobal();
 
-	ruta_archivo_log = "/home/utnso/git/tp-2017-2c-sapnu-puas/Master/logMaster.txt";
 
 	t_log_level level_INFO = LOG_LEVEL_INFO;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
-	t_log* worker_info_log = log_create(ruta_archivo_log, "MASTER", 1, level_INFO);
-	t_log* worker_error_log = log_create(ruta_archivo_log, "MASTER", 1, level_ERROR);
+	t_log* worker_info_log = log_create("logMaster.txt", "MASTER", 1, level_INFO);
+	t_log* worker_error_log = log_create("logMaster.txt", "MASTER", 1, level_ERROR);
 
 	if(args != 5){
 
@@ -65,7 +64,7 @@ void main(int args, char* argv[]) {
 	int socketConn;
 
 
-	infoConfig = config_create("/home/utnso/git/tp-2017-2c-sapnu-puas/Master/config.txt");
+	infoConfig = config_create("config.txt");
 
 	if(config_has_property(infoConfig,"YAMA_IP")){
 		yamaIP = config_get_string_value(infoConfig,"YAMA_IP");

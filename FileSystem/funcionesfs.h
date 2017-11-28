@@ -83,6 +83,7 @@ void creoListaNodosDesdeNodosBin();
 void deserializar_a_nodo(void* serializado, t_nodo *nodo);
 t_nodo* getNodoPorNombre(char* nombre_nodo, t_list* listaABuscar);
 t_list* getNodosMenosCargados(t_list* listaABuscar);
+void getNodosRelacionadosDeMetadata(char* ruta_metadata, t_list* listaNodosRelacionados);
 
 /*Funciones de bitmap*/
 t_bitarray* creaAbreBitmap(int tamNodo, char nombreNodo[10]);
@@ -101,7 +102,7 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList,
 void copioBloque(char* archivoABuscar, char* nodoDestino, t_list* folderList);
 
 void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList);
-void moverArchivo(char* archivoABuscar, char* destino);
+void moverArchivo(char* archivoABuscar, char* destino, t_list* folderList);
 void renombrarArchivo(char* archivoABuscar, char* nombreNuevo, t_list* folderList);
 
 int obtenerMD5Archivo(char * archivo, t_list* folderList);
@@ -157,6 +158,7 @@ agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar1);
 agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar2);
 return bloquesEnviados;
  */
+
 t_bloque_serializado* crearBloqueSerializado(uint32_t numeroBloque, uint32_t bytesOcupados, char* ip, uint32_t puerto, char* idNodo, uint32_t idBloque);
 void agregarBloqueSerializado(t_bloques_enviados* bloquesEnviados, t_bloque_serializado* bloqueAAgregar);
 

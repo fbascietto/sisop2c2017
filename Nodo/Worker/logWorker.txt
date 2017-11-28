@@ -117,3 +117,6 @@
 [TRACE] 20:31:40:447 WORKER/(8241:8241): Lectura de archivo de configuracion
 [TRACE] 20:31:40:447 WORKER/(8241:8241): Creacion socket para conexion con Master
 [TRACE] 20:31:40:447 WORKER/(8241:8241): Esperando conexiones de Master
+[INFO] 15:36:02:510 WORKER/(6938:6938): El directorio scripts ya existe
+[TRACE] 15:36:02:510 WORKER/(6938:6938): Lectura de archivo de configuracion
+[TRACE] 15:36:02:510 WORKER/(6938:6938): Creacion socket para conexion con Master

@@ -559,8 +559,6 @@ void procesarSolicitudArchivoMaster(int nuevoSocket, uint32_t message_long, char
 
 	uint32_t socketMaster = nuevoSocket;
 
-	char* solicitudSerializada = serializarSolicitudJob(solicitudArchivo, socketMaster, tamanioSerializado);
-
 	enviarInt(socketFS, nuevoSocket);
 	enviarMensaje(socketFS, solicitudArchivo);
 
@@ -717,11 +715,11 @@ char* generarRutaTemporal(){
 void inicializarConfigYama(){
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
-	t_log* yama_log = log_create("../Yama/config.txt", "YAMA", 0, level);
+	t_log* yama_log = log_create("logYama.txt", "YAMA", 0, level);
 
 	log_trace(yama_log, "Inicializacion de la configuracion de Yama");
 
-	t_config* infoConfig = config_create("/home/utnso/git/tp-2017-2c-sapnu-puas/Yama/config.txt");
+	t_config* infoConfig = config_create("config.txt");
 
 	if(config_has_property(infoConfig,"IP_FILESYSTEM")){
 		fsIP = config_get_string_value(infoConfig,"IP_FILESYSTEM");
@@ -736,7 +734,6 @@ void inicializarConfigYama(){
 
 	log_trace(yama_log, "Carga exitosa del archivo de configuracion");
 
-	config_destroy(infoConfig);
 	log_destroy(yama_log);
 
 
@@ -744,11 +741,11 @@ void inicializarConfigYama(){
 
 void cargarValoresPlanificacion(){
 	t_log_level level = LOG_LEVEL_TRACE;
-	t_log* yama_log = log_create("../Yama/config.txt", "YAMA", 0, level);
+	t_log* yama_log = log_create("logYama.txt", "YAMA", 0, level);
 
 	log_trace(yama_log, "Carga de valores de planificacion");
 
-	t_config* infoConfig = config_create("/home/utnso/git/tp-2017-2c-sapnu-puas/Yama/config.txt");
+	t_config* infoConfig = config_create("config.txt");
 
 	if(config_has_property(infoConfig,"RETARDO_PLANIFICACION")){
 		retardoPlanificacion = config_get_int_value(infoConfig,"RETARDO_PLANIFICACION");
@@ -768,9 +765,9 @@ void cargarValoresPlanificacion(){
 }
 
 void recargarConfiguracion(int signal){
-	if(signal == SIGUSR1){
+
 		printf("SIGUSR1 recibido correctamente\n");
 		printf("SIGUSR1 cargando nuevamente configuracion\n");
 		cargarValoresPlanificacion();
-	}
+
 }
