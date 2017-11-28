@@ -34,6 +34,10 @@ int cantNodos;
 int estable;
 
 typedef struct {
+	int socketCliente;
+} t_esperar_mensaje;
+
+typedef struct {
 	int socketEscucha;
 	fd_set fdSocketEscucha;
 } t_esperar_conexion;
@@ -131,6 +135,8 @@ t_nodo* getDirectorioPorNombre(char* carpeta, t_list* folderList);
 void actualizarDirectorioDat(t_list* folderList);
 
 /*Funciones de serializacion y envio y recepcion de mensajes con Yama*/
+
+void procesarSolicitudYama(void* args);
 
 void serializarDato(char* buffer, void* dato, int size_to_send, int* offset);
 void deserializarDato(void* dato, char* buffer, int size, int* offset);

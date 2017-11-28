@@ -2226,9 +2226,29 @@ void transformacionFinalWorker(int nuevoSocket){
 	free(archivo_tmp);
 }
 
-void procesarSolicitudYama(int nuevoSocket){
+void procesarSolicitudYama(void* args){
+
+	t_esperar_mensaje *argumentos = (t_esperar_mensaje*) args;
+		int nuevoSocket = argumentos->socketCliente;
+		free(args);
+
+		Package* package = createPackage();
+			int leidos = recieve_and_deserialize(package, nuevoSocket);
+
+			int idMaster;
+			char* solicitudArchivo;
+
+			idMaster = recibirInt(nuevoSocket, &idMaster);
+			solicitudArchivo = recibirMensaje(nuevoSocket);
 
 
-
-	return;
+	/*
+	 *	todo completar con los bloques usados
+	 *
+	 *
+	 *	todo usar las funciones de nahuel
+	 *
+	 *
+	 *	serializar_y_enviar_yama(bloques, idMaster, socketYama);
+	 */
 }

@@ -551,17 +551,18 @@ void procesarSolicitudArchivoMaster(int nuevoSocket, uint32_t message_long, char
 	//solicitud_transformacion* solicitudTransformacion = obtenerSolicitudTrasnformacion(message);
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
-	char* solicitudArchivo = malloc(leidos);
+	char* solicitudArchivo = malloc(leidos+1);
 	uint32_t* tamanioSerializado = malloc(sizeof(uint32_t));
 
 	strcpy(solicitudArchivo, package->message);
+	solicitudArchivo[leidos+1] = '\0';
 
 	uint32_t socketMaster = nuevoSocket;
 
 	char* solicitudSerializada = serializarSolicitudJob(solicitudArchivo, socketMaster, tamanioSerializado);
 
-
-	enviarMensajeSocketConLongitud(socketFS, ACCION_PROCESAR_ARCHIVO, solicitudSerializada, *tamanioSerializado);
+	enviarInt(socketFS, nuevoSocket);
+	enviarMensaje(socketFS, solicitudArchivo);
 
 	free(solicitudArchivo);
 	free(package);
@@ -581,22 +582,6 @@ t_list* procesarBloquesRecibidos(char* message, uint32_t* masterId){
 	adaptarBloques(bloquesRecibidos, bloques);
 
 	return bloques;
-}
-
-
-char* serializarSolicitudJob(char* solicitudArchivo, uint32_t masterId, uint32_t* tamanioSerializado){
-	int tamanioSolicitudArchivo = strlen(solicitudArchivo);
-	int tamanioMasterId = sizeof(uint32_t);
-	*tamanioSerializado += tamanioMasterId;
-	*tamanioSerializado += tamanioSolicitudArchivo;
-
-	char* serializedPackage = malloc(*tamanioSerializado);
-	int offset = 0;
-
-	serializarDato(serializedPackage, solicitudArchivo, tamanioSolicitudArchivo, &offset);
-	serializarDato(serializedPackage, &masterId, tamanioMasterId, &offset);
-
-	return serializedPackage;
 }
 
 /*
