@@ -231,7 +231,7 @@ solicitud_reduccion_global* obtenerSolicitudReduccionGlobalMock(char* message){
 	t_worker* item2 = crearItemWorker("nodo 2","127.23.0.1",0101,"/tmp/Master1-temp39");
 	t_worker* item3 = crearItemWorker("nodo 3","187.0.56.1",9090,"/tmp/Master1-temp44");
 
-	t_worker* itemEncargado = crearItemWorker(137,"187.0.56.1",9090,"/tmp/ruta_encargado");
+	t_worker* itemEncargado = crearItemWorker("nodo 1","187.0.56.1",9090,"/tmp/ruta_encargado");
 
 	solicitud_reduccion_global* solicitudReduccionGlobal = malloc(sizeof(solicitud_reduccion_global));
 
@@ -458,12 +458,12 @@ void procesarResultadoReduccionGlobal(int nuevoSocket, uint32_t message_long, ch
 }
 
 void procesarResultadoAlmacenadoFinal(int nuevoSocket, uint32_t message_long, char* message){
+	exit(0);
 	//TODO: fin
 }
 
 void procesarSolicitudArchivoMaster(int nuevoSocket, uint32_t message_long, char* message){
 	//solicitud_transformacion* solicitudTransformacion = obtenerSolicitudTrasnformacion(message);
-
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
 	char* solicitudArchivo = malloc(leidos);

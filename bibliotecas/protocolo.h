@@ -8,6 +8,7 @@
 #ifndef PROTOCOLO_H_
 #define PROTOCOLO_H_
 
+
 /* IDS DE LOS PROCESOS */
 #define PROCESO_NODO 1
 #define PROCESO_FILESYSTEM 2

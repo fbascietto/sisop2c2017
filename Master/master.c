@@ -92,6 +92,7 @@ void main(int args, char* argv[]) {
 		socketConn = conectarseA(yamaIP, yamaPort);
 		sleep(3);
 	}
+
 	enviarInt(socketConn,PROCESO_MASTER);
 	char* archivoMensage = "sent.txt";
 	int len = strlen(archivoMensage);
@@ -104,22 +105,22 @@ void main(int args, char* argv[]) {
 		int leidos = recieve_and_deserialize(package, socketConn);
 		printf("codigo de mensaje: %d\n",	package->msgCode);
 		switch(package->msgCode){
-		case ACCION_PROCESAR_TRANSFORMACION:
-			procesarSolicitudTransformacion(socketConn, package->message_long, package->message);
-			enviarMensajeSocketConLongitud(socketConn,RESULTADO_TRANSFORMACION,archivoMensage,len);
-			break;
-		case ACCION_PROCESAR_REDUCCION_LOCAL:
-			procesarSolicitudReduccionLocal(socketConn, package->message_long, package->message);
-			enviarMensajeSocketConLongitud(socketConn,RESULTADO_REDUCCION_LOCAL,archivoMensage,len);
-			break;
-		case ACCION_PROCESAR_REDUCCION_GLOBAL:
-			procesarSolicitudReduccionGlobal(socketConn, package->message_long, package->message);
-			enviarMensajeSocketConLongitud(socketConn,RESULTADO_REDUCCION_GLOBAL,archivoMensage,len);
-			break;
-		case ACCION_PROCESAR_ALMACENADO_FINAL:
-			procesarSolicitudAlmacenadoFinal(socketConn, package->message_long, package->message);
-			enviarMensajeSocketConLongitud(socketConn,RESULTADO_ALMACENADO_FINAL,archivoMensage,len);
-			break;
+			case ACCION_PROCESAR_TRANSFORMACION:
+				procesarSolicitudTransformacion(socketConn, package->message_long, package->message);
+				//enviarMensajeSocketConLongitud(socketConn,RESULTADO_TRANSFORMACION,archivoMensage,len);
+				break;
+			case ACCION_PROCESAR_REDUCCION_LOCAL:
+				procesarSolicitudReduccionLocal(socketConn, package->message_long, package->message);
+				//enviarMensajeSocketConLongitud(socketConn,RESULTADO_REDUCCION_LOCAL,archivoMensage,len);
+				break;
+			case ACCION_PROCESAR_REDUCCION_GLOBAL:
+				procesarSolicitudReduccionGlobal(socketConn, package->message_long, package->message);
+				//enviarMensajeSocketConLongitud(socketConn,RESULTADO_REDUCCION_GLOBAL,archivoMensage,len);
+				break;
+			case ACCION_PROCESAR_ALMACENADO_FINAL:
+				procesarSolicitudAlmacenadoFinal(socketConn, package->message_long, package->message);
+				//enviarMensajeSocketConLongitud(socketConn,RESULTADO_ALMACENADO_FINAL,archivoMensage,len);
+				break;
 		}
 
 	}

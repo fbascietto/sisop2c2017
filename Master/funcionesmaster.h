@@ -9,5 +9,7 @@
 #define MASTER_FUNCIONESMASTER_H_
 
 char* ruta_archivo_log;
+int socketYama;
+
 
 #endif /* MASTER_FUNCIONESMASTER_H_ */
