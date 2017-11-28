@@ -162,7 +162,7 @@ return bloquesEnviados;
 t_bloque_serializado* crearBloqueSerializado(uint32_t numeroBloque, uint32_t bytesOcupados, char* ip, uint32_t puerto, char* idNodo, uint32_t idBloque);
 void agregarBloqueSerializado(t_bloques_enviados* bloquesEnviados, t_bloque_serializado* bloqueAAgregar);
 
-void procesarSolicitudYama(int nuevoSocket);
+void procesarSolicitudYama(void* args);
 
 /*Funciones de relación con Worker*/
 void transformacionFinalWorker(int nuevoSocket);
