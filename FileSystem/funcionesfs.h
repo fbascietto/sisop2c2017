@@ -138,6 +138,19 @@ uint32_t longitudBloques(t_bloques_enviados* bloques);
 char* serializar_bloques(t_bloques_enviados* bloques, uint32_t* id_master, uint32_t* longitud);
 int serializar_y_enviar_yama(t_bloques_enviados* bloques, uint32_t id_master, int socketYama);
 
+/*
+Ejemplo para usar:
+t_bloques_enviados* bloquesEnviados = malloc(sizeof(t_bloques_enviados));
+t_bloque_serializado* bloqueAAgregar1 = crearBloqueSerializado(numeroBloque, bytesOcupados, ip, puerto, idNodo, idBloque);
+t_bloque_serializado* bloqueAAgregar2 = crearBloqueSerializado(numeroBloque2, bytesOcupados2, ip2, puerto2, idNodo2, idBloque2);
+bloquesEnviados->cantidad_bloques = 0; //inicializo en cero antes de agregar bloques
+agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar1);
+agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar2);
+return bloquesEnviados;
+ */
+t_bloque_serializado* crearBloqueSerializado(uint32_t numeroBloque, uint32_t bytesOcupados, char* ip, uint32_t puerto, char* idNodo, uint32_t idBloque);
+void agregarBloqueSerializado(t_bloques_enviados* bloquesEnviados, t_bloque_serializado* bloqueAAgregar);
+
 
 /*Misc*/
 char* replace_char(char* str, char find, char replace);

@@ -2149,3 +2149,25 @@ int serializar_y_enviar_yama(t_bloques_enviados* bloques, uint32_t id_master, in
 	return enviados;
 }
 
+t_bloque_serializado* crearBloqueSerializado(uint32_t numeroBloque, uint32_t bytesOcupados, char* ip, uint32_t puerto, char* idNodo, uint32_t idBloque){
+	t_bloque_serializado *bloque = malloc(sizeof(t_bloque_serializado));
+	bloque->numero_bloque = numeroBloque;
+	bloque->bytes_ocupados = bytesOcupados;
+	strcpy(bloque->ip,ip);
+	bloque->puerto = puerto;
+	strcpy(bloque->idNodo,idNodo);
+	bloque->idBloque = idBloque;
+	return bloque;
+}
+
+void agregarBloqueSerializado(t_bloques_enviados* bloquesEnviados, t_bloque_serializado* bloqueAAgregar){
+	bloquesEnviados->lista_bloques = realloc(bloquesEnviados->lista_bloques,sizeof(t_bloque_serializado)*(bloquesEnviados->cantidad_bloques+1));
+	bloquesEnviados->lista_bloques[bloquesEnviados->cantidad_bloques].numero_bloque=(bloqueAAgregar->numero_bloque);
+	bloquesEnviados->lista_bloques[bloquesEnviados->cantidad_bloques].bytes_ocupados=(bloqueAAgregar->bytes_ocupados);
+	strcpy(bloquesEnviados->lista_bloques[bloquesEnviados->cantidad_bloques].ip,bloqueAAgregar->ip);
+	bloquesEnviados->lista_bloques[bloquesEnviados->cantidad_bloques].puerto = bloqueAAgregar->puerto;
+	strcpy(bloquesEnviados->lista_bloques[bloquesEnviados->cantidad_bloques].idNodo,bloqueAAgregar->idNodo);
+	bloquesEnviados->lista_bloques[bloquesEnviados->cantidad_bloques].idBloque = bloqueAAgregar->idBloque;
+	bloquesEnviados->cantidad_bloques++;
+}
+
