@@ -70,6 +70,11 @@ typedef struct {
 	int tamanio_bloque;
 } t_bloque;
 
+typedef struct {
+	int bitsOcupados;
+	int indexNodo;
+} t_repartNodo;
+
 pthread_mutex_t mx_nodobin;
 
 void *escucharConsola();
@@ -82,7 +87,7 @@ int traeBloquesLibres();
 void creoListaNodosDesdeNodosBin();
 void deserializar_a_nodo(void* serializado, t_nodo *nodo);
 t_nodo* getNodoPorNombre(char* nombre_nodo, t_list* listaABuscar);
-t_list* getNodosMenosCargados(t_list* listaABuscar);
+void getNodosMenosCargados(int* indexs);
 void getNodosRelacionadosDeMetadata(char* ruta_metadata, t_list* listaNodosRelacionados);
 
 /*Funciones de bitmap*/
@@ -92,6 +97,7 @@ t_bitarray *leerBitmap(FILE* bitmap_file, int tamNodo);
 int findFreeBloque(int tamNodo, t_bitarray* t_fs_bitmap);
 bool escribirBitMap(int tamNodo, char nombreNodo[10], t_bitarray* t_fs_bitmap);
 int cuentaBloquesLibre(int tamNodo, t_bitarray* t_fs_bitmap);
+int cuentaBloquesUsados(int tamNodo, t_bitarray* t_fs_bitmap);
 t_bitarray *limpiar_bitmap(int tamNodo, char* nomNodo[10], t_bitarray* bitmap);
 void destruir_bitmap(t_bitarray* bitmap);
 

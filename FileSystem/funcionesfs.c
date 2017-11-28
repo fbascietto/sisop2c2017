@@ -205,20 +205,48 @@ t_nodo* getNodoPorNombre(char* nombre_nodo, t_list* listaABuscar){
 
 }
 
-t_list* getNodosMenosCargados(t_list* listaABuscar){
+void getNodosMenosCargados(int* indexs){
 
-	t_list* nodosAUsar;
 
-	bool* comparadorBloquesLibres(void* parametro, void* parametro2) {
-	t_nodo* nodo = (t_nodo*) parametro;
-	t_nodo* nodo2 = (t_nodo*) parametro2;
-	return (nodo->bloquesLibres > nodo2->bloquesLibres);
+
+	t_list* chequeoNodos = list_create();
+
+	t_nodo* nodo;
+	t_repartNodo* repart;
+
+	bool* comparadorBloquesOcup(void* parametro, void* parametro2) {
+	t_repartNodo* nodo = (t_repartNodo*) parametro;
+	t_repartNodo* nodo2 = (t_repartNodo*) parametro2;
+	return (nodo->bitsOcupados < nodo2->bitsOcupados);
 	}
 
-	list_sort(listaABuscar,comparadorBloquesLibres);
+	int i=0;
+	int bOcupados = 0;
 
-	nodosAUsar = list_take(listaABuscar,2);
-	return nodosAUsar;
+	for(;i < list_size(nodos);i++){
+		t_bitarray* t_fs_bitmap;
+		t_nodo* nodo = list_get(nodos,i);
+		t_repartNodo* element = malloc(sizeof(t_repartNodo));
+
+		t_fs_bitmap = creaAbreBitmap(nodo->tamanio, nodo->nombre_nodo);
+		bOcupados = cuentaBloquesUsados(nodo->tamanio, t_fs_bitmap);
+		destruir_bitmap(t_fs_bitmap);
+		element->bitsOcupados = bOcupados;
+		element->indexNodo = i;
+		list_add(chequeoNodos, element);
+	}
+
+
+	list_sort(chequeoNodos,comparadorBloquesOcup);
+	int j = 0;
+	for(;j < 2;j++){
+		repart = list_get(chequeoNodos,j);
+		indexs[j] = repart->indexNodo;
+
+	}
+
+	list_destroy_and_destroy_elements(chequeoNodos,free);
+
 
 }
 
@@ -853,6 +881,20 @@ int cuentaBloquesLibre(int tamNodo, t_bitarray* t_fs_bitmap){
 	return libre;
 }
 
+int cuentaBloquesUsados(int tamNodo, t_bitarray* t_fs_bitmap){
+
+	int bloques = (tamNodo / (1024*1024)) ;
+
+	int usado = 0;
+	int i = 0;
+		for (; i < bloques; i++) {
+			 if(bitarray_test_bit(t_fs_bitmap, i)){ // if(t_fs_bitmap->bitarray[i] == 0){
+					usado++;
+			}
+		}
+	return usado;
+}
+
 t_bitarray *limpiar_bitmap(int tamNodo, char* nomNodo[10], t_bitarray* bitmap) {
 	memset(bitmap->bitarray, 0, bitmap->size);
 	escribirBitMap(tamNodo, nomNodo, bitmap);
@@ -1347,6 +1389,8 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 		return;
 	}
 
+	int indexs[2];
+
 	int socketnodo;
 	int socketnodo2; // para el formato RAID 1
 
@@ -1367,13 +1411,14 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 		t_bitarray* t_fs_bitmap2;
 		t_list * nodosAusar;
 
-		nodosAusar = list_create();
-		nodosAusar = getNodosMenosCargados(nodos);
 
-		nodo = list_get(nodosAusar,0);
+
+		getNodosMenosCargados(indexs);
+
+		nodo = list_get(nodos,indexs[0]);
 		socketnodo = nodo->socket_nodo;
 
-		nodo2 = list_get(nodosAusar,1);
+		nodo2 = list_get(nodos,indexs[1]);
 		socketnodo2 = nodo2->socket_nodo;
 
 		int err = enviarInt(socketnodo,ESCRIBIR_BLOQUE_NODO);
@@ -1418,7 +1463,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 
 		}
 
-	list_destroy(nodosAusar);
+
 	iteration++;
 	}
 
@@ -1479,10 +1524,13 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 		t_bitarray* t_fs_bitmap;
 		t_bitarray* t_fs_bitmap2;
 		t_list * nodosAusar;
-
+/*
 		nodosAusar = list_create();
 		nodosAusar = getNodosMenosCargados(nodos);
+ */
+		int indexs[2];
 
+		getNodosMenosCargados(indexs);
 		nodo = list_get(nodosAusar,0);
 		socketnodo = nodo->socket_nodo;
 
@@ -1933,8 +1981,8 @@ void renombrarArchivo(char* archivoABuscar, char* nombreNuevo, t_list* folderLis
 		getline(&line,&len,metadata);
 
 		while(!feof(metadata)){
-			if(feof(metadata)){break;}
 			getline(&line,&len,metadata);
+			if(feof(metadata)){break;}
 			fprintf(new_metadata,"%s",line);
 		}
 
@@ -2254,7 +2302,7 @@ void procesarSolicitudYama(void* args){
 
 	if(err){printf("Error recibiendo num. de Master.\n");}
 
-	char* ruta_archivo;
+	char* ruta_archivo = string_new();
 	ruta_archivo = recibirMensaje(nuevoSocket);
 
 	int carpeta = identificaDirectorio(ruta_archivo,carpetas);
