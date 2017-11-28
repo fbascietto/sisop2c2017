@@ -53,9 +53,10 @@ void main() {
 	esperarConexion->fdSocketEscucha = fdSocketsEscucha;
 	esperarConexion->socketEscucha = socketEscucha;
 
+	while(1){
 		//Espero conexión de procesos master
 		esperarConexionMasterYFS((void*) esperarConexion);
-
+	}
 
 }
 

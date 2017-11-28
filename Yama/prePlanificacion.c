@@ -6,9 +6,22 @@ void agregarNodoALaPlanificacion(t_bloque* bloque, t_nodo* nodo, t_list* planifi
 	nodo->disponibilidad--;
 	nodo->cargaDeTrabajoActual++;
 
+	t_bloque* unBloque;
+		int i;
+		int cantBloques;
+
+		cantBloques = list_size(nodo->bloquesAsignados);
+
+		for (i=0; i<cantBloques; i++){
+			unBloque = list_get(nodo->bloquesAsignados, i);
+			if(unBloque->idBloque == bloque->idBloque){
+				break;
+			}
+		}
+
 	t_planificacion* planificacion = malloc(sizeof(t_planificacion));
 	planificacion->nodo = nodo;
-	planificacion->bloque = bloque;
+	planificacion->bloque = unBloque;
 	planificacion->reduccionGlobal = 0;
 	list_add(planificacionNodos, planificacion);
 }
@@ -106,27 +119,21 @@ t_nodo* siguienteNodo(int* numNodo, t_list* nodos) {
 
 
 bool tieneElBloque(t_nodo* nodo, t_bloque* bloque){
-//	int * unBloque = NULL;
-//	int i;
-//	int cantBloques;
-//
-//	cantBloques = list_size(nodo->bloques);
-//
-//	for (i=0; i<cantBloques; i++){
-//		unBloque = list_get(nodo->bloques, i);
-//		if(*unBloque == bloque->numeroBloque){
-//			return true;
-//		}
-//	}
-//
-//
-//	return false;
+	t_bloque* unBloque;
+	int i;
+	int cantBloques;
 
-		if(strcmp(nodo->idNodo, bloque->idNodo) == 0){
+	cantBloques = list_size(nodo->bloquesAsignados);
+
+	for (i=0; i<cantBloques; i++){
+		unBloque = list_get(nodo->bloquesAsignados, i);
+		if(unBloque->idBloque == bloque->idBloque){
 			return true;
-		}else{
-			return false;
 		}
+	}
+
+
+	return false;
 }
 
 /*
@@ -427,7 +434,7 @@ t_list* replanificacion(char* nodoFallado, t_list* bloques, int dispBase, char* 
 
 }
 
-bool sePuedeReplanificar(t_list* bloques){
+bool sePuedePlanificar(t_list* bloques){
 	t_list* nodos;
 	nodos = obtenerNodosParticipantes(bloques);
 	if(hayUnaCopiaDeCadaBloque(nodos, bloques)){

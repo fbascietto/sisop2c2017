@@ -14,41 +14,43 @@ void recibirMensajeMaster(void *args){
 	int nuevoSocket = argumentos->socketCliente;
 	free(args);
 
-	Package* package = createPackage();
-	int leidos = recieve_and_deserialize(package, nuevoSocket);
+	while(1){
+		Package* package = createPackage();
+		int leidos = recieve_and_deserialize(package, nuevoSocket);
 
-	printf("codigo de mensaje: %d\n",	package->msgCode);
+		printf("codigo de mensaje: %d\n",	package->msgCode);
 
-	switch(package->msgCode){
+		switch(package->msgCode){
 
-	case ACCION_PROCESAR_ARCHIVO:
-		procesarSolicitudArchivoMaster(nuevoSocket, package->message_long, package->message);
-		break;
-	case TRANSFORMACION_OK:
-		procesarResultadoTransformacion(nuevoSocket, package->message_long, package->message, TRANSFORMACION_OK);
-		break;
-	case REDUCCION_LOCAL_OK:
-		procesarResultadoReduccionLocal(nuevoSocket, package->message_long, package->message, REDUCCION_LOCAL_OK);
-		break;
-	case REDUCCION_GLOBAL_OK:
-		procesarResultadoReduccionGlobal(nuevoSocket, package->message_long, package->message, REDUCCION_GLOBAL_OK);
-		break;
-	case ALMACENADO_FINAL_OK:
-		procesarResultadoAlmacenadoFinal(nuevoSocket, package->message_long, package->message);
-		break;
-	case TRANSFORMACION_ERROR:
-		procesarResultadoTransformacion(nuevoSocket, package->message_long, package->message, TRANSFORMACION_ERROR);
-		break;
-	case REDUCCION_LOCAL_ERROR:
-		procesarResultadoReduccionLocal(nuevoSocket, package->message_long, package->message, REDUCCION_LOCAL_ERROR);
-		break;
-	case REDUCCION_GLOBAL_ERROR:
-		procesarResultadoReduccionGlobal(nuevoSocket, package->message_long, package->message, REDUCCION_GLOBAL_ERROR);
-		break;
-	case ALMACENADO_FINAL_ERROR:
-		procesarResultadoAlmacenadoFinal(nuevoSocket, package->message_long, package->message);
-		break;
-
+		case ACCION_PROCESAR_ARCHIVO:
+			procesarSolicitudArchivoMaster(nuevoSocket, package->message_long, package->message);
+			break;
+		case TRANSFORMACION_OK:
+			procesarResultadoTransformacion(nuevoSocket, package->message_long, package->message, TRANSFORMACION_OK);
+			break;
+		case REDUCCION_LOCAL_OK:
+			procesarResultadoReduccionLocal(nuevoSocket, package->message_long, package->message, REDUCCION_LOCAL_OK);
+			break;
+		case REDUCCION_GLOBAL_OK:
+			procesarResultadoReduccionGlobal(nuevoSocket, package->message_long, package->message, REDUCCION_GLOBAL_OK);
+			break;
+		case ALMACENADO_FINAL_OK:
+			procesarResultadoAlmacenadoFinal(nuevoSocket, package->message_long, package->message);
+			break;
+		case TRANSFORMACION_ERROR:
+			procesarResultadoTransformacion(nuevoSocket, package->message_long, package->message, TRANSFORMACION_ERROR);
+			break;
+		case REDUCCION_LOCAL_ERROR:
+			procesarResultadoReduccionLocal(nuevoSocket, package->message_long, package->message, REDUCCION_LOCAL_ERROR);
+			break;
+		case REDUCCION_GLOBAL_ERROR:
+			procesarResultadoReduccionGlobal(nuevoSocket, package->message_long, package->message, REDUCCION_GLOBAL_ERROR);
+			break;
+		case ALMACENADO_FINAL_ERROR:
+			procesarResultadoAlmacenadoFinal(nuevoSocket, package->message_long, package->message);
+			break;
+		}
+		sleep(1);
 	}
 }
 
@@ -58,10 +60,12 @@ void recibirMensajeMaster(void *args){
  */
 void crearNuevoJob(int idMaster, t_list* bloques, t_job* nuevoJob, char* algoritmo) {
 	t_list* nodos;
+	t_list* bloquesReducidos;
 	// ---------------------------- CREO JOB ----------------------------------------------
 
 	nodos = obtenerNodosParticipantes(bloques);
-	nuevoJob = crearJob(bloques, nodos, algoritmo, idMaster);
+	bloquesReducidos = reducirBloques(bloques);
+	nuevoJob = crearJob(bloquesReducidos, nodos, algoritmo, idMaster);
 	list_add(jobsActivos, nuevoJob);
 
 	//todo
@@ -334,18 +338,18 @@ solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job){ //t_lis
 	for(i=0; i<tamanioReduccionLocal ;i++){
 		unEstado = list_get(job->estadosReduccionesLocales, i);
 		item = crearItemWorker(unEstado->nodoPlanificado->nodo->idNodo,
-					unEstado->nodoPlanificado->nodo->ipWorker,
-					unEstado->nodoPlanificado->nodo->puerto,
-					unEstado->archivoTemporal);
-			agregarItemWorker(solicitud, item);
-		}
-			unEstado = job->reduccionGlobal;
-			item = crearItemWorker(unEstado->nodoPlanificado->nodo->idNodo,
-					unEstado->nodoPlanificado->nodo->ipWorker,
-					unEstado->nodoPlanificado->nodo->puerto,
-					NULL);
-			strcpy(solicitud->archivo_temporal_reduccion_global, item->archivo_temporal_reduccion_local);
-			solicitud->encargado_worker = item;
+				unEstado->nodoPlanificado->nodo->ipWorker,
+				unEstado->nodoPlanificado->nodo->puerto,
+				unEstado->archivoTemporal);
+		agregarItemWorker(solicitud, item);
+	}
+	unEstado = job->reduccionGlobal;
+	item = crearItemWorker(unEstado->nodoPlanificado->nodo->idNodo,
+			unEstado->nodoPlanificado->nodo->ipWorker,
+			unEstado->nodoPlanificado->nodo->puerto,
+			NULL);
+	strcpy(solicitud->archivo_temporal_reduccion_global, item->archivo_temporal_reduccion_local);
+	solicitud->encargado_worker = item;
 	return solicitud;
 }
 
@@ -372,7 +376,7 @@ void procesarResultadoTransformacion(int nuevoSocket, uint32_t message_long, cha
 	/*
 	 * todo:
 	 * (i) 	deserealizar el resultado de transformacion (orden: primero resultado idNodo )
-	 * YANOSECHEQUEA (ii)	evaluar si el resultado es ok o error, si es error, replanificar
+	 * (ii)	evaluar si el resultado es ok o error, si es error, replanificar
 	 * (iii)actualizar tabla de estados
 	 * (iv)	si esta ok, evaluar si ya se terminaron todos los bloques
 	 * (v)	si ya se terminaron crear dicha reduccion local para el nodo
@@ -384,7 +388,7 @@ void procesarResultadoTransformacion(int nuevoSocket, uint32_t message_long, cha
 
 	int offset = 0;
 	char idNodo[NOMBRE_NODO];
-	int numeroBloque;
+	uint32_t numeroBloque;
 
 	deserializarDato(&numeroBloque, package->message, sizeof(uint32_t), &offset);
 	deserializarDato(idNodo, package->message, NOMBRE_NODO, &offset);
@@ -393,17 +397,20 @@ void procesarResultadoTransformacion(int nuevoSocket, uint32_t message_long, cha
 
 	idJob = obtenerIdJob(nuevoSocket, jobsActivos);
 
+	/* (iii) */
+	actualizarEstado(idNodo, numeroBloque, RESULTADO_TRANSFORMACION, idJob, resultado);
+
+	/* (ii) */
 	if(resultado == TRANSFORMACION_OK){
-		/* (iii) */
-		actualizarEstado(idNodo, numeroBloque, RESULTADO_TRANSFORMACION, idJob, resultado);
+
 
 		/* (iv) */
 		if(finalizoTransformacionesNodo(idNodo, numeroBloque, idJob)){
 
 			/* (v) */
 
-			//todo
-			solicitud_reduccion_local* solicitudTransformacion = obtenerSolicitudReduccionLocalMock(message);
+			t_job* job = obtenerJob(idJob, jobsActivos);
+			solicitud_reduccion_local* solicitudTransformacion = obtenerSolicitudReduccionLocal(job);
 			char* solicitudSerializado = serializarSolicitudReduccionLocal(solicitudTransformacion);
 			uint32_t longitud = getLong_SolicitudReduccionLocal(solicitudTransformacion);
 			int enviados = enviarMensajeSocketConLongitud(nuevoSocket,ACCION_PROCESAR_REDUCCION_LOCAL,solicitudSerializado,longitud);
@@ -420,18 +427,35 @@ void procesarResultadoTransformacion(int nuevoSocket, uint32_t message_long, cha
 		t_job* jobFallado;
 		t_list* bloques;
 
+		/***** termino el job *****/
+
 		jobFallado = terminarJob(idJob);
 
-					/********* JOB *************/
+		/********* JOB *************/
 		bloques = obtenerBloques(jobFallado);
 		t_job* jobReplanificado;
 
 		desconectarNodo(idNodo);
 
-		quitarBloquesNodo(idNodo, bloques);
 
-		if(sePuedeReplanificar(bloques)){
+		//todo sePuedePlanificar hablar con francisco
+		if(sePuedePlanificar(bloques)){
+
+			solicitud_transformacion* solicitudTransformacion;
+			char* solicitudTransfSerializado;
+			uint32_t longitud;
+
 			crearNuevoJob(idMaster, bloques, jobReplanificado, algoritmoBalanceo);
+
+			solicitudTransformacion = obtenerSolicitudTrasnformacion(jobReplanificado);
+
+			solicitudTransfSerializado = serializarSolicitudTransformacion(solicitudTransformacion);
+			longitud = getLong_SolicitudTransformacion(solicitudTransformacion);
+
+			enviados = enviarMensajeSocketConLongitud(idMaster,ACCION_PROCESAR_TRANSFORMACION,solicitudTransfSerializado,longitud);
+
+			free(solicitudTransformacion);
+			free(solicitudTransfSerializado);
 		}else{
 			free(bloques);
 
@@ -439,12 +463,38 @@ void procesarResultadoTransformacion(int nuevoSocket, uint32_t message_long, cha
 	}
 }
 
-void procesarResultadoReduccionLocal(int nuevoSocket, uint32_t message_long, char* message){
-	//solicitud_reduccion_local* solicitudReduccionGlobal = obtenerSolicitudReduccionGlobal(message);
-	solicitud_reduccion_local* solicitudReduccionGlobal;
-	char* solicitudSerializado = serializarSolicitudReduccionGlobal(solicitudReduccionGlobal);
-	uint32_t longitud = getLong_SolicitudReduccionGlobal(solicitudReduccionGlobal);
-	int enviados = enviarMensajeSocketConLongitud(nuevoSocket,ACCION_PROCESAR_REDUCCION_GLOBAL,solicitudSerializado,longitud);
+void procesarResultadoReduccionLocal(int nuevoSocket, uint32_t message_long, char* message, uint32_t resultado){
+
+	Package* package = createPackage();
+	recieve_and_deserialize(package, nuevoSocket);
+
+	int offset = 0;
+	char idNodo[NOMBRE_NODO];
+	uint32_t numeroBloque;
+
+	deserializarDato(idNodo, package->message, NOMBRE_NODO, &offset);
+
+	int idJob;
+
+	idJob = obtenerIdJob(nuevoSocket, jobsActivos);
+	actualizarEstado(idNodo, NULL, RESULTADO_REDUCCION_LOCAL, idJob, resultado);
+
+	t_job* job = obtenerJob(idJob, jobsActivos);
+
+	if(resultado == REDUCCION_LOCAL_OK){
+		if(finalizaronReduccionesLocalesNodos(job)){
+
+			solicitud_reduccion_global* solicitudReduccionGlobal = obtenerSolicitudReduccionGlobal(job);
+			char* solicitudSerializado = serializarSolicitudReduccionGlobal(solicitudReduccionGlobal);
+			uint32_t longitud = getLong_SolicitudReduccionGlobal(solicitudReduccionGlobal);
+			int enviados = enviarMensajeSocketConLongitud(nuevoSocket,ACCION_PROCESAR_REDUCCION_GLOBAL,solicitudSerializado,longitud);
+
+		}
+	}else{
+		job = terminarJob(idJob);
+	}
+
+
 
 }
 
@@ -474,6 +524,7 @@ void procesarSolicitudArchivoMaster(int nuevoSocket, uint32_t message_long, char
 	uint32_t socketMaster = nuevoSocket;
 
 	char* solicitudSerializada = serializarSolicitudJob(solicitudArchivo, socketMaster, tamanioSerializado);
+
 
 	enviarMensajeSocketConLongitud(socketFS, ACCION_PROCESAR_ARCHIVO, solicitudSerializada, *tamanioSerializado);
 
@@ -545,18 +596,45 @@ void adaptarBloques(t_bloques_enviados* bloquesRecibidos, t_list* bloques){
  * y si se pone de actualizar el estado de almacenado final a ok
  * modificar el estado de reduccion global a "job finalizado
  */
-void actualizarEstado(char* idNodo, int numeroBloque, int etapa, int idJob, char* resultado){
+void actualizarEstado(char* idNodo, int numeroBloque, int etapa, int idJob, int resultado){
 	t_job* job;
 	t_estado* estado;
 
 	job = obtenerJob(idJob, jobsActivos);
-	if(etapa == RESULTADO_TRANSFORMACION){
-		//todo estado = obtenerEstadoTransformacion(job->estadosTransformaciones, idNodo, numeroBloque);
 
-	}else if(etapa == RESULTADO_REDUCCION_LOCAL){
+	switch(etapa){
+	case RESULTADO_TRANSFORMACION:
+		//todo estado = obtenerEstadoTransformacion(job->estadosTransformaciones, idNodo, numeroBloque);
+		if(resultado == TRANSFORMACION_OK){
+			strcpy(estado->estado, "finalizado");
+		}else{
+			//todo actualizarEstadoError(job, idNodo, resultado);
+		}
+		break;
+
+	case RESULTADO_REDUCCION_LOCAL:
 		//todo estado = obtenerEstadoRedLoc(job->estadosReduccionesLocales, idNodo);
-	}else{
-		strcpy(estado->estado, resultado);
+		if(resultado == REDUCCION_LOCAL_OK){
+			strcpy(estado->estado, "finalizado");
+		}else{
+			//todo actualizarEstadoError(job, idNodo, resultado);
+		}
+		break;
+
+	case RESULTADO_REDUCCION_GLOBAL:
+		estado = job->reduccionGlobal;
+		if(resultado == REDUCCION_GLOBAL_OK){
+			strcpy(estado->estado, "esperando almacenado");
+		}else{
+			//todo actualizarEstadoError(job, idNodo, resultado);
+		}
+		break;
+	case RESULTADO_ALMACENADO_FINAL:
+		estado = job->reduccionGlobal;
+		if(resultado == ALMACENADO_FINAL_OK){
+			strcpy(estado->estado, "job exitoso");
+		}
+		break;
 	}
 }
 

@@ -169,6 +169,7 @@ typedef struct{
 	char ip[LENGTH_IP];
 	uint32_t puerto;
 	char idNodo[NOMBRE_NODO];
+	uint32_t idBloque;
 } t_bloque_serializado;
 
 typedef struct{

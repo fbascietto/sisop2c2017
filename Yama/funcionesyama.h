@@ -69,6 +69,7 @@ typedef struct{
 	char idNodo[NOMBRE_NODO];
 	char ip[LENGTH_IP];
 	uint32_t puerto;
+	uint32_t idBloque;
 }t_bloque;
 
 
@@ -76,6 +77,7 @@ typedef struct{
 typedef struct{
 	char idNodo[NOMBRE_NODO];
 	int disponibilidad;
+	t_list* bloquesAsignados;
 	uint32_t cargaDeTrabajo;
 	uint32_t cargaDeTrabajoHistorica;
 	uint32_t cargaDeTrabajoActual;

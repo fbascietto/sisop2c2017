@@ -289,6 +289,35 @@ t_list* obtenerBloques(t_job* job){
 	return bloques;
 }
 
+t_list* reducirBloques(t_list* bloques){
+	int i;
+	int j;
+	int cantidadBloques = list_size(bloques);
+
+	t_bloque* unBloque;
+	t_bloque* otroBloque;
+
+	t_list* bloquesReducidos = list_create();
+
+
+	for(i=0; i<cantidadBloques; i++){
+		unBloque = list_get(bloques, i);
+		for(j=i+1; j<cantidadBloques; j++){
+			otroBloque = list_get(bloques, j);
+			if(unBloque->idBloque == otroBloque->idBloque){
+				break;
+			}
+		}
+		if(unBloque->idBloque != otroBloque->idBloque){
+			list_add(bloquesReducidos, unBloque);
+		}
+	}
+
+	list_add(bloquesReducidos, unBloque);
+
+	return bloquesReducidos;
+}
+
 /*
  * la lista de bloques posee en cada bloque el id del nodo
  * que lo tiene en su data.bin
@@ -317,7 +346,7 @@ t_list* obtenerEInicializarNodosDeBloques(t_list* bloques){
 	for(i=0; i<cantidadBloques; i++){
 		unBloque = list_get(bloques, i);
 		if(!estaElNodo((unBloque->idNodo), listaNodos)){
-			nuevoNodo = inicializarNodo(unBloque->idNodo);
+			nuevoNodo = inicializarNodo(unBloque);
 			list_add(listaNodos, nuevoNodo);
 		}
 	}
@@ -325,13 +354,14 @@ t_list* obtenerEInicializarNodosDeBloques(t_list* bloques){
 	return listaNodos;
 }
 
-t_nodo* inicializarNodo(char* id){
+t_nodo* inicializarNodo(t_bloque* bloque){
 	t_nodo* nodo = malloc(sizeof(t_nodo));
-	strncpy(nodo->idNodo, id, NOMBRE_NODO);
+	strncpy(nodo->idNodo, bloque->idNodo, NOMBRE_NODO);
 	nodo->cargaDeTrabajo = 0;
 	nodo->cargaDeTrabajoActual = 0;
 	nodo->cargaDeTrabajoHistorica = 0;
 	nodo->disponibilidad = 0;
+	list_add(nodo->bloquesAsignados, bloque);
 	return nodo;
 }
 
@@ -363,7 +393,7 @@ void setearNodos(t_list* nodos){
 		if(!estaConectado(unNodo)){
 			list_add(nodosConectados, unNodo);
 		}else{
-			nodoConectado = obtenerNodoConectado(unNodo->idNodo);
+			nodoConectado = obtenerNodoConectado(unNodo);
 			actualizar(unNodo, nodoConectado);
 		}
 	}
@@ -374,7 +404,7 @@ bool estaConectado(t_nodo* unNodo){
 	return estaElNodo(unNodo->idNodo, nodosConectados);
 }
 
-t_nodo* obtenerNodoConectado(char* id){
+t_nodo* obtenerNodoConectado(t_nodo* unNodo){
 	int i;
 	int cantidadNodosConectados = list_size(nodosConectados);
 
@@ -382,7 +412,8 @@ t_nodo* obtenerNodoConectado(char* id){
 
 	for(i=0; i<cantidadNodosConectados; i++){
 		unNodoConectado = list_get(nodosConectados, i);
-		if(strcmp(unNodoConectado->idNodo, id) == 0){
+		if(strcmp(unNodoConectado->idNodo, unNodo->idNodo) == 0){
+			list_add_all(unNodoConectado->bloquesAsignados, unNodo->bloquesAsignados)
 			return unNodoConectado;
 		}
 	}
@@ -398,21 +429,6 @@ void actualizar(t_nodo* nodo, t_nodo* nodoConectado){
 	strncpy(nodo->idNodo, nodoConectado->idNodo, NOMBRE_NODO);
 	strncpy(nodo->ipWorker, nodoConectado->ipWorker, LENGTH_IP);
 	nodo->puerto = nodoConectado->puerto;
-}
-
-
-void quitarBloquesNodo(char* idNodo, t_list* bloques){
-	int i;
-	int cantidadBloques = list_size(bloques);
-	t_bloque* unBloque;
-
-	for(i=0; i<cantidadBloques; i++){
-		unBloque = list_get(bloques, i);
-		if(strcmp(unBloque->idNodo, idNodo) == 0){
-			unBloque = list_remove(bloques, i);
-			free(unBloque);
-		}
-	}
 }
 
 
