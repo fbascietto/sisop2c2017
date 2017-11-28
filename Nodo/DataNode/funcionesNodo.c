@@ -105,6 +105,9 @@ void iniciarDataNode(){
 						printf("se recibio solicitud para leer nodo\n");
 						leerBloque(socketConn, nodo, rutaNodo);
 						break;
+					case ESTA_VIVO_NODO:
+						enviarInt(socketConn,1);
+						break;
 				}
 			}
 		}
