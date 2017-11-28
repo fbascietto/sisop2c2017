@@ -168,6 +168,8 @@ void creoListaNodosDesdeNodosBin(){
 		t_nodo * nodo;
 		nodo = malloc(sizeof(t_nodo));
 		nodo->socket_nodo = -1;
+		nodo->ip[0]='\0';
+		nodo->puerto=-1;
 
 		strcpy(nodo->nombre_nodo,nombresNodos[i]);
 
@@ -313,15 +315,17 @@ int buscoEnArchivosDat(char* ruta_metadata){
 	}
 
 	string_append(&ruta_metadata,"\n");
-	char * str = string_new();
+	string_trim(&ruta_metadata);
 	char * line = NULL;
 	size_t len = 0;
 	getline(&line,&len,file);
-
+	string_trim(&line);
 	while(!feof(file)){
-		if(!strcmp(line,str)){
+		if(string_equals_ignore_case(line,ruta_metadata)){
 			found = 1;
 		}
+		getline(&line,&len,file);
+		string_trim(&line);
 	}
 	return found;
 }
@@ -612,7 +616,13 @@ void *esperarConexiones(void *args) {
 					break;
 				case PROCESO_WORKER:
 					//etapa de transformación final
-					//procesarSolicitudWorker(nuevoSocket);
+					transformacionFinalWorker(nuevoSocket);
+					break;
+				case PROCESO_YAMA:
+					//respondo solicitud de bloques de archivo
+					pthread_t threadSolicitudYama;
+					int er1 = pthread_create(&threadSolicitudYama, NULL, procesarSolicitudYama, nuevoSocket);
+					pthread_join(threadSolicitudYama);
 					break;
 			}
 		}
@@ -629,6 +639,17 @@ int recibirConexionDataNode(int nuevoSocket){
 	nodo = malloc(sizeof(t_nodo));
 	nodo->socket_nodo = nuevoSocket;
 
+	struct sockaddr_in sa;
+	socklen_t sa_len;
+	sa_len = sizeof(sa);
+	if (getpeername(nodo->socket_nodo, &sa, &sa_len) == -1){
+		perror("Error al traer ip nodo.");
+		return -1;
+	}
+
+	strcpy(nodo->ip, inet_ntoa(sa.sin_addr));
+	nodo->puerto = ntohs(sa.sin_port);
+
 	size_t tam_buffer = 0;
 	recibirInt(nuevoSocket,&tam_buffer);
 	void* buffer;
@@ -638,6 +659,7 @@ int recibirConexionDataNode(int nuevoSocket){
 	deserializar_a_nodo(buffer, nodo);
 
 	free(buffer);
+
 
 	nodoReal = getNodoPorNombre(nodo->nombre_nodo, nodos);
 
@@ -931,22 +953,10 @@ int traeBloquesLibres(){
 	return libres;
 }
 
-void procesarSolicitudMaster(nuevoSocket){
-    int protocolo;
-	recibirInt(nuevoSocket,&protocolo);
-	switch(protocolo){
-		case ENVIAR_ARCHIVO_TEXTO:
-			printf("Se recibio instruccion para recibir archivo de texto\n");
-			recibirArchivo(nuevoSocket);
-			break;
-		}
-}
-
 void *escucharConsola(){
 	t_log_level logL;
 	t_log* logFS = log_create("log.txt","Yamafs",0,logL);
 
-	t_list *carpetas;
 	carpetas = inicializarDirectorios();
 
 	t_directory * carpetaActual = list_get(carpetas, 0); // donde 0 siempre DEBERÍA SER root
@@ -975,7 +985,7 @@ void *escucharConsola(){
 			char ** parametros = string_split(linea, " ");
 
 			if(parametros[1] == NULL){
-				printf("Falta argumento: nombre a designar al directorio.\n");}
+				printf("Faltan argumentos.\n");}
 			else if (parametros[2] == NULL){
 				removerArchivo(parametros[1], "", carpetas);
 			} else {
@@ -985,7 +995,16 @@ void *escucharConsola(){
 		}else
 		if(!strncmp(linea, "rename", 6)) {
 			log_trace(logFS,"Consola recibe ""rename""");
-			printf("Seleccionaste renombrar\n");
+			//printf("Seleccionaste renombrar\n");
+			char ** parametros = string_split(linea, " ");
+				if(parametros[1] == NULL){
+					printf("Faltan argumentos: rename [path_original] [nombre_final]  \n");
+				}
+				else if (parametros[2] == NULL){
+					printf("Faltan argumentos: rename [path_original] [nombre_final]  \n");
+				} else {
+					renombrarArchivo(parametros[1], parametros[2], carpetas);
+				}
 		}
 		else
 		if(!strncmp(linea, "mv", 2)) {
@@ -1091,6 +1110,7 @@ void *escucharConsola(){
 			  printf("YamaFS Ayuda\n");
 			  printf("Los parámetros se indican con [] \n------\n");
 			  printf("format - Formatear el Filesystem.\n");
+			  printf("rename [path_original] [nombre_final] - Renombra un Archivo o Directorio");
 			  printf("rm [path_archivo] ó rm -d [path_directorio] ó rm -b [path_archivo] [nro_bloque] [nro_copia] - Eliminar un Archivo/Directorio/Bloque.\n");
 			  printf("mv [path_original] [path_final] - Mueve un Archivo o Directorio.\n");
 			  printf("cat [path_archivo] - Muestra el contenido del archivo como texto plano.\n");
@@ -1202,7 +1222,9 @@ int chequeoEstadoFS(){
 	for(;i < size;i++){
 		nodo = list_get(listaNodosRelacionados,i);
 		enviarInt(nodo->socket_nodo, ESTA_VIVO_NODO);
-		recibirInt(nodo->socket_nodo,&estable);
+		if(nodo->socket_nodo != -1){
+			recibirInt(nodo->socket_nodo,&estable);
+		}
 	}
 
 	list_destroy(listaNodosRelacionados);
@@ -1820,6 +1842,11 @@ void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList){
 
 	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
 	t_list * lista_bloques = obtener_lista_metadata(ruta_metadata);
+
+	if(lista_bloques == NULL){
+		printf("Verifique la existencia del archivo.\n");
+		return;
+	}
 	int i = 0;
 
 	for(;i<list_size(lista_bloques);i++){
@@ -1862,28 +1889,73 @@ void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList){
 
 }
 
+void moverArchivo(char* archivoABuscar, char* destino){
+
+}
+
 void renombrarArchivo(char* archivoABuscar, char* nombreNuevo, t_list* folderList){
 
-    char* nombreActual = getNombreArchivo(archivoABuscar);
+    //char* nombreActual = getNombreArchivo(archivoABuscar);
 	int folderIndex = identificaDirectorio(archivoABuscar, folderList);
-	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, folderIndex);
+	char* ruta_metadata = string_new();
+	ruta_metadata = getRutaMetadata(archivoABuscar,folderList, folderIndex);
+	char* str = string_new();
+	string_append(&str, ruta_metadata);
 
-	if(buscoEnArchivosDat(ruta_metadata)){
-		FILE* metadata;
-
-		metadata = fopen(ruta_metadata,"r+");
+	if(buscoEnArchivosDat(str)){
+		FILE* metadata = fopen(ruta_metadata,"r+");
 
 		if (metadata == NULL){
+			printf("Archivo inexistente en yamafs.\n");
 		return;
 		}
 
+		char* new_ruta_metadata = string_new();
+		string_append(&new_ruta_metadata, "./metadata/archivos/");
+		string_append(&new_ruta_metadata, string_itoa(folderIndex));
+		string_append(&new_ruta_metadata, "/");
+		string_append(&new_ruta_metadata, nombreNuevo);
 
+		char * line = NULL;
+		size_t len = 0;
+		FILE* new_metadata = fopen(new_ruta_metadata,"w");
 
-	} else{
+		if (new_metadata == NULL){
+			if(line)free(line);
+			free(new_ruta_metadata);
+			fclose(metadata);
+			return;
+		}
+
+		fprintf(new_metadata,"%s%s",new_ruta_metadata,"\n");
+		actualizoArchivosDat(ruta_metadata, 0);
+		actualizoArchivosDat(new_ruta_metadata, 1);
+
+		getline(&line,&len,metadata);
+
+		while(!feof(metadata)){
+			if(feof(metadata)){break;}
+			getline(&line,&len,metadata);
+			fprintf(new_metadata,"%s",line);
+		}
+
+		fclose(metadata);
+		replace_char(ruta_metadata, '\n',NULL);
+		remove(ruta_metadata);
+
+		if(line)free(line);
+		free(new_ruta_metadata);
+		fclose(new_metadata);
+		free(ruta_metadata);
+		return;
+
+	} else if(folderIndex > 0){
 		t_directory* cambiarNombre;
-		int carpeta = identificaDirectorio(archivoABuscar, folderList);
-		list_get(folderList, carpeta);
+		list_get(folderList, folderIndex);
 		strcpy(cambiarNombre->nombre,nombreNuevo);
+		return;
+	} else {
+		printf("Archivo o directorio erróneo, imposible renombrar.\n");
 	}
 
 }
@@ -1951,37 +2023,7 @@ void recibirDatosBloque(t_nodo * nodo){
 
 int obtenerMD5Archivo(char * archivo, t_list* folderList){
 
-		/* solución inteligente, puede tener conflicto con librerías
-		 *
-		 *
 
-		unsigned char c[MD5_DIGEST_LENGTH];
-
-	    int i;
-	    FILE *inFile = fopen (archivo, "rb");
-	    MD5_CTX mdContext;
-	    int bytes;
-	    unsigned char data[1024];
-
-	    if (inFile == NULL) {
-	        printf ("%s can't be opened.\n", archivo);
-	        return -1;
-	    } else {
-
-			if(MD5_Init (&mdContext)<0){
-				return -1;
-			}
-				while ((bytes = fread (data, 1, 1024, inFile)) != 0){
-					if(	MD5_Update (&mdContext, data, bytes) < 0){
-						return -1;
-					}
-				}
-				if(MD5_Final (c,&mdContext)<0) return -1;
-				for(i = 0; i < MD5_DIGEST_LENGTH; i++) printf("%02x", c[i]);
-				printf (" %s\n", archivo);
-				fclose (inFile);
-	    }
-		*/
 
 		if(!estaEstable()){
 			return 0;
@@ -2000,7 +2042,6 @@ int obtenerMD5Archivo(char * archivo, t_list* folderList){
 }
 
 void * cls(){
-
 	system("clear");
 }
 
@@ -2149,3 +2190,24 @@ int serializar_y_enviar_yama(t_bloques_enviados* bloques, uint32_t id_master, in
 	return enviados;
 }
 
+void transformacionFinalWorker(int nuevoSocket){
+
+	char* ruta_final = string_new();
+	char* archivo_tmp = string_new();
+
+	ruta_final = recibirMensaje(nuevoSocket);
+	archivo_tmp = recibirMensaje(nuevoSocket);
+	recibirArchivo(nuevoSocket);
+
+	guardarArchivoLocalDeTextoEnFS(archivo_tmp,ruta_final,carpetas);
+
+	free(ruta_final);
+	free(archivo_tmp);
+}
+
+void procesarSolicitudYama(int nuevoSocket){
+
+
+
+	return;
+}

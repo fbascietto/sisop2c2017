@@ -69,11 +69,13 @@ void main(int argc, char *argv[]){
 	pthread_join(threadEscucharConsola, NULL);
 
 
-	log_error(logFS,"Se sale forzadamente del fs.");
+	log_error(logFS,"Se sale del fs.");
 	log_destroy(logFS);
 
 	list_destroy_and_destroy_elements(nodos,free);
+	list_destroy_and_destroy_elements(carpetas,free);
+
 	free(esperarConexion);
-	exit(1);
+	return;
 }
 
