@@ -29,6 +29,7 @@
 char* nodos_file;
 char* archivos_file;
 t_list * nodos;
+t_list *carpetas;
 int cantNodos;
 int estable;
 
@@ -54,6 +55,8 @@ typedef struct {
   char nombre_nodo[10];
   int tamanio;
   int bloquesLibres;
+  char ip[16];
+  int puerto;
 } t_nodo;
 
 typedef struct {
@@ -67,7 +70,6 @@ pthread_mutex_t mx_nodobin;
 
 void *escucharConsola();
 void *esperarConexiones(void *args);
-void procesarSolicitudMaster(int nuevoSocket);
 int recibirConexionDataNode(int nuevoSocket);
 void levantarNodos(int clean);
 void actualizarNodosBin();
@@ -129,6 +131,7 @@ t_nodo* getDirectorioPorNombre(char* carpeta, t_list* folderList);
 void actualizarDirectorioDat(t_list* folderList);
 
 /*Funciones de serializacion y envio y recepcion de mensajes con Yama*/
+
 void serializarDato(char* buffer, void* dato, int size_to_send, int* offset);
 void deserializarDato(void* dato, char* buffer, int size, int* offset);
 char* serializar_un_bloque(t_bloque_serializado* unBloque);
@@ -151,6 +154,10 @@ return bloquesEnviados;
 t_bloque_serializado* crearBloqueSerializado(uint32_t numeroBloque, uint32_t bytesOcupados, char* ip, uint32_t puerto, char* idNodo, uint32_t idBloque);
 void agregarBloqueSerializado(t_bloques_enviados* bloquesEnviados, t_bloque_serializado* bloqueAAgregar);
 
+void procesarSolicitudYama(int nuevoSocket);
+
+/*Funciones de relación con Worker*/
+void transformacionFinalWorker(int nuevoSocket);
 
 /*Misc*/
 char* replace_char(char* str, char find, char replace);
