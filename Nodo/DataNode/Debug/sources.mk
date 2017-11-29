@@ -14,8 +14,4 @@ EXECUTABLES :=
 # Every subdirectory with source files must be described here
 SUBDIRS := \
 . \
-Nodo4 \
-Nodo3 \
-Nodo2 \
-Nodo1 \
 

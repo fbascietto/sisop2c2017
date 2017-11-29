@@ -23,31 +23,31 @@ void recibirMensajeMaster(void *args){
 		switch(package->msgCode){
 
 		case ACCION_PROCESAR_ARCHIVO:
-			procesarSolicitudArchivoMaster(nuevoSocket, package->message_long, package->message);
+			procesarSolicitudArchivoMaster(nuevoSocket, package);
 			break;
 		case TRANSFORMACION_OK:
-			procesarResultadoTransformacion(nuevoSocket, package->message_long, package->message, TRANSFORMACION_OK);
+			procesarResultadoTransformacion(nuevoSocket, package, TRANSFORMACION_OK);
 			break;
 		case REDUCCION_LOCAL_OK:
-			procesarResultadoReduccionLocal(nuevoSocket, package->message_long, package->message, REDUCCION_LOCAL_OK);
+			procesarResultadoReduccionLocal(nuevoSocket, package, REDUCCION_LOCAL_OK);
 			break;
 		case REDUCCION_GLOBAL_OK:
-			procesarResultadoReduccionGlobal(nuevoSocket, package->message_long, package->message, REDUCCION_GLOBAL_OK);
+			procesarResultadoReduccionGlobal(nuevoSocket, package, REDUCCION_GLOBAL_OK);
 			break;
 		case ALMACENADO_FINAL_OK:
-			procesarResultadoAlmacenadoFinal(nuevoSocket, package->message_long, package->message);
+			procesarResultadoAlmacenadoFinal(nuevoSocket, package, ALMACENADO_FINAL_OK);
 			break;
 		case TRANSFORMACION_ERROR:
-			procesarResultadoTransformacion(nuevoSocket, package->message_long, package->message, TRANSFORMACION_ERROR);
+			procesarResultadoTransformacion(nuevoSocket, package, TRANSFORMACION_ERROR);
 			break;
 		case REDUCCION_LOCAL_ERROR:
-			procesarResultadoReduccionLocal(nuevoSocket, package->message_long, package->message, REDUCCION_LOCAL_ERROR);
+			procesarResultadoReduccionLocal(nuevoSocket, package, REDUCCION_LOCAL_ERROR);
 			break;
 		case REDUCCION_GLOBAL_ERROR:
-			procesarResultadoReduccionGlobal(nuevoSocket, package->message_long, package->message, REDUCCION_GLOBAL_ERROR);
+			procesarResultadoReduccionGlobal(nuevoSocket, package, REDUCCION_GLOBAL_ERROR);
 			break;
 		case ALMACENADO_FINAL_ERROR:
-			procesarResultadoAlmacenadoFinal(nuevoSocket, package->message_long, package->message);
+			procesarResultadoAlmacenadoFinal(nuevoSocket, package, ALMACENADO_FINAL_ERROR);
 			break;
 		}
 		sleep(1);
@@ -372,7 +372,7 @@ solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_job* job){ //t_nod
 }
 
 
-void procesarResultadoTransformacion(int nuevoSocket, uint32_t message_long, char* message, uint32_t resultado){
+void procesarResultadoTransformacion(int nuevoSocket, Package* package, uint32_t resultado){
 	/*
 	 * todo:
 	 * (i) 	deserealizar el resultado de transformacion (orden: primero resultado idNodo )
@@ -383,9 +383,6 @@ void procesarResultadoTransformacion(int nuevoSocket, uint32_t message_long, cha
 	 */
 
 	/* (i) */
-	Package* package = createPackage();
-	recieve_and_deserialize(package, nuevoSocket);
-
 	int offset = 0;
 	char idNodo[NOMBRE_NODO];
 	uint32_t numeroBloque;
@@ -463,10 +460,7 @@ void procesarResultadoTransformacion(int nuevoSocket, uint32_t message_long, cha
 	}
 }
 
-void procesarResultadoReduccionLocal(int nuevoSocket, uint32_t message_long, char* message, uint32_t resultado){
-
-	Package* package = createPackage();
-	recieve_and_deserialize(package, nuevoSocket);
+void procesarResultadoReduccionLocal(int nuevoSocket, Package* package, uint32_t resultado){
 
 	int offset = 0;
 	char idNodo[NOMBRE_NODO];
@@ -498,10 +492,7 @@ void procesarResultadoReduccionLocal(int nuevoSocket, uint32_t message_long, cha
 
 }
 
-void procesarResultadoReduccionGlobal(int nuevoSocket, uint32_t message_long, char* message, uint32_t resultado){
-
-	Package* package = createPackage();
-	recieve_and_deserialize(package, nuevoSocket);
+void procesarResultadoReduccionGlobal(int nuevoSocket, Package* package, uint32_t resultado){
 
 	int offset = 0;
 	char idNodo[NOMBRE_NODO];
@@ -527,11 +518,7 @@ void procesarResultadoReduccionGlobal(int nuevoSocket, uint32_t message_long, ch
 
 }
 
-void procesarResultadoAlmacenadoFinal(int nuevoSocket, uint32_t message_long, char* message, uint32_t resultado){
-
-
-	Package* package = createPackage();
-	recieve_and_deserialize(package, nuevoSocket);
+void procesarResultadoAlmacenadoFinal(int nuevoSocket, Package* package, uint32_t resultado){
 
 	int offset = 0;
 	char idNodo[NOMBRE_NODO];
@@ -547,17 +534,13 @@ void procesarResultadoAlmacenadoFinal(int nuevoSocket, uint32_t message_long, ch
 	terminarJob(idJob);
 }
 
-void procesarSolicitudArchivoMaster(int nuevoSocket, uint32_t message_long, char* message){
+void procesarSolicitudArchivoMaster(int nuevoSocket, Package* package){
 	//solicitud_transformacion* solicitudTransformacion = obtenerSolicitudTrasnformacion(message);
-	Package* package = createPackage();
-	int leidos = recieve_and_deserialize(package, nuevoSocket);
-	char* solicitudArchivo = malloc(leidos+1);
+	char* solicitudArchivo = malloc(package->message_long+1);
 	uint32_t* tamanioSerializado = malloc(sizeof(uint32_t));
 
 	strcpy(solicitudArchivo, package->message);
-	solicitudArchivo[leidos+1] = '\0';
-
-	uint32_t socketMaster = nuevoSocket;
+	solicitudArchivo[(package->message_long)+1] = '\0';
 
 	enviarInt(socketFS, nuevoSocket);
 	enviarMensaje(socketFS, solicitudArchivo);
@@ -719,7 +702,7 @@ void inicializarConfigYama(){
 
 	log_trace(yama_log, "Inicializacion de la configuracion de Yama");
 
-	t_config* infoConfig = config_create("config.txt");
+	t_config* infoConfig = config_create("../config.txt");
 
 	if(config_has_property(infoConfig,"IP_FILESYSTEM")){
 		fsIP = config_get_string_value(infoConfig,"IP_FILESYSTEM");
@@ -745,7 +728,7 @@ void cargarValoresPlanificacion(){
 
 	log_trace(yama_log, "Carga de valores de planificacion");
 
-	t_config* infoConfig = config_create("config.txt");
+	t_config* infoConfig = config_create("../config.txt");
 
 	if(config_has_property(infoConfig,"RETARDO_PLANIFICACION")){
 		retardoPlanificacion = config_get_int_value(infoConfig,"RETARDO_PLANIFICACION");

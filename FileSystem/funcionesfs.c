@@ -2290,11 +2290,12 @@ void procesarSolicitudYama(void* args){
 		int nuevoSocket = argumentos->socketCliente;
 		free(args);
 
-	int numMaster;
+	int masterRecibido;
 	char* solicitudArchivo;
 
-	int err = 	recibirInt(nuevoSocket, &numMaster);
-	solicitudArchivo = recibirMensaje(nuevoSocket);
+	int err = 	recibirInt(nuevoSocket, &masterRecibido);
+
+	uint32_t numMaster = masterRecibido;
 
 	printf("Recibi una solicitud del Master %d\n", numMaster);
 
@@ -2309,16 +2310,22 @@ void procesarSolicitudYama(void* args){
 	 */
 	//	recibirInt(nuevoSocket,numMaster);
 
-	if(err){printf("Error recibiendo num. de Master.\n");}
+	if(err == 0){printf("Error recibiendo num. de Master. Se recibieron %d bytes\n", err);}
 
 	char* ruta_archivo = string_new();
 	ruta_archivo = recibirMensaje(nuevoSocket);
 
+	printf("recibi la ruta: %s\n", ruta_archivo);
+
 	int carpeta = identificaDirectorio(ruta_archivo,carpetas);
+	printf("carpeta numero %d\n", carpeta);
 
 	char* ruta_metadata = getRutaMetadata(ruta_archivo,carpetas, carpeta);
+	printf("ruta metadata %s", ruta_metadata);
+
 	t_list * lista_bloques = obtener_lista_metadata(ruta_metadata);
 	int i = 0;
+
 
 	char ** parametros1;
 	char ** parametros2;
@@ -2342,14 +2349,22 @@ void procesarSolicitudYama(void* args){
 		parametros1 = string_get_string_as_array(bloque->Copia0);
 		t_nodo* nodo1 = getNodoPorNombre(parametros1[0],nodos);
 
-		t_bloque_serializado* bloqueAAgregar1 = crearBloqueSerializado(parametros1[1], bloque->tamanio_bloque, nodo1->ip, nodo1->puerto, nodo1->nombre_nodo, bloque->bloque);
+		uint32_t nroBloque;
+		nroBloque = atoi(parametros1[1]);
+
+		t_bloque_serializado* bloqueAAgregar1 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo1->ip, nodo1->puerto, nodo1->nombre_nodo, bloque->bloque);
+		agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar1);
+
+		printf("bloque 1 serializado");
 
 		parametros2 = string_get_string_as_array(bloque->Copia1);
 		t_nodo* nodo2 = getNodoPorNombre(parametros2[0],nodos);
+		nroBloque = atoi(parametros2[1]);
 
-		t_bloque_serializado* bloqueAAgregar2 = crearBloqueSerializado(parametros2[1], bloque->tamanio_bloque, nodo2->ip, nodo2->puerto, nodo2->nombre_nodo, bloque->bloque);
-		agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar1);
+		t_bloque_serializado* bloqueAAgregar2 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo2->ip, nodo2->puerto, nodo2->nombre_nodo, bloque->bloque);
 		agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar2);
+
+		printf("bloque 2 serializado");
 	}
 
 	serializar_y_enviar_yama(bloquesEnviados,numMaster,nuevoSocket);

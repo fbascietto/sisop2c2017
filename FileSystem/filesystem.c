@@ -40,7 +40,7 @@ void main(int argc, char *argv[]){
 	fd_set fdSocketsEscucha;
 
 	FD_ZERO(&fdSocketsEscucha);
-	socketEscucha = escuchar(5200);
+	socketEscucha = escuchar(5140);
 
 	FD_SET(socketEscucha, &fdSocketsEscucha);
 

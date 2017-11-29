@@ -25,7 +25,7 @@ void main() {
 	if (signal(SIGUSR1, recargarConfiguracion) == SIG_ERR)
 		printf("\nerror agarrando la senial SIGUSR1\n");
 
-	socketEscucha= escuchar(5500);
+	socketEscucha= escuchar(5100);
 	FD_SET(socketEscucha, &fdSocketsEscucha);
 
 
