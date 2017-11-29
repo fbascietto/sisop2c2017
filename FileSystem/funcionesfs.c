@@ -237,7 +237,7 @@ int getNodosMenosCargados(int* indexs){
 	}
 
 	if(list_size(chequeoNodos)<1){
-		return 0;
+		return 1;
 	}
 
 	list_sort(chequeoNodos,comparadorBloquesOcup);
@@ -249,7 +249,7 @@ int getNodosMenosCargados(int* indexs){
 	}
 
 	list_destroy_and_destroy_elements(chequeoNodos,free);
-	return 1;
+	return 0;
 
 }
 
