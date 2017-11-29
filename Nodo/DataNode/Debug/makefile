@@ -8,6 +8,10 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include Nodo4/subdir.mk
+-include Nodo3/subdir.mk
+-include Nodo2/subdir.mk
+-include Nodo1/subdir.mk
 -include subdir.mk
 -include objects.mk
 

@@ -3,3 +3,7 @@
 [TRACE] 15:05:20:483 Yamafs/(22841:22843): Nuevo Socket!
 [TRACE] 16:55:53:242 Yamafs/(6648:6650): Nuevo Socket!
 [TRACE] 16:59:43:88 Yamafs/(6760:6762): Nuevo Socket!
+[TRACE] 20:48:22:876 Yamafs/(2948:2949): Consola recibe statusfs
+[TRACE] 20:48:36:173 Yamafs/(2948:2949): Consola recibe exit
+[TRACE] 20:48:42:588 Yamafs/(2952:2957): Consola recibe statusfs
+[TRACE] 20:48:48:762 Yamafs/(2952:2957): Consola recibe exit

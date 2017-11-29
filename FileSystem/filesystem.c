@@ -40,7 +40,7 @@ void main(int argc, char *argv[]){
 	fd_set fdSocketsEscucha;
 
 	FD_ZERO(&fdSocketsEscucha);
-	socketEscucha = escuchar(5140);
+	socketEscucha = escuchar(5200);
 
 	FD_SET(socketEscucha, &fdSocketsEscucha);
 
@@ -65,8 +65,8 @@ void main(int argc, char *argv[]){
 	int er1 = pthread_create(&threadEscucharConsola,NULL,escucharConsola,NULL);
 	int er2 = pthread_create(&threadEsperaConexiones, NULL,esperarConexiones,(void*) esperarConexion);
 
-
 	pthread_join(threadEscucharConsola, NULL);
+	pthread_join(threadEsperaConexiones, NULL);
 
 
 	log_error(logFS,"Se sale del fs.");

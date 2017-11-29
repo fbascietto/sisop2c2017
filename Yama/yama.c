@@ -16,7 +16,7 @@
 #include "prePlanificacion.h"
 
 void main() {
-	int socketConn;
+	socketFS = 0;
 	int socketEscucha;
 	fd_set fdSocketsEscucha;
 	FD_ZERO(&fdSocketsEscucha);
@@ -25,7 +25,7 @@ void main() {
 	if (signal(SIGUSR1, recargarConfiguracion) == SIG_ERR)
 		printf("\nerror agarrando la senial SIGUSR1\n");
 
-	socketEscucha= escuchar(4004);
+	socketEscucha= escuchar(5500);
 	FD_SET(socketEscucha, &fdSocketsEscucha);
 
 
@@ -40,10 +40,10 @@ void main() {
 
 
 	socketFS = conectarseA(fsIP, fsPort);
-	while(socketConn == 0){
-		socketFS = conectarseA(fsIP, fsPort);
-		sleep(3);
-	}
+//	while(socketFS == 0){
+//		socketFS = conectarseA(fsIP, fsPort);
+//		sleep(3);
+//	}
 
 	enviarInt(socketFS,PROCESO_YAMA);
 

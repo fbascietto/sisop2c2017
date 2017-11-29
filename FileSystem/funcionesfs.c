@@ -136,8 +136,8 @@ void creoListaNodosDesdeNodosBin(){
 
 	FILE* nodosbin = fopen(nodos_file,"r");
 	if (nodosbin == NULL){
-			fprintf(stderr, "Fallo al abrir el archivo nodos.bin %s. Considere ejecutar fs --clean.\n", strerror(errno));
-			exit(EXIT_FAILURE);
+		fprintf(stderr, "Fallo al abrir el archivo nodos.bin %s. Considere ejecutar fs --clean.\n", strerror(errno));
+		exit(EXIT_FAILURE);
 	}
 
 	/* recorro nodos bin*/
@@ -195,8 +195,8 @@ t_nodo* getNodoPorNombre(char* nombre_nodo, t_list* listaABuscar){
 	t_nodo* nodoBuscado;
 
 	bool* buscaNodoPorNombre(void* parametro) {
-	t_nodo* nodo = (t_nodo*) parametro;
-	return (strcmp(nodo->nombre_nodo,nombre_nodo) == 0);
+		t_nodo* nodo = (t_nodo*) parametro;
+		return (strcmp(nodo->nombre_nodo,nombre_nodo) == 0);
 	}
 
 	nodoBuscado = list_find(listaABuscar,buscaNodoPorNombre);
@@ -216,6 +216,7 @@ int getNodosMenosCargados(int* indexs){
 	t_repartNodo* nodo = (t_repartNodo*) parametro;
 	t_repartNodo* nodo2 = (t_repartNodo*) parametro2;
 	return (nodo->bitsOcupados < nodo2->bitsOcupados);
+
 	}
 
 	int i=0;
@@ -254,85 +255,85 @@ int getNodosMenosCargados(int* indexs){
 
 t_list* inicializarDirectorios(){
 
-		t_list *folderList;
+	t_list *folderList;
 
-		FILE *fptr;
-	    t_directory *folders;
+	FILE *fptr;
+	t_directory *folders;
 
-	    int nuevo = 0;
+	int nuevo = 0;
 
-	    fptr = fopen("./metadata/directorios.dat", "r");
-	    if(!fptr) //archivo no existe, crear
-	    {
-	    	fptr = fopen("./metadata/directorios.dat", "wb+");
-	    	nuevo = 1;
-	        if (fptr == NULL)
-	        	printf("Error al abrir directorios.dat\n");
-	        	//exit(1);
-	    }
+	fptr = fopen("./metadata/directorios.dat", "r");
+	if(!fptr) //archivo no existe, crear
+	{
+		fptr = fopen("./metadata/directorios.dat", "wb+");
+		nuevo = 1;
+		if (fptr == NULL)
+			printf("Error al abrir directorios.dat\n");
+		//exit(1);
+	}
 
 
-	    if(nuevo){
+	if(nuevo){
 
-    	fprintf(fptr,"%s%s%s", "Index|", "Directorio|", "Padre\n");
-	    folders = malloc(sizeof(t_directory));
-	    folderList = list_create();
-	    folders->index = 0;
-	    folders->nombre = "root";
-	    folders->padre = -1;
-	    fprintf(fptr,"%d%s%s%s%d%s",folders->index,"|",folders->nombre,"|",folders->padre,"\n");
-	    list_add(folderList, folders);
-	    char* ruta = string_new();
-	    /*creo la carpeta para root*/
-	    string_append(&ruta, "./metadata/archivos/");
-	   	string_append(&ruta, string_itoa(folders->index));
-	    mkdir(ruta, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	    } else {
-	    //cargo directorios.dat
-	    	char* linea[256];
-	    	char** col;
-	    	folderList = list_create();
-	    	fgets(linea,sizeof(linea),fptr);
-	    	while(!feof(fptr)){
-	    		col = string_split(linea,"|");
-	    		if(!strcmp(col[0],"Index")){
-	    			//ignoro titulos (para qué los puse?!)
-	    		} else {
-    		    folders = malloc(sizeof(t_directory));
-	    		folders->index = atoi(col[0]);
-	    		folders->nombre = col[1];
-	    		folders->padre = atoi(col[2]);
-	    	    list_add(folderList, folders);
-	    		}
-	    		fgets(linea,sizeof(linea),fptr);
-	    	}
-	    }
+		fprintf(fptr,"%s%s%s", "Index|", "Directorio|", "Padre\n");
+		folders = malloc(sizeof(t_directory));
+		folderList = list_create();
+		folders->index = 0;
+		folders->nombre = "root";
+		folders->padre = -1;
+		fprintf(fptr,"%d%s%s%s%d%s",folders->index,"|",folders->nombre,"|",folders->padre,"\n");
+		list_add(folderList, folders);
+		char* ruta = string_new();
+		/*creo la carpeta para root*/
+		string_append(&ruta, "./metadata/archivos/");
+		string_append(&ruta, string_itoa(folders->index));
+		mkdir(ruta, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	} else {
+		//cargo directorios.dat
+		char* linea[256];
+		char** col;
+		folderList = list_create();
+		fgets(linea,sizeof(linea),fptr);
+		while(!feof(fptr)){
+			col = string_split(linea,"|");
+			if(!strcmp(col[0],"Index")){
+				//ignoro titulos (para qué los puse?!)
+			} else {
+				folders = malloc(sizeof(t_directory));
+				folders->index = atoi(col[0]);
+				folders->nombre = col[1];
+				folders->padre = atoi(col[2]);
+				list_add(folderList, folders);
+			}
+			fgets(linea,sizeof(linea),fptr);
+		}
+	}
 
-	    fclose(fptr);
-	    return folderList;
+	fclose(fptr);
+	return folderList;
 }
 
 void actualizarDirectorioDat(t_list* folderList){
 
-		FILE *fptr;
-	    t_directory *folders;
+	FILE *fptr;
+	t_directory *folders;
 
-	    fptr = fopen("./metadata/directorios.dat", "w");
-	    if(!fptr) //archivo no existe, crear
-	    {
-	    	printf("Error al abrir directorios.dat\n");
-	        return;
-	    }
+	fptr = fopen("./metadata/directorios.dat", "w");
+	if(!fptr) //archivo no existe, crear
+	{
+		printf("Error al abrir directorios.dat\n");
+		return;
+	}
 
-	    int i = 0;
-		fprintf(fptr,"%s%s%s", "Index|", "Directorio|", "Padre\n");
+	int i = 0;
+	fprintf(fptr,"%s%s%s", "Index|", "Directorio|", "Padre\n");
 
-	    for(;i < list_size(folderList);i++){
-	    	folders = list_get(folderList, i);
-			fprintf(fptr,"%d%s%s%s%d%s",folders->index,"|",folders->nombre,"|",folders->padre,"\n");
-		}
+	for(;i < list_size(folderList);i++){
+		folders = list_get(folderList, i);
+		fprintf(fptr,"%d%s%s%s%d%s",folders->index,"|",folders->nombre,"|",folders->padre,"\n");
+	}
 
-	    fclose(fptr);
+	fclose(fptr);
 
 }
 
@@ -363,21 +364,21 @@ int buscoEnArchivosDat(char* ruta_metadata){
 
 void listarDirectorios(t_list* folderList, t_directory* carpetaActual){
 
-		void* imprimoCarpetas(void* parametro){
-				t_directory* carpeta = (t_directory*) parametro;
-				printf(ANSI_COLOR_BOLD ANSI_COLOR_CYAN "%s " ANSI_COLOR_RESET, carpeta->nombre);
-			}
+	void* imprimoCarpetas(void* parametro){
+		t_directory* carpeta = (t_directory*) parametro;
+		printf(ANSI_COLOR_BOLD ANSI_COLOR_CYAN "%s " ANSI_COLOR_RESET, carpeta->nombre);
+	}
 
-		bool* carpetasNivelActual(void* parametro) {
-			t_directory* dir = (t_directory*) parametro;
-			return (dir->padre == carpetaActual->index);
-		}
+	bool* carpetasNivelActual(void* parametro) {
+		t_directory* dir = (t_directory*) parametro;
+		return (dir->padre == carpetaActual->index);
+	}
 
-		t_list* listado;
-		listado = list_filter(folderList, carpetasNivelActual);
+	t_list* listado;
+	listado = list_filter(folderList, carpetasNivelActual);
 
-		list_iterate(listado,imprimoCarpetas);
-		printf("");
+	list_iterate(listado,imprimoCarpetas);
+	printf("");
 
 }
 
@@ -393,62 +394,62 @@ void ordenoDirectorios(t_list* folderList){
 
 void crearDirectorio(t_list* folderList, t_directory* carpetaActual, char* nombre){
 
-		if (list_size(folderList)>100){
-			printf("No se pueden crear más de 100 directorios.\n");
-			return;
-		}
+	if (list_size(folderList)>100){
+		printf("No se pueden crear más de 100 directorios.\n");
+		return;
+	}
 
-		bool* condicionCrearCarpeta(void* parametro) {
-				t_directory* dir = (t_directory*) parametro;
-				return ((dir->padre == carpetaActual->index) && (strcmp(dir->nombre,nombre) == 0));
-			}
+	bool* condicionCrearCarpeta(void* parametro) {
+		t_directory* dir = (t_directory*) parametro;
+		return ((dir->padre == carpetaActual->index) && (strcmp(dir->nombre,nombre) == 0));
+	}
 
-		t_list* chequeo = list_filter(folderList,condicionCrearCarpeta);;
-		if(list_size(chequeo)>0){
-			printf("Directorio ya existente, imposible crear.\n");
-			return;
-		}
+	t_list* chequeo = list_filter(folderList,condicionCrearCarpeta);;
+	if(list_size(chequeo)>0){
+		printf("Directorio ya existente, imposible crear.\n");
+		return;
+	}
 
-		t_directory* carpeta;
+	t_directory* carpeta;
 
-		carpeta = malloc(sizeof(t_directory));
-		carpeta->index = obtenerDirectorioFaltante(folderList);
-		carpeta->nombre = nombre;
-		carpeta->padre = carpetaActual->index;
+	carpeta = malloc(sizeof(t_directory));
+	carpeta->index = obtenerDirectorioFaltante(folderList);
+	carpeta->nombre = nombre;
+	carpeta->padre = carpetaActual->index;
 
-		FILE* fptr = fopen("./metadata/directorios.dat", "a+");
-	    fprintf(fptr,"%d%s%s%s%d%s",carpeta->index,"|",carpeta->nombre,"|",carpeta->padre,"\n");
-		list_add(folderList, carpeta);
-		/*creo carpeta para archivos*/
-		char* ruta =string_new();
-		string_append(&ruta, "./metadata/archivos/");
-		string_append(&ruta, string_itoa(carpeta->index));
-		mkdir(ruta, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-		fclose(fptr);
+	FILE* fptr = fopen("./metadata/directorios.dat", "a+");
+	fprintf(fptr,"%d%s%s%s%d%s",carpeta->index,"|",carpeta->nombre,"|",carpeta->padre,"\n");
+	list_add(folderList, carpeta);
+	/*creo carpeta para archivos*/
+	char* ruta =string_new();
+	string_append(&ruta, "./metadata/archivos/");
+	string_append(&ruta, string_itoa(carpeta->index));
+	mkdir(ruta, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	fclose(fptr);
 }
 
 int obtenerDirectorioFaltante(t_list* folderList){
 
-		t_directory* carpeta;
-	    int i, n;
-	    i = 0;
-	    n = 0;
-	    for (; i < list_size(folderList); i++){
-			carpeta = list_get(folderList, i);
-			if(carpeta->index != n){
-				return n;
-			}
-			n++;
-	    }
-	    return list_size(folderList);
+	t_directory* carpeta;
+	int i, n;
+	i = 0;
+	n = 0;
+	for (; i < list_size(folderList); i++){
+		carpeta = list_get(folderList, i);
+		if(carpeta->index != n){
+			return n;
+		}
+		n++;
+	}
+	return list_size(folderList);
 }
 
 t_directory * cambiarAdirectorio(char* nombre, t_directory* carpetaActual, t_list* folderList){
 
 	bool* matcheaCarpetaConIndice(void* parametro) {
-				t_directory* dir = (t_directory*) parametro;
-				return dir->index == carpetaActual->padre;
-			}
+		t_directory* dir = (t_directory*) parametro;
+		return dir->index == carpetaActual->padre;
+	}
 
 	t_directory* carpetaNueva;
 	int comparacion = strcmp(nombre, "..");
@@ -470,40 +471,40 @@ t_directory * cambiarAdirectorio(char* nombre, t_directory* carpetaActual, t_lis
 
 		carpetaNueva= list_get(carpetas,i);
 		switch(list_size(carpetas)){
-			case 0:
-				if((strchr(nombre,'.') != NULL)){
-				} else {printf("Directorio inexistente.\n");
-				}
-				return carpetaActual;
+		case 0:
+			if((strchr(nombre,'.') != NULL)){
+			} else {printf("Directorio inexistente.\n");
+			}
+			return carpetaActual;
 			break;
 			/*case 1:
 				return carpetaNueva;
 				break;*/
-			default:
-				//recorro lista buscando carpeta con mismo padre
-				while(!encontrado){
-					if(carpetaActual->index == carpetaNueva->padre ){
-						return carpetaNueva;
-						encontrado = 1;
-					} else if(++i > list_size(carpetas)){
-						return carpetaActual;
-					} else {
+		default:
+			//recorro lista buscando carpeta con mismo padre
+			while(!encontrado){
+				if(carpetaActual->index == carpetaNueva->padre ){
+					return carpetaNueva;
+					encontrado = 1;
+				} else if(++i > list_size(carpetas)){
+					return carpetaActual;
+				} else {
 					carpetaNueva= list_get(carpetas,i);
 					break;
-					}
 				}
-				break;
+			}
+			break;
 		}
-	/*} llave del else de la comparación ".." */
+		/*} llave del else de la comparación ".." */
 	}
 }
 
 t_directory * cambiarAdirectorioConChequeo(char* nombre, t_directory* carpetaActual, t_list* folderList){
 
 	bool* matcheaCarpetaConIndice(void* parametro) {
-				t_directory* dir = (t_directory*) parametro;
-				return dir->index == carpetaActual->padre;
-			}
+		t_directory* dir = (t_directory*) parametro;
+		return dir->index == carpetaActual->padre;
+	}
 
 	t_directory* carpetaNueva;
 	int comparacion = strcmp(nombre, "..");
@@ -526,33 +527,33 @@ t_directory * cambiarAdirectorioConChequeo(char* nombre, t_directory* carpetaAct
 
 		carpetaNueva= list_get(carpetas,i);
 		switch(list_size(carpetas)){
-			case 0:
-				if((strchr(nombre,'.') != NULL)){
-				} else {
+		case 0:
+			if((strchr(nombre,'.') != NULL)){
+			} else {
 				printf("Directorio inexistente.\n");
 				carpetaActual->index = -2;
-				}
-				return carpetaActual;
+			}
+			return carpetaActual;
 			break;
 			/*case 1:
 				return carpetaNueva;
 				break;*/
-			default:
-				//recorro lista buscando carpeta con mismo padre
-				while(!encontrado){
-					if(carpetaActual->index == carpetaNueva->padre ){
-						return carpetaNueva;
-						encontrado = 1;
-					} else if(++i > list_size(carpetas)){
-						return carpetaActual;
-					} else {
+		default:
+			//recorro lista buscando carpeta con mismo padre
+			while(!encontrado){
+				if(carpetaActual->index == carpetaNueva->padre ){
+					return carpetaNueva;
+					encontrado = 1;
+				} else if(++i > list_size(carpetas)){
+					return carpetaActual;
+				} else {
 					carpetaNueva= list_get(carpetas,i);
 					break;
-					}
 				}
-				break;
+			}
+			break;
 		}
-	/*} llave del else de la comparación ".." */
+		/*} llave del else de la comparación ".." */
 	}
 }
 
@@ -561,8 +562,8 @@ t_nodo* getDirectorioPorNombre(char* carpeta, t_list* folderList){
 	t_directory* carpetaBusc;
 
 	bool* buscaNodoPorNombre(void* parametro) {
-	t_directory* carpetaBusc = (t_directory*) parametro;
-	return (strcmp(carpetaBusc->nombre,carpeta) == 0);
+		t_directory* carpetaBusc = (t_directory*) parametro;
+		return (strcmp(carpetaBusc->nombre,carpeta) == 0);
 	}
 
 	carpetaBusc = list_find(carpeta,buscaNodoPorNombre);
@@ -591,7 +592,7 @@ int identificaDirectorio(char* directorio_yamafs, t_list* folderList){
 	}
 
 	if(strcmp(ruta,"/")){
-	strcpy(directorio_yamafs,arrayString[i-1]);
+		strcpy(directorio_yamafs,arrayString[i-1]);
 	}
 	//free(ruta);
 	//free(arrayString);
@@ -601,20 +602,20 @@ int identificaDirectorio(char* directorio_yamafs, t_list* folderList){
 
 int directorioVacio(char *dirname) {
 
-  int n = 0;
-  struct dirent *d;
-  DIR *dir = opendir(dirname);
-  if (dir == NULL) //Not a directory or doesn't exist
-    return 1;
-  while ((d = readdir(dir)) != NULL) {
-    if(++n > 2)
-      break;
-  }
-  closedir(dir);
-  if (n <= 2) //Directory Empty
-    return 1;
-  else
-    return 0;
+	int n = 0;
+	struct dirent *d;
+	DIR *dir = opendir(dirname);
+	if (dir == NULL) //Not a directory or doesn't exist
+		return 1;
+	while ((d = readdir(dir)) != NULL) {
+		if(++n > 2)
+			break;
+	}
+	closedir(dir);
+	if (n <= 2) //Directory Empty
+		return 1;
+	else
+		return 0;
 
 }
 
@@ -640,19 +641,22 @@ void *esperarConexiones(void *args) {
 			int cliente;
 			recibirInt(nuevoSocket,&cliente);
 
+			t_esperar_mensaje *tEsperarMensaje = malloc(sizeof(t_esperar_mensaje));
+						tEsperarMensaje->socketCliente = nuevoSocket;
+			printf("soy el cliente numero: %d\n", cliente);
 			switch(cliente){
-				case PROCESO_NODO:
-					recibirConexionDataNode(nuevoSocket);
-					break;
-				case PROCESO_WORKER:
-					//etapa de transformación final
-					transformacionFinalWorker(nuevoSocket);
-					break;
-				case PROCESO_YAMA:
-					//respondo solicitud de bloques de archivo
-					pthread_create(&threadSolicitudYama, NULL, procesarSolicitudYama, nuevoSocket);
-					pthread_join(threadSolicitudYama, NULL);
-					break;
+			case PROCESO_NODO:
+				recibirConexionDataNode(nuevoSocket);
+				break;
+			case PROCESO_WORKER:
+				//etapa de transformación final
+				transformacionFinalWorker(nuevoSocket);
+				break;
+			case PROCESO_YAMA:
+				//respondo solicitud de bloques de archivo
+				pthread_create(&threadSolicitudYama, NULL, procesarSolicitudYama, tEsperarMensaje);
+				pthread_join(threadSolicitudYama, NULL);
+				break;
 			}
 		}
 	}
@@ -708,7 +712,7 @@ int recibirConexionDataNode(int nuevoSocket){
 	printf("Cuenta con %d bloques libres.\n", nodo->bloquesLibres);
 
 	if(nuevo){
-	list_add(nodos,nodo);
+		list_add(nodos,nodo);
 	}
 
 	actualizarNodosBin();
@@ -746,17 +750,17 @@ void escucharConexionNodo(void* socket){
 			nodo = list_get(nodos,i);
 			if(nodo->socket_nodo == socketNodo){
 				found = 1;
-		}
-		error = recv(socketNodo, &a, sizeof(int), 0);
-		if(error<=0){
-			nodo->socket_nodo = -1;
-			printf("Se desconecto nodo del socket %d\n", socketNodo);
-			break;
-		} else {
+			}
+			error = recv(socketNodo, &a, sizeof(int), 0);
+			if(error<=0){
+				nodo->socket_nodo = -1;
+				printf("Se desconecto nodo del socket %d\n", socketNodo);
+				break;
+			} else {
 				switch(a){
-					case LEER_BLOQUE_NODO:
-						recibirDatosBloque(nodo);
-						break;
+				case LEER_BLOQUE_NODO:
+					recibirDatosBloque(nodo);
+					break;
 				}
 			}
 			//actualizarNodosBin();
@@ -774,21 +778,21 @@ t_bitarray* creaAbreBitmap(int tamNodo, char nombreNodo[10]){
 	int bloquesEnBits = (tamNodo / (1024*1024)) ;
 
 	if(bloquesEnBits % 8 == 0)
-		{
+	{
 		bloquesEnBits = bloquesEnBits/8;
-		}else{
+	}else{
 		bloquesEnBits = bloquesEnBits/8 + 1;
 	}
 
 	FILE* bitmap = fopen(ruta, "rb+");
-		    if(!bitmap) //archivo no existe, crear
-		    {
-		    	bitmap = fopen(ruta, "wb+");
-		    	nuevo = 1;
-		        if (bitmap == NULL)
-		        	printf("Error al abrir directorios.dat\n");
-		        	//exit(1);
-		    }
+	if(!bitmap) //archivo no existe, crear
+	{
+		bitmap = fopen(ruta, "wb+");
+		nuevo = 1;
+		if (bitmap == NULL)
+			printf("Error al abrir directorios.dat\n");
+		//exit(1);
+	}
 
 	/* Declara el array de bits en cero si el bitmap no existía antes. Este bitmap se asigna a un dominio, en este caso, un nodo.  */
 
@@ -844,12 +848,12 @@ bool escribirBitMap(int tamNodo, char nombreNodo[10], t_bitarray* t_fs_bitmap){
 
 	FILE* bitmap = fopen(ruta, "w");
 	int bytes = fwrite(t_fs_bitmap->bitarray, sizeof(char), t_fs_bitmap->size, bitmap);
-		if (bytes != t_fs_bitmap->size) {
-			// logear_error("Error al actualizar el archivo \"Bitmap.bin\"", false);
-			fclose(bitmap);
-			free(ruta);
-			return 0;
-		}
+	if (bytes != t_fs_bitmap->size) {
+		// logear_error("Error al actualizar el archivo \"Bitmap.bin\"", false);
+		fclose(bitmap);
+		free(ruta);
+		return 0;
+	}
 
 	free(ruta);
 	fclose(bitmap);
@@ -860,12 +864,12 @@ int findFreeBloque(int tamNodo, t_bitarray* t_fs_bitmap){
 
 	int bloques = (tamNodo / (1024*1024));
 	int pos = 0, i = 0;
-		for (i = 0; i < bloques; i++) {
-			 if(bitarray_test_bit(t_fs_bitmap, i) == 0){
-					pos = i;
-					break;
-			}
+	for (i = 0; i < bloques; i++) {
+		if(bitarray_test_bit(t_fs_bitmap, i) == 0){
+			pos = i;
+			break;
 		}
+	}
 	return pos;
 }
 
@@ -875,11 +879,11 @@ int cuentaBloquesLibre(int tamNodo, t_bitarray* t_fs_bitmap){
 
 	int libre = 0;
 	int i = 0;
-		for (; i < bloques; i++) {
-			 if(!bitarray_test_bit(t_fs_bitmap, i)){ // if(t_fs_bitmap->bitarray[i] == 0){
-					libre++;
-			}
+	for (; i < bloques; i++) {
+		if(!bitarray_test_bit(t_fs_bitmap, i)){ // if(t_fs_bitmap->bitarray[i] == 0){
+			libre++;
 		}
+	}
 	return libre;
 }
 
@@ -971,7 +975,7 @@ void imprimeNodosBin(){
 	fclose(nodosbin);
 
 	if (line){
-	   free(line);}
+		free(line);}
 }
 
 int traeBloquesLibres(){
@@ -991,7 +995,7 @@ int traeBloquesLibres(){
 	fclose(nodosbin);
 	free(parametros);
 	if (line){
-	   free(line);}
+		free(line);}
 
 	return libres;
 }
@@ -1006,171 +1010,171 @@ void *escucharConsola(){
 
 	char * linea;
 
-	  while(1) {
+	while(1) {
 		linea = readline("yamafs:" );
 
 		if(linea)
-		  add_history(linea);
+			add_history(linea);
 
 		if(!strncmp(linea, "exit", 4)) {
-		   log_trace(logFS,"Consola recibe ""exit""");
-		   log_destroy(logFS);
-		   free(linea);
-		   exit(1);
+			log_trace(logFS,"Consola recibe ""exit""");
+			log_destroy(logFS);
+			free(linea);
+			exit(1);
 		} else
-		if(!strncmp(linea, "format", 6)) {
-			log_trace(logFS,"Consola recibe ""format""");
-			formatFs();
-		}else
-		if(!strncmp(linea, "rm", 2)) {
-			log_trace(logFS,"Consola recibe ""rm""");
-			// printf("Seleccionaste remover\n");
-			char ** parametros = string_split(linea, " ");
+			if(!strncmp(linea, "format", 6)) {
+				log_trace(logFS,"Consola recibe ""format""");
+				formatFs();
+			}else
+				if(!strncmp(linea, "rm", 2)) {
+					log_trace(logFS,"Consola recibe ""rm""");
+					// printf("Seleccionaste remover\n");
+					char ** parametros = string_split(linea, " ");
 
-			if(parametros[1] == NULL){
-				printf("Faltan argumentos.\n");}
-			else if (parametros[2] == NULL){
-				removerArchivo(parametros[1], "", carpetas);
-			} else {
-				removerArchivo(parametros[1], parametros[2], carpetas);
-			}
+					if(parametros[1] == NULL){
+						printf("Faltan argumentos.\n");}
+					else if (parametros[2] == NULL){
+						removerArchivo(parametros[1], "", carpetas);
+					} else {
+						removerArchivo(parametros[1], parametros[2], carpetas);
+					}
 
-		}else
-		if(!strncmp(linea, "rename", 6)) {
-			log_trace(logFS,"Consola recibe ""rename""");
-			//printf("Seleccionaste renombrar\n");
-			char ** parametros = string_split(linea, " ");
-				if(parametros[1] == NULL){
-					printf("Faltan argumentos: rename [path_original] [nombre_final]  \n");
-				}
-				else if (parametros[2] == NULL){
-					printf("Faltan argumentos: rename [path_original] [nombre_final]  \n");
-				} else {
-					renombrarArchivo(parametros[1], parametros[2], carpetas);
-				}
-		}
-		else
-		if(!strncmp(linea, "mv", 2)) {
-			log_trace(logFS,"Consola recibe ""mv""");
-			printf("Seleccionaste mover\n");
+				}else
+					if(!strncmp(linea, "rename", 6)) {
+						log_trace(logFS,"Consola recibe ""rename""");
+						//printf("Seleccionaste renombrar\n");
+						char ** parametros = string_split(linea, " ");
+						if(parametros[1] == NULL){
+							printf("Faltan argumentos: rename [path_original] [nombre_final]  \n");
+						}
+						else if (parametros[2] == NULL){
+							printf("Faltan argumentos: rename [path_original] [nombre_final]  \n");
+						} else {
+							renombrarArchivo(parametros[1], parametros[2], carpetas);
+						}
+					}
+					else
+						if(!strncmp(linea, "mv", 2)) {
+							log_trace(logFS,"Consola recibe ""mv""");
+							printf("Seleccionaste mover\n");
 
-		}
-		else
-		if(!strncmp(linea, "cat", 3)) {
-			log_trace(logFS,"Consola recibe ""cat""");
-			//printf("Seleccionaste concatenar\n");
+						}
+						else
+							if(!strncmp(linea, "cat", 3)) {
+								log_trace(logFS,"Consola recibe ""cat""");
+								//printf("Seleccionaste concatenar\n");
 
-			char ** parametros = string_split(linea, " ");
+								char ** parametros = string_split(linea, " ");
 
-		}
-		else
-		if(!strncmp(linea, "mkdir", 5)) {
-			log_trace(logFS,"Consola recibe ""mkdir""");
+							}
+							else
+								if(!strncmp(linea, "mkdir", 5)) {
+									log_trace(logFS,"Consola recibe ""mkdir""");
 
-			char ** parametros = string_split(linea, " ");
-			/* variable = ltrim(variable);*/
+									char ** parametros = string_split(linea, " ");
+									/* variable = ltrim(variable);*/
 
-			if(parametros[1] == NULL){
-				printf("Falta argumento: nombre a designar al directorio.\n");}
-			else {
-				crearDirectorio(carpetas, carpetaActual, parametros[1]);
-			}
-			// printf("Seleccionaste crear carpeta %s\n", linea);
-		}
-		else
-		if(!strncmp(linea, "cd", 2)) {
-			log_trace(logFS,"Consola recibe ""cd""");
-			// printf("Seleccionaste cambiar diretorio\n");
-			char ** parametros = string_split(linea, " ");
-			carpetaActual = cambiarAdirectorio(parametros[1], carpetaActual, carpetas);
+									if(parametros[1] == NULL){
+										printf("Falta argumento: nombre a designar al directorio.\n");}
+									else {
+										crearDirectorio(carpetas, carpetaActual, parametros[1]);
+									}
+									// printf("Seleccionaste crear carpeta %s\n", linea);
+								}
+								else
+									if(!strncmp(linea, "cd", 2)) {
+										log_trace(logFS,"Consola recibe ""cd""");
+										// printf("Seleccionaste cambiar diretorio\n");
+										char ** parametros = string_split(linea, " ");
+										carpetaActual = cambiarAdirectorio(parametros[1], carpetaActual, carpetas);
 
-		}
-		else
-		if(!strncmp(linea, "cpfrom", 6)) {
-			log_trace(logFS,"Consola recibe ""cpfrom""");
-			// printf("Seleccionaste copiar desde\n");
-			char ** parametros = string_split(linea, " ");
-			char * tipo_archivo = parametros[3];
-			if(tipo_archivo != NULL && !strcmp(parametros[3],"1")){
-				guardarArchivoLocalDeTextoEnFS(parametros[1],parametros[2], carpetas);
-			}else{
-				guardarArchivoLocalEnFS(parametros[1],parametros[2], carpetas);
-			}
-		}else
-		if(!strncmp(linea, "cpto", 4)) {
-			log_trace(logFS,"Consola recibe ""cpto""");
-			// printf("Seleccionaste copiar hasta\n");
+									}
+									else
+										if(!strncmp(linea, "cpfrom", 6)) {
+											log_trace(logFS,"Consola recibe ""cpfrom""");
+											// printf("Seleccionaste copiar desde\n");
+											char ** parametros = string_split(linea, " ");
+											char * tipo_archivo = parametros[3];
+											if(tipo_archivo != NULL && !strcmp(parametros[3],"1")){
+												guardarArchivoLocalDeTextoEnFS(parametros[1],parametros[2], carpetas);
+											}else{
+												guardarArchivoLocalEnFS(parametros[1],parametros[2], carpetas);
+											}
+										}else
+											if(!strncmp(linea, "cpto", 4)) {
+												log_trace(logFS,"Consola recibe ""cpto""");
+												// printf("Seleccionaste copiar hasta\n");
 
-			if(estaEstable){
-				char ** parametros = string_split(linea, " ");
-				traerArchivoDeFs(parametros[1],parametros[2], carpetas, 0);
-			}
+												if(estaEstable){
+													char ** parametros = string_split(linea, " ");
+													traerArchivoDeFs(parametros[1],parametros[2], carpetas, 0);
+												}
 
-		}else
-		if(!strncmp(linea, "cpblock", 7)) {
-			log_trace(logFS,"Consola recibe ""cpblock""");
-			printf("Seleccionaste copiar bloque\n");
+											}else
+												if(!strncmp(linea, "cpblock", 7)) {
+													log_trace(logFS,"Consola recibe ""cpblock""");
+													printf("Seleccionaste copiar bloque\n");
 
-		}else
-		if(!strncmp(linea, "md5", 3)) {
-			log_trace(logFS,"Consola recibe ""md5""");
-			//printf("Seleccionaste obtener md5\n");
-			char ** parametros = string_split(linea, " ");
-			obtenerMD5Archivo(parametros[1], carpetas);
-		}else
-		if(!strncmp(linea, "ls", 2)) {
-			log_trace(logFS,"Consola recibe ""ls""");
+												}else
+													if(!strncmp(linea, "md5", 3)) {
+														log_trace(logFS,"Consola recibe ""md5""");
+														//printf("Seleccionaste obtener md5\n");
+														char ** parametros = string_split(linea, " ");
+														obtenerMD5Archivo(parametros[1], carpetas);
+													}else
+														if(!strncmp(linea, "ls", 2)) {
+															log_trace(logFS,"Consola recibe ""ls""");
 
-			listarDirectorios(carpetas, carpetaActual);
-			char* ruta =string_new();
-			string_append(&ruta, "ls metadata/archivos/");
-			string_append(&ruta, string_itoa(carpetaActual->index));
-			string_append(&ruta, " | tr '\n' ' '");
-			system(ruta);
-			printf("\n");
-			//printf("Seleccionaste ver directorios y archivos\n");
+															listarDirectorios(carpetas, carpetaActual);
+															char* ruta =string_new();
+															string_append(&ruta, "ls metadata/archivos/");
+															string_append(&ruta, string_itoa(carpetaActual->index));
+															string_append(&ruta, " | tr '\n' ' '");
+															system(ruta);
+															printf("\n");
+															//printf("Seleccionaste ver directorios y archivos\n");
 
-		}else
-		if(!strncmp(linea, "info", 4)) {
-			log_trace(logFS,"Consola recibe ""info""");
-			//printf("Seleccionaste obtener informacion\n");
-			char ** parametros = string_split(linea, " ");
-			imprimeMetadata(parametros[1], carpetas);
+														}else
+															if(!strncmp(linea, "info", 4)) {
+																log_trace(logFS,"Consola recibe ""info""");
+																//printf("Seleccionaste obtener informacion\n");
+																char ** parametros = string_split(linea, " ");
+																imprimeMetadata(parametros[1], carpetas);
 
-		}else
-		if(!strncmp(linea, "statusfs", 4)) {
-			log_trace(logFS,"Consola recibe ""statusfs""");
+															}else
+																if(!strncmp(linea, "statusfs", 4)) {
+																	log_trace(logFS,"Consola recibe ""statusfs""");
 
-			imprimeNodosBin();
-		}else
-		if(!strncmp(linea, "clear", 4)) {
-			log_trace(logFS,"Consola recibe ""cls""");
+																	imprimeNodosBin();
+																}else
+																	if(!strncmp(linea, "clear", 4)) {
+																		log_trace(logFS,"Consola recibe ""cls""");
 
-			cls();
-		}else
-		if(!strncmp(linea, "help",4)) {
-			log_trace(logFS,"Consola recibe ""help""");
-			  printf("YamaFS Ayuda\n");
-			  printf("Los parámetros se indican con [] \n------\n");
-			  printf("format - Formatear el Filesystem.\n");
-			  printf("rename [path_original] [nombre_final] - Renombra un Archivo o Directorio");
-			  printf("rm [path_archivo] ó rm -d [path_directorio] ó rm -b [path_archivo] [nro_bloque] [nro_copia] - Eliminar un Archivo/Directorio/Bloque.\n");
-			  printf("mv [path_original] [path_final] - Mueve un Archivo o Directorio.\n");
-			  printf("cat [path_archivo] - Muestra el contenido del archivo como texto plano.\n");
-			  printf("mkdir [path_dir] - Crea un directorio. \n");
-			  printf("cpfrom [path_archivo_origen] [directorio_yamafs] [tipo_archivo]- Copiar un archivo local al yamafs, siguiendo los lineamientos en la operación Almacenar Archivo de la Interfaz del FileSystem. 1 para archivo de texto o 0 para binario, si no se especifica, por defecto se considera archivo binario.\n");
-			  printf("cpto [path_archivo_yamafs] [directorio_filesystem] - Copiar un archivo local desde el yamafs.\n");
-			  printf("cpblock [path_archivo] [nro_bloque] [id_nodo] - Crea una copia de un bloque de un archivo en el nodo dado.\n");
-			  printf("md5 [path_archivo_yamafs] - Solicitar el MD5 de un archivo en yamafs.\n");
-			  printf("ls [path_directorio] - Lista los archivos de un directorio.\n");
-			  printf("info [path_archivo] - Muestra toda la información del archivo, incluyendo tamaño, bloques, ubicación de los bloques, etc.\n");
-			  printf("exit - Sale del programa.\n");
-		}
-		else {
-			printf("No se reconoce el comando %s\n",linea);
-			printf("Para más información utilice el comando ""help"".\n");
-		}
-  }
+																		cls();
+																	}else
+																		if(!strncmp(linea, "help",4)) {
+																			log_trace(logFS,"Consola recibe ""help""");
+																			printf("YamaFS Ayuda\n");
+																			printf("Los parámetros se indican con [] \n------\n");
+																			printf("format - Formatear el Filesystem.\n");
+																			printf("rename [path_original] [nombre_final] - Renombra un Archivo o Directorio");
+																			printf("rm [path_archivo] ó rm -d [path_directorio] ó rm -b [path_archivo] [nro_bloque] [nro_copia] - Eliminar un Archivo/Directorio/Bloque.\n");
+																			printf("mv [path_original] [path_final] - Mueve un Archivo o Directorio.\n");
+																			printf("cat [path_archivo] - Muestra el contenido del archivo como texto plano.\n");
+																			printf("mkdir [path_dir] - Crea un directorio. \n");
+																			printf("cpfrom [path_archivo_origen] [directorio_yamafs] [tipo_archivo]- Copiar un archivo local al yamafs, siguiendo los lineamientos en la operación Almacenar Archivo de la Interfaz del FileSystem. 1 para archivo de texto o 0 para binario, si no se especifica, por defecto se considera archivo binario.\n");
+																			printf("cpto [path_archivo_yamafs] [directorio_filesystem] - Copiar un archivo local desde el yamafs.\n");
+																			printf("cpblock [path_archivo] [nro_bloque] [id_nodo] - Crea una copia de un bloque de un archivo en el nodo dado.\n");
+																			printf("md5 [path_archivo_yamafs] - Solicitar el MD5 de un archivo en yamafs.\n");
+																			printf("ls [path_directorio] - Lista los archivos de un directorio.\n");
+																			printf("info [path_archivo] - Muestra toda la información del archivo, incluyendo tamaño, bloques, ubicación de los bloques, etc.\n");
+																			printf("exit - Sale del programa.\n");
+																		}
+																		else {
+																			printf("No se reconoce el comando %s\n",linea);
+																			printf("Para más información utilice el comando ""help"".\n");
+																		}
+	}
 }
 
 void actualizoArchivosDat(char* ruta_metadata, int flag){
@@ -1190,7 +1194,7 @@ void actualizoArchivosDat(char* ruta_metadata, int flag){
 		fprintf(file, ruta_metadata);
 		fprintf(file, "\n");
 		fclose(file);
-		}
+	}
 	else {
 
 		FILE* file = fopen(archivos_file, "r+");
@@ -1277,74 +1281,74 @@ int chequeoEstadoFS(){
 
 void getNodosRelacionadosDeMetadata(char* ruta_metadata, t_list* listaNodosRelacionados){
 
-		FILE * metadata;
-		t_nodo * nodo;
-		char * line = NULL;
-		size_t len = 0;
+	FILE * metadata;
+	t_nodo * nodo;
+	char * line = NULL;
+	size_t len = 0;
 
-		metadata = fopen(ruta_metadata,"r");
-		if (metadata == NULL){
-			exit(EXIT_FAILURE);}
+	metadata = fopen(ruta_metadata,"r");
+	if (metadata == NULL){
+		exit(EXIT_FAILURE);}
 
-		//linea de la ruta
-		getline(&line, &len, metadata);
-		//linea de tamaño
-		getline(&line, &len, metadata);
+	//linea de la ruta
+	getline(&line, &len, metadata);
+	//linea de tamaño
+	getline(&line, &len, metadata);
 
-		char** parametros;
-		char ** parametros1;
+	char** parametros;
+	char ** parametros1;
 
-		//linea de TIPO
-		getline(&line, &len, metadata);
+	//linea de TIPO
+	getline(&line, &len, metadata);
 
-		while (!feof(metadata)) {
+	while (!feof(metadata)) {
 
-			getline(&line, &len, metadata); //primer getline lo hago antes para evaluar si esta para salir
-			if(feof(metadata))break;
+		getline(&line, &len, metadata); //primer getline lo hago antes para evaluar si esta para salir
+		if(feof(metadata))break;
 
-			int bloque;
-			t_bloque* currentBloque;
-			currentBloque = malloc(sizeof(t_bloque));
+		int bloque;
+		t_bloque* currentBloque;
+		currentBloque = malloc(sizeof(t_bloque));
 
-			/* SECTOR COPIA 0 */
-			parametros = string_split(line,"=");
-			currentBloque->Copia0 = string_new();
-			string_append(&currentBloque->Copia0, parametros[1]);// string_get_string_as_array(parametros[1]);
-			parametros1 = string_get_string_as_array(currentBloque->Copia0);
-			nodo = getNodoPorNombre(parametros1[0],nodos);
+		/* SECTOR COPIA 0 */
+		parametros = string_split(line,"=");
+		currentBloque->Copia0 = string_new();
+		string_append(&currentBloque->Copia0, parametros[1]);// string_get_string_as_array(parametros[1]);
+		parametros1 = string_get_string_as_array(currentBloque->Copia0);
+		nodo = getNodoPorNombre(parametros1[0],nodos);
 
-			if(getNodoPorNombre(nodo->nombre_nodo,listaNodosRelacionados)== NULL){
-				list_add(listaNodosRelacionados,nodo);
-			}
-
-			/* SECTOR COPIA 1 */
-			getline(&line, &len, metadata);
-			parametros = string_split(line,"=");
-			currentBloque->Copia1 = string_new();
-			string_append(&currentBloque->Copia1, parametros[1]);// string_get_string_as_array(parametros[1]);
-			parametros1 = string_get_string_as_array(currentBloque->Copia1);
-			nodo = getNodoPorNombre(parametros1[0],nodos);
-
-			if(getNodoPorNombre(nodo->nombre_nodo,listaNodosRelacionados)== NULL){
-				list_add(listaNodosRelacionados,nodo);
-			}
-
-			/*SECTOR TAMAÑO EN BYTES */
-			getline(&line, &len, metadata);
-
+		if(getNodoPorNombre(nodo->nombre_nodo,listaNodosRelacionados)== NULL){
+			list_add(listaNodosRelacionados,nodo);
 		}
 
-		fclose(metadata);
-		if(line) free(line);
+		/* SECTOR COPIA 1 */
+		getline(&line, &len, metadata);
+		parametros = string_split(line,"=");
+		currentBloque->Copia1 = string_new();
+		string_append(&currentBloque->Copia1, parametros[1]);// string_get_string_as_array(parametros[1]);
+		parametros1 = string_get_string_as_array(currentBloque->Copia1);
+		nodo = getNodoPorNombre(parametros1[0],nodos);
+
+		if(getNodoPorNombre(nodo->nombre_nodo,listaNodosRelacionados)== NULL){
+			list_add(listaNodosRelacionados,nodo);
+		}
+
+		/*SECTOR TAMAÑO EN BYTES */
+		getline(&line, &len, metadata);
+
+	}
+
+	fclose(metadata);
+	if(line) free(line);
 
 }
 
 char* getNombreArchivo(char* path){
 	int i = 0;
 	char** arrayString = string_split(path,"/");
-		while (arrayString[i]!= NULL){
-			i++;
-		}
+	while (arrayString[i]!= NULL){
+		i++;
+	}
 	return arrayString[i-1];
 }
 
@@ -1364,17 +1368,17 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 
 	FILE* origen = fopen(path_archivo_origen, "rb");
 	if (origen == NULL){
-				fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
-				return;
-			}
+		fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
+		return;
+	}
 
 	int fd = fileno(origen);
 
 	struct stat fileStat;
-			if (fstat(fd, &fileStat) < 0){
-				  fprintf(stderr, "Error fstat --> %s\n", strerror(errno),"\n");
-				  return;
-			}
+	if (fstat(fd, &fileStat) < 0){
+		fprintf(stderr, "Error fstat --> %s\n", strerror(errno),"\n");
+		return;
+	}
 
 
 	int bloquesLibres = traeBloquesLibres();
@@ -1428,7 +1432,7 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 		nodo2 = list_get(nodos,indexs[1]);
 		socketnodo2 = nodo2->socket_nodo;
 
-		int err = enviarInt(socketnodo,ESCRIBIR_BLOQUE_NODO);
+		err = enviarInt(socketnodo,ESCRIBIR_BLOQUE_NODO);
 		//enviarInt(socketnodo,ENVIAR_ARCHIVO_BINARIO);
 		if(err<0){
 			printf("Error de conexion con el nodo %s\n", nodo->nombre_nodo);
@@ -1470,8 +1474,8 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 
 		}
 
-
 	iteration++;
+
 	}
 
 	free(buffer);
@@ -1487,24 +1491,24 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 
 	FILE* origen = fopen(path_archivo_origen, "rb");
 	if (origen == NULL){
-				fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
-				return;
-			}
+		fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
+		return;
+	}
 	int fd = fileno(origen);
 	struct stat fileStat;
-			if (fstat(fd, &fileStat) < 0){
-				  fprintf(stderr, "Error fstat --> %s\n", strerror(errno),"\n");
-				  return;
-			}
+	if (fstat(fd, &fileStat) < 0){
+		fprintf(stderr, "Error fstat --> %s\n", strerror(errno),"\n");
+		return;
+	}
 
 
 
 	int bloquesLibres = traeBloquesLibres();
 
 	if(((int)fileStat.st_size/(1024*1024))*2 > bloquesLibres){
-			printf("No hay espacio suficiente en FS para guardar el archivo.\n");
-			return;
-		}
+		printf("No hay espacio suficiente en FS para guardar el archivo.\n");
+		return;
+	}
 
 	FILE * metadata = crearMetadata(path_archivo_origen, directorio_yamafs, folderList, "TEXTO", (int)fileStat.st_size);
 
@@ -1577,22 +1581,22 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 				fgets(hastaNuevaLinea,1024*1024,origen);
 				largo += strlen(hastaNuevaLinea);
 
-				 if(largo>1024*1024 || feof(origen)){
-					 int largoAMandar = strlen(aMandar);
-					 escribirBloque(socketnodo, bloque, aMandar, largoAMandar);
-					 escribirBloque(socketnodo2, bloqueCopia, aMandar, largoAMandar);
+				if(largo>1024*1024 || feof(origen)){
+					int largoAMandar = strlen(aMandar);
+					escribirBloque(socketnodo, bloque, aMandar, largoAMandar);
+					escribirBloque(socketnodo2, bloqueCopia, aMandar, largoAMandar);
 
-					 fprintf(metadata,"%s%d%s%s%s%d%s%s","BLOQUE",iteration,"COPIA0=[",nodo->nombre_nodo, ", ", bloque, "]","\n");
-					 fprintf(metadata,"%s%d%s%s%s%d%s%s","BLOQUE",iteration,"COPIA1=[",nodo2->nombre_nodo, ", ", bloqueCopia, "]","\n");
-					 fprintf(metadata,"%s%d%s%d%s","BLOQUE",iteration,"BYTES=",largoAMandar, "\n");
-					 free(aMandar);
+					fprintf(metadata,"%s%d%s%s%s%d%s%s","BLOQUE",iteration,"COPIA0=[",nodo->nombre_nodo, ", ", bloque, "]","\n");
+					fprintf(metadata,"%s%d%s%s%s%d%s%s","BLOQUE",iteration,"COPIA1=[",nodo2->nombre_nodo, ", ", bloqueCopia, "]","\n");
+					fprintf(metadata,"%s%d%s%d%s","BLOQUE",iteration,"BYTES=",largoAMandar, "\n");
+					free(aMandar);
 
-					 nodo->bloquesLibres = nodo->bloquesLibres - 1;
-					 nodo2->bloquesLibres = nodo2->bloquesLibres - 1;
-					 //break;
-				 } else {
-					 string_append(&aMandar,hastaNuevaLinea);
-				 }
+					nodo->bloquesLibres = nodo->bloquesLibres - 1;
+					nodo2->bloquesLibres = nodo2->bloquesLibres - 1;
+					//break;
+				} else {
+					string_append(&aMandar,hastaNuevaLinea);
+				}
 
 			}
 
@@ -1617,24 +1621,24 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 
 int escribirBloque(int socketnodo, int bloque, void * buffer, int largoAMandar){
 
-	 enviarInt(socketnodo,largoAMandar);
-	 int enviado = 0;
-	 while(enviado < largoAMandar){
-		 int err = 0;
+	enviarInt(socketnodo,largoAMandar);
+	int enviado = 0;
+	while(enviado < largoAMandar){
+		int err = 0;
 
-		 int i = largoAMandar - enviado;
-		 if(i>=4096){
-			 i = 4096;
-		 }
+		int i = largoAMandar - enviado;
+		if(i>=4096){
+			i = 4096;
+		}
 
-		 enviarInt(socketnodo,i);
-		 err = send(socketnodo,buffer+enviado,(size_t)sizeof(char)*i,NULL);
-		 if(err <= 0){
-			 return -1;
-		 }else {
-			 enviado += err;
-		 }
-	 }
+		enviarInt(socketnodo,i);
+		err = send(socketnodo,buffer+enviado,(size_t)sizeof(char)*i,NULL);
+		if(err <= 0){
+			return -1;
+		}else {
+			enviado += err;
+		}
+	}
 	return enviado;
 }
 
@@ -1657,9 +1661,9 @@ FILE * crearMetadata(char * destino, char* directorio_yamafs, t_list* folderList
 	metadata = fopen(ruta_metadata,"w+");
 
 	if (metadata == NULL){
-			fprintf(stderr, "Fallo al guardar metadata en %s %s\n",metadata, strerror(errno));
-			return NULL;
-		}
+		fprintf(stderr, "Fallo al guardar metadata en %s %s\n",metadata, strerror(errno));
+		return NULL;
+	}
 
 	fprintf(metadata,"%s%s",ruta_metadata,"\n");
 	actualizoArchivosDat(ruta_metadata, 1);
@@ -1690,16 +1694,16 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList,
 	}
 
 	void destruyoBloques(void* parametro) {
-		 t_bloque* dir = (t_bloque*) parametro;
-		 free(dir->Copia0);
-		 free(dir->Copia1);
-		 free(dir);
+		t_bloque* dir = (t_bloque*) parametro;
+		free(dir->Copia0);
+		free(dir->Copia1);
+		free(dir);
 	}
 
 	int carpeta = identificaDirectorio(archivoABuscar, folderList);
 	if(carpeta == -2){
-			printf("Error al traer el archivo.\n");
-			return 0;
+		printf("Error al traer el archivo.\n");
+		return 0;
 	}
 
 	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
@@ -1766,7 +1770,7 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList,
 	free(ruta_metadata);
 
 	if(!md5flag){
-	printf("Archivo guardado correctamente en %s.\n", directorio);
+		printf("Archivo guardado correctamente en %s.\n", directorio);
 	}
 
 	return 1;
@@ -1873,18 +1877,18 @@ void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList){
 	}
 
 	if(!strcmp(parametro,"-b")){
-			return;
+		return;
 	}
 
 	if(!estaEstable()){
-			return;
+		return;
 	}
 
 	void destruyoBloques(void* parametro) {
-		 t_bloque* dir = (t_bloque*) parametro;
-		 free(dir->Copia0);
-		 free(dir->Copia1);
-		 free(dir);
+		t_bloque* dir = (t_bloque*) parametro;
+		free(dir->Copia0);
+		free(dir->Copia1);
+		free(dir);
 	}
 
 	int carpeta = identificaDirectorio(archivoABuscar, folderList);
@@ -1949,7 +1953,7 @@ void moverArchivo(char* archivoABuscar, char* destino, t_list* folderList){
 
 void renombrarArchivo(char* archivoABuscar, char* nombreNuevo, t_list* folderList){
 
-    //char* nombreActual = getNombreArchivo(archivoABuscar);
+	//char* nombreActual = getNombreArchivo(archivoABuscar);
 	int folderIndex = identificaDirectorio(archivoABuscar, folderList);
 	char* ruta_metadata = string_new();
 	ruta_metadata = getRutaMetadata(archivoABuscar,folderList, folderIndex);
@@ -1961,7 +1965,7 @@ void renombrarArchivo(char* archivoABuscar, char* nombreNuevo, t_list* folderLis
 
 		if (metadata == NULL){
 			printf("Archivo inexistente en yamafs.\n");
-		return;
+			return;
 		}
 
 		char* new_ruta_metadata = string_new();
@@ -2024,11 +2028,11 @@ int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer){
 	}
 	error = enviarInt(nodo->socket_nodo, bloque);
 	if(error<=0){
-			return error;
-		}
+		return error;
+	}
 	error = enviarInt(nodo->socket_nodo, largo);
 	if(error<=0){
-			return error;
+		return error;
 	}
 
 	int recibido = 0;
@@ -2037,62 +2041,62 @@ int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer){
 	int j = 0;
 
 	while(recibido<largo){
-			int bytesAleer = 0;
-			recibirInt(nodo->socket_nodo,&bytesAleer);
-			unsigned char * buff;
-			buff = malloc((size_t)bytesAleer);
-			while(bytesRecibidos<bytesAleer){
-				int rec =  recv(nodo->socket_nodo,buff,(size_t)bytesAleer-bytesRecibidos,NULL);
-				bytesRecibidos += rec;
-				for (;j<rec;j++){
-					buffer[i]=buff[j];
-					i++;
-				}
-				j=0;
+		int bytesAleer = 0;
+		recibirInt(nodo->socket_nodo,&bytesAleer);
+		unsigned char * buff;
+		buff = malloc((size_t)bytesAleer);
+		while(bytesRecibidos<bytesAleer){
+			int rec =  recv(nodo->socket_nodo,buff,(size_t)bytesAleer-bytesRecibidos,NULL);
+			bytesRecibidos += rec;
+			for (;j<rec;j++){
+				buffer[i]=buff[j];
+				i++;
 			}
-			free(buff);
-			recibido += bytesRecibidos;
-			bytesRecibidos = 0;
+			j=0;
+		}
+		free(buff);
+		recibido += bytesRecibidos;
+		bytesRecibidos = 0;
 
 	}
 
-		//printf("%s", buffer);
-		return recibido;
+	//printf("%s", buffer);
+	return recibido;
 
 }
 
 void recibirDatosBloque(t_nodo * nodo){
 	int bytesRecibidos = 0;
 	int largoArecibir = 0;
-		//while(bytesRecibidos<largo){
-			recibirInt(nodo->socket_nodo,&largoArecibir);
-			void * buffer;
-			buffer = malloc((size_t)largoArecibir);
-			bytesRecibidos += recv(nodo->socket_nodo,buffer,largoArecibir,NULL);
-			printf("recibido");
-			printf("%s", buffer);
-		//	free(buffer);
-		//}
+	//while(bytesRecibidos<largo){
+	recibirInt(nodo->socket_nodo,&largoArecibir);
+	void * buffer;
+	buffer = malloc((size_t)largoArecibir);
+	bytesRecibidos += recv(nodo->socket_nodo,buffer,largoArecibir,NULL);
+	printf("recibido");
+	printf("%s", buffer);
+	//	free(buffer);
+	//}
 }
 
 int obtenerMD5Archivo(char * archivo, t_list* folderList){
 
 
 
-		if(!estaEstable()){
-			return 0;
-		}
+	if(!estaEstable()){
+		return 0;
+	}
 
-		traerArchivoDeFs(archivo,"",folderList, 1);
-		char* command = string_new();
-		string_append(&command,"md5sum ");
-		string_append(&command,archivo);
-		system(command);
-		remove(archivo);
+	traerArchivoDeFs(archivo,"",folderList, 1);
+	char* command = string_new();
+	string_append(&command,"md5sum ");
+	string_append(&command,archivo);
+	system(command);
+	remove(archivo);
 
-		free(command);
+	free(command);
 
-	    return 1;
+	return 1;
 }
 
 void * cls(){
@@ -2105,8 +2109,8 @@ void imprimeMetadata(char* rutaEnYamafs, t_list* folderList){
 
 	int carpeta = identificaDirectorio(rutaEnYamafs, folderList);
 	if(carpeta == -2){
-			printf("Error al traer la información del archivo.\n");
-			return;
+		printf("Error al traer la información del archivo.\n");
+		return;
 	}
 
 	char* ruta_metadata = getRutaMetadata(rutaEnYamafs,folderList, carpeta);
@@ -2119,8 +2123,8 @@ void imprimeMetadata(char* rutaEnYamafs, t_list* folderList){
 	metadata = fopen(ruta_metadata,"r");
 
 	if(metadata == NULL){
-			printf("Error al acceder al archivo.\n");
-			return;
+		printf("Error al acceder al archivo.\n");
+		return;
 	}
 
 	do {
@@ -2132,16 +2136,16 @@ void imprimeMetadata(char* rutaEnYamafs, t_list* folderList){
 	fclose(metadata);
 
 	if (line){
-	   free(line);}
+		free(line);}
 }
 
 char* replace_char(char* str, char find, char replace){
-    char *current_pos = strchr(str,find);
-    while (current_pos){
-        *current_pos = replace;
-        current_pos = strchr(current_pos,find);
-    }
-    return str;
+	char *current_pos = strchr(str,find);
+	while (current_pos){
+		*current_pos = replace;
+		current_pos = strchr(current_pos,find);
+	}
+	return str;
 }
 
 void serializarDato(char* buffer, void* dato, int size_to_send, int* offset){
@@ -2286,15 +2290,13 @@ void procesarSolicitudYama(void* args){
 		int nuevoSocket = argumentos->socketCliente;
 		free(args);
 
-		Package* package = createPackage();
-			int leidos = recieve_and_deserialize(package, nuevoSocket);
-
 	int numMaster;
-			char* solicitudArchivo;
+	char* solicitudArchivo;
 
-			int err = 	recibirInt(nuevoSocket, &numMaster);
-			solicitudArchivo = recibirMensaje(nuevoSocket);
+	int err = 	recibirInt(nuevoSocket, &numMaster);
+	solicitudArchivo = recibirMensaje(nuevoSocket);
 
+	printf("Recibi una solicitud del Master %d\n", numMaster);
 
 	/*
 	 *	todo completar con los bloques usados
@@ -2305,7 +2307,7 @@ void procesarSolicitudYama(void* args){
 	 *
 	 *	serializar_y_enviar_yama(bloques, idMaster, socketYama);
 	 */
-//	recibirInt(nuevoSocket,numMaster);
+	//	recibirInt(nuevoSocket,numMaster);
 
 	if(err){printf("Error recibiendo num. de Master.\n");}
 
