@@ -1175,8 +1175,7 @@ void *escucharConsola(){
 				log_trace(logFS,"Consola recibe ""info""");
 				//printf("Seleccionaste obtener informacion\n");
 				parametros = string_split(linea, " ");
-
-				if(parametros[1] == NULL || parametros[2] == NULL ){
+				if(parametros[1] == NULL){
 					printf("Faltan argumentos. Para mas info use help.\n");}
 				else {
 				imprimeMetadata(parametros[1], carpetas);
