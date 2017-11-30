@@ -1388,7 +1388,7 @@ char* getNombreArchivo(char* path){
 	int i = 0;
 	char** arrayString = string_split(path,"/");
 
-	if (arrayString[i]== NULL){
+	if (arrayString[i+1]== NULL){
 		return path;
 	}
 	while (arrayString[i]!= NULL){
