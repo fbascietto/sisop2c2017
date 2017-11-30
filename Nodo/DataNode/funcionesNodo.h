@@ -22,6 +22,8 @@
 #ifndef FUNCIONESNODO_H_
 #define FUNCIONESNODO_H_
 
+t_log* logNodo;
+
 typedef struct {
   char nombre[10];
   int espacio_libre;

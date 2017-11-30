@@ -1346,6 +1346,10 @@ void getNodosRelacionadosDeMetadata(char* ruta_metadata, t_list* listaNodosRelac
 char* getNombreArchivo(char* path){
 	int i = 0;
 	char** arrayString = string_split(path,"/");
+
+	if (arrayString[i]== NULL){
+		return path;
+	}
 	while (arrayString[i]!= NULL){
 		i++;
 	}
@@ -1534,19 +1538,23 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 
 		t_bitarray* t_fs_bitmap;
 		t_bitarray* t_fs_bitmap2;
-		t_list * nodosAusar;
-/*
-		nodosAusar = list_create();
-		nodosAusar = getNodosMenosCargados(nodos);
- */
-		int indexs[2];
 
-		getNodosMenosCargados(indexs);
-		nodo = list_get(nodosAusar,0);
+		int indexs[2];
+		int err = getNodosMenosCargados(indexs);
+
+		if(err){
+			printf("Escasez de bloques libres en el FS.\n");
+			//evaluar limpiar lo que se escribio??
+			return;
+
+		}
+
+		nodo = list_get(nodos,indexs[0]);
 		socketnodo = nodo->socket_nodo;
 
-		nodo2 = list_get(nodosAusar,1);
+		nodo2 = list_get(nodos,indexs[1]);
 		socketnodo2 = nodo2->socket_nodo;
+
 		int errNodo, errNodo2;
 
 		errNodo = enviarInt(socketnodo,ESCRIBIR_BLOQUE_NODO);
@@ -1605,7 +1613,7 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 
 			printf("Nodo %s desconectado", nodo->nombre_nodo);
 		}
-		list_destroy(nodosAusar);
+
 		iteration++;
 	}
 
@@ -2287,8 +2295,8 @@ void transformacionFinalWorker(int nuevoSocket){
 void procesarSolicitudYama(void* args){
 
 	t_esperar_mensaje *argumentos = (t_esperar_mensaje*) args;
-		int nuevoSocket = argumentos->socketCliente;
-		free(args);
+	int nuevoSocket = argumentos->socketCliente;
+	free(args);
 
 	int masterRecibido;
 	char* solicitudArchivo;

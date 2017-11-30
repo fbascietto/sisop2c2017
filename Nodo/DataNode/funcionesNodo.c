@@ -45,7 +45,10 @@ t_nodo* inicializoDataBin(char* rutaBin, char* nombreNodo){
 
 void iniciarDataNode(){
 
-	char* buffer;
+	t_log_level LogL = LOG_LEVEL_TRACE;
+	logNodo = log_create("log.txt","DataNode",1,LogL);
+
+
 	t_nodo *nodo;
 	infoConfig = config_create("config.txt");
 
@@ -78,7 +81,7 @@ void iniciarDataNode(){
 
 		nodo = inicializoDataBin(rutaNodo, nombreNodo);
 
-		printf("tamanio total %d\n",nodo->espacio_total);
+		log_trace(logNodo,"tamanio total %d\n",nodo->espacio_total);
 
 		void* buff = serializarNodo(nodo);
 		enviarInt(socketConn,(int)(sizeof(t_nodo)));
@@ -93,25 +96,26 @@ void iniciarDataNode(){
 		while(1){
 			errorConexionFS =  recibirInt(socketConn,&solicitudFs);
 			if(errorConexionFS<=0){
-				printf("Se desconecto el file system\n");
+				log_trace(logNodo,"Se desconecto el file system");
+
 				break;
 			}else{
 				switch (solicitudFs){
 					case ESCRIBIR_BLOQUE_NODO:
-						printf("se recibio solicitud para escribir nodo\n");
 						esperarBloque(socketConn, nodo, rutaNodo);
 						break;
 					case LEER_BLOQUE_NODO:
-						printf("se recibio solicitud para leer nodo\n");
 						leerBloque(socketConn, nodo, rutaNodo);
 						break;
 					case ESTA_VIVO_NODO:
 						enviarInt(socketConn,1);
 						break;
 				}
-			}
-		}
 
+			}
+
+		}
+		log_destroy(logNodo);
 		/*
 		esperarPeticiones(socketConn);
 		 */
@@ -128,21 +132,20 @@ int esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 		return -1;
 
 	}
-		printf("se recibio solicitud para escribir el bloque %d \n", bloque);
 		char * bloqueArchivo;
 		bloqueArchivo = malloc((size_t)4096);
 
 		int data = open(rutaNodo,O_RDWR);
 		struct stat fileStat;
 		if (fstat(data, &fileStat) < 0){
-			  fprintf(stderr, "Error fstat --> %s", strerror(errno),"\n");
+			log_error(logNodo, "Error fstat --> %s");
 			  exit(EXIT_FAILURE);
 		}
 
 		map = (unsigned char*) mmap(NULL, fileStat.st_size /*/(fileStat.st_size/(1024*1024))*/ , PROT_READ | PROT_WRITE, MAP_SHARED, data, sizeof(unsigned char)*bloque*(1024*1024));
 		if (map == MAP_FAILED){
 			close(data);
-			perror("Error en el mapeo del data.bin.\n");
+			log_error(logNodo,"Error en el mapeo del data.bin.\n");
 			exit(EXIT_FAILURE);
 		   }
 
@@ -150,8 +153,6 @@ int esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 		int i = 0;
 		int j = 0;
 		int largoMensaje = 0;
-		int tipo_archivo = 0;
-		int paquetesRecibidos=0;
 		int bytesRecibidos = 0;
 		int recibido = 0;
 
@@ -182,9 +183,7 @@ int esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 						break;
 					}*/
 
-				printf("Se escribieron %d caracteres.\n",recibido);
-
-		printf("Se termino de escribir el bloque %d.\n", bloque);
+		log_trace(logNodo,"Se escribió con exito sobre bloque %d.", bloque);
 		munmap(map,fileStat.st_size);
 		// free(map);
 		free(bloqueArchivo);
@@ -210,65 +209,61 @@ int leerBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 		int err = recibirInt(socketConn, &bloque);
 
 		if(err<0){
-			printf("error de conexion con el fs");
+			log_error(logNodo,"error de conexion con el fs");
+			return -1;
+		}
+		int data = open(rutaNodo,O_RDWR);
+		struct stat fileStat;
+		if (fstat(data, &fileStat) < 0){
+			log_error(logNodo,"Error fstat --> %s");
+			  exit(EXIT_FAILURE);
+		}
+
+		map = (unsigned char*) mmap(NULL, fileStat.st_size /*/(fileStat.st_size/(1024*1024))*/ , PROT_READ, MAP_SHARED, data, sizeof(unsigned char)*bloque*(1024*1024));
+		if (map == MAP_FAILED){
+			close(data);
+			log_error(logNodo,"Error en el mapeo del data.bin.\n");
+			exit(EXIT_FAILURE);
+		   }
+
+		int bytesAleer;
+		int err1 = recibirInt(socketConn, &bytesAleer);
+
+		if(err1<0){
+			log_error(logNodo,"Error de conexion con el fs.");
 			return -1;
 		}
 
-			printf("Se recibio solicitud para leer el bloque %d.\n", bloque);
+		int bytes_totales_leidos = 0;
+		int bytes_leidos = 0;
+		//enviarInt(socketConn, LEER_BLOQUE_NODO);
+		while(bytes_totales_leidos < bytesAleer){
+			unsigned char * buffer;
+			buffer = malloc((size_t)4096);
 
-
-			int data = open(rutaNodo,O_RDWR);
-			struct stat fileStat;
-			if (fstat(data, &fileStat) < 0){
-				  fprintf(stderr, "Error fstat --> %s", strerror(errno),"\n");
-				  exit(EXIT_FAILURE);
+			for (;bytes_leidos<4096 && bytes_totales_leidos< bytesAleer;bytes_totales_leidos++){
+				buffer[bytes_leidos] = map[bytes_totales_leidos];
+				bytes_leidos++;
 			}
-
-			map = (unsigned char*) mmap(NULL, fileStat.st_size /*/(fileStat.st_size/(1024*1024))*/ , PROT_READ, MAP_SHARED, data, sizeof(unsigned char)*bloque*(1024*1024));
-			if (map == MAP_FAILED){
-				close(data);
-				perror("Error en el mapeo del data.bin.\n");
-				exit(EXIT_FAILURE);
-			   }
-
-			int bytesAleer;
-			int err1 = recibirInt(socketConn, &bytesAleer);
-
-			if(err1<0){
-				printf("Error de conexion con el fs.");
+			enviarInt(socketConn,bytes_leidos);
+			int bytes_leidos_eviados = 0;
+			while(bytes_leidos_eviados<bytes_leidos){
+				bytes_leidos_eviados += send(socketConn,buffer+bytes_leidos_eviados,(size_t) bytes_leidos-bytes_leidos_eviados,NULL);
+			}
+				/*free(buffer);
+				printf("error de conexion con el fs");
 				return -1;
-			}
+			}*/
+			//printf("%s\n",buffer); printea el buffer para ver que onda -- no more
+			bytes_leidos=0;
 
-			int bytes_totales_leidos = 0;
-			int bytes_leidos = 0;
-			//enviarInt(socketConn, LEER_BLOQUE_NODO);
-			while(bytes_totales_leidos < bytesAleer){
-				unsigned char * buffer;
-				buffer = malloc((size_t)4096);
-
-				for (;bytes_leidos<4096 && bytes_totales_leidos< bytesAleer;bytes_totales_leidos++){
-					buffer[bytes_leidos] = map[bytes_totales_leidos];
-					bytes_leidos++;
-				}
-				enviarInt(socketConn,bytes_leidos);
-				int bytes_leidos_eviados = 0;
-				while(bytes_leidos_eviados<bytes_leidos){
-					bytes_leidos_eviados += send(socketConn,buffer+bytes_leidos_eviados,(size_t) bytes_leidos-bytes_leidos_eviados,NULL);
-				}
-					/*free(buffer);
-					printf("error de conexion con el fs");
-					return -1;
-				}*/
-				//printf("%s\n",buffer); printea el buffer para ver que onda -- no more
-				bytes_leidos=0;
-
-				free(buffer);
-			}
+			free(buffer);
+		}
 
 
-			printf("Se termino de leer el bloque %d.\n", bloque);
-			munmap(map,fileStat.st_size);
-			// free(map);
-			close(data);
-			return 1;
+		log_trace(logNodo,"Se leyó con exito sobre bloque %d.", bloque);
+		munmap(map,fileStat.st_size);
+		// free(map);
+		close(data);
+		return 1;
 }
