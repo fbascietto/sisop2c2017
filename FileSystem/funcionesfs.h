@@ -29,9 +29,10 @@
 char* nodos_file;
 char* archivos_file;
 t_list * nodos;
-t_list *carpetas;
+t_list * carpetas;
 int cantNodos;
 int estable;
+int end;
 
 typedef struct {
 	int socketCliente;
@@ -105,6 +106,7 @@ void destruir_bitmap(t_bitarray* bitmap);
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList);
 void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList);
 int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList, int md5flag);
+int catArchivoDeFs(char* archivoABuscar, t_list* folderList);
 void copioBloque(char* archivoABuscar, char* nodoDestino, t_list* folderList);
 
 void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList);
@@ -120,6 +122,7 @@ int escribirBloque(int socketnodo, int bloque, void * buffer, int largoAMandar);
 int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer);
 FILE * crearMetadata(char * destino, char* directorio_yamafs, t_list* folderList, char* tipo, int tamanio);
 t_list * obtener_lista_metadata(char * ruta_metadata);
+t_list * obtener_lista_metadata_para_imprimir(char * ruta_metadata);
 void recibirDatosBloque(t_nodo * nodo);
 void actualizoArchivosDat(char* ruta_metadata, int flag);
 int buscoEnArchivosDat(char* ruta_metadata);
@@ -175,6 +178,7 @@ void transformacionFinalWorker(int nuevoSocket);
 
 /*Misc*/
 char* replace_char(char* str, char find, char replace);
+void destruir_carpeta(t_directory* carpeta);
 
 /*Deprecated*/
 void escucharConexionNodo(void* socket);

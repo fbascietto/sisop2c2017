@@ -14,10 +14,13 @@
 #include <pthread.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <signal.h>
 
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
+
+#define PUERTO_FS 5140
 
 void main(int argc, char *argv[]){
 	t_log_level LogL = LOG_LEVEL_TRACE;
@@ -40,7 +43,7 @@ void main(int argc, char *argv[]){
 	fd_set fdSocketsEscucha;
 
 	FD_ZERO(&fdSocketsEscucha);
-	socketEscucha = escuchar(5140);
+	socketEscucha = escuchar(PUERTO_FS);
 
 	FD_SET(socketEscucha, &fdSocketsEscucha);
 
@@ -54,7 +57,7 @@ void main(int argc, char *argv[]){
 		levantarNodos(0);
 	} else if (argc > 2){
 		printf("Demasiados parámetros. YamaFS se inicializa con --clean o sin argumentos.\n");
-		exit(1);
+		return;
 	}
 
 	esperarConexion = malloc(sizeof(t_esperar_conexion));
@@ -66,16 +69,22 @@ void main(int argc, char *argv[]){
 	int er2 = pthread_create(&threadEsperaConexiones, NULL,esperarConexiones,(void*) esperarConexion);
 
 	pthread_join(threadEscucharConsola, NULL);
-	pthread_join(threadEsperaConexiones, NULL);
+	//pthread_join(threadEsperaConexiones, NULL);
+	pthread_kill(threadEsperaConexiones, SIGUSR1);
 
-
-	log_error(logFS,"Se sale del fs.");
+	log_trace(logFS,"Se sale del fs.");
 	log_destroy(logFS);
 
-	list_destroy_and_destroy_elements(nodos,free);
-	list_destroy_and_destroy_elements(carpetas,free);
+	/*
+	if(carpetas!=NULL){
+	list_destroy(carpetas);}
+
+	if(nodos != NULL){
+	list_destroy(nodos);}
+	 */
 
 	free(esperarConexion);
-	return;
+
+
 }
 

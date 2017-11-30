@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <pthread.h>
+#include <signal.h>
 #include "../bibliotecas/sockets.c"
 #include "../bibliotecas/sockets.h"
 #include "../bibliotecas/protocolo.h"
@@ -631,6 +632,9 @@ void *esperarConexiones(void *args) {
 	// ---------------ME QUEDO ESPERANDO UNA CONEXION NUEVA--------------
 	while (1) {
 
+
+		signal(SIGUSR1, pthread_exit);
+
 		int nuevoSocket = -1;
 
 		nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,argumentos->socketEscucha);
@@ -912,6 +916,11 @@ void destruir_bitmap(t_bitarray* bitmap) {
 	bitarray_destroy(bitmap);
 }
 
+void destruir_carpeta(t_directory* carpeta) {
+	free(carpeta->nombre);
+	free(carpeta);
+}
+
 void deserializar_a_nodo(void* serializado, t_nodo *nodo){
 	int offset =0;
 	deserializar_a_int(serializado, &nodo->tamanio,&offset);
@@ -1009,6 +1018,7 @@ void *escucharConsola(){
 	t_directory * carpetaActual = list_get(carpetas, 0); // donde 0 siempre DEBERÍA SER root
 
 	char * linea;
+	char ** parametros;
 
 	while(1) {
 		linea = readline("yamafs:" );
@@ -1020,16 +1030,17 @@ void *escucharConsola(){
 			log_trace(logFS,"Consola recibe ""exit""");
 			log_destroy(logFS);
 			free(linea);
-			exit(1);
+			//exit(1);
+			break;
 		} else
 			if(!strncmp(linea, "format", 6)) {
 				log_trace(logFS,"Consola recibe ""format""");
 				formatFs();
-			}else
+		}else
 				if(!strncmp(linea, "rm", 2)) {
 					log_trace(logFS,"Consola recibe ""rm""");
 					// printf("Seleccionaste remover\n");
-					char ** parametros = string_split(linea, " ");
+					parametros = string_split(linea, " ");
 
 					if(parametros[1] == NULL){
 						printf("Faltan argumentos.\n");}
@@ -1039,143 +1050,173 @@ void *escucharConsola(){
 						removerArchivo(parametros[1], parametros[2], carpetas);
 					}
 
-				}else
-					if(!strncmp(linea, "rename", 6)) {
-						log_trace(logFS,"Consola recibe ""rename""");
-						//printf("Seleccionaste renombrar\n");
-						char ** parametros = string_split(linea, " ");
-						if(parametros[1] == NULL){
-							printf("Faltan argumentos: rename [path_original] [nombre_final]  \n");
-						}
-						else if (parametros[2] == NULL){
-							printf("Faltan argumentos: rename [path_original] [nombre_final]  \n");
-						} else {
-							renombrarArchivo(parametros[1], parametros[2], carpetas);
-						}
+		}else
+				if(!strncmp(linea, "rename", 6)) {
+				log_trace(logFS,"Consola recibe ""rename""");
+				//printf("Seleccionaste renombrar\n");
+				parametros = string_split(linea, " ");
+				if(parametros[1] == NULL){
+					printf("Faltan argumentos: rename [path_original] [nombre_final]  \n");
+				}
+				else if (parametros[2] == NULL){
+					printf("Faltan argumentos: rename [path_original] [nombre_final]  \n");
+				} else {
+					renombrarArchivo(parametros[1], parametros[2], carpetas);
+				}
+		}
+		else
+				if(!strncmp(linea, "mv", 2)) {
+				log_trace(logFS,"Consola recibe ""mv""");
+				//printf("Seleccionaste mover\n");
+				parametros = string_split(linea, " ");
+				if(parametros[1] == NULL){
+					printf("Faltan argumentos: mv [path_original] [path_final]  \n");
+				}
+				else if (parametros[2] == NULL){
+					printf("Faltan argumentos: mv [path_original] [path_final]  \n");
+				} else {
+					moverArchivo(parametros[1], parametros[2], carpetas);
+				}
+		}
+		else
+				if(!strncmp(linea, "cat", 3)) {
+				log_trace(logFS,"Consola recibe ""cat""");
+				//printf("Seleccionaste concatenar\n");
+				parametros = string_split(linea, " ");
+				if(parametros[1] == NULL){
+				printf("Faltan argumentos: rename [path_original] [nombre_final]  \n");
+				}else {
+				catArchivoDeFs(parametros[1], carpetas);
+				}
+		}
+		else
+				if(!strncmp(linea, "mkdir", 5)) {
+					log_trace(logFS,"Consola recibe ""mkdir""");
+
+					parametros = string_split(linea, " ");
+
+					if(parametros[1] == NULL){
+						printf("Falta argumento: nombre a designar al directorio.\n");}
+					else {
+						crearDirectorio(carpetas, carpetaActual, parametros[1]);
 					}
-					else
-						if(!strncmp(linea, "mv", 2)) {
-							log_trace(logFS,"Consola recibe ""mv""");
-							printf("Seleccionaste mover\n");
+					// printf("Seleccionaste crear carpeta %s\n", linea);
+		}
+		else
+				if(!strncmp(linea, "cd", 2)) {
+					log_trace(logFS,"Consola recibe ""cd""");
+					// printf("Seleccionaste cambiar diretorio\n");
+					parametros = string_split(linea, " ");
+					if(parametros[1] == NULL){
+						printf("Falta argumento: directorio destino.\n");
+					}
+					else {
+					carpetaActual = cambiarAdirectorio(parametros[1], carpetaActual, carpetas);
+					}
+				}
+		else
+				if(!strncmp(linea, "cpfrom", 6)) {
+				log_trace(logFS,"Consola recibe ""cpfrom""");
+				// printf("Seleccionaste copiar desde\n");
+				parametros = string_split(linea, " ");
+				char * tipo_archivo = parametros[3];
+				if(parametros[1] == NULL || parametros[2] == NULL ){
+					printf("Faltan argumentos. Para mas info use help.\n");}
+				else {
+				if(tipo_archivo != NULL && !strcmp(parametros[3],"1")){
+					guardarArchivoLocalDeTextoEnFS(parametros[1],parametros[2], carpetas);
+				}else{
+					guardarArchivoLocalEnFS(parametros[1],parametros[2], carpetas);
+					}
+				}
+		}
+		else
+			if(!strncmp(linea, "cpto", 4)) {
+			log_trace(logFS,"Consola recibe ""cpto""");
+			// printf("Seleccionaste copiar hasta\n");
+			char ** parametros = string_split(linea, " ");
+			if(parametros[1] == NULL || parametros[2] == NULL ){
+				printf("Faltan argumentos. Para mas info use help.\n");}
+			else {
+			if(estaEstable){
+				traerArchivoDeFs(parametros[1],parametros[2], carpetas, 0);
+				}
+			}
+		}else
+			if(!strncmp(linea, "cpblock", 7)) {
+				log_trace(logFS,"Consola recibe ""cpblock""");
+				printf("Seleccionaste copiar bloque\n");
 
-						}
-						else
-							if(!strncmp(linea, "cat", 3)) {
-								log_trace(logFS,"Consola recibe ""cat""");
-								//printf("Seleccionaste concatenar\n");
+		}else
+			if(!strncmp(linea, "md5", 3)) {
+			log_trace(logFS,"Consola recibe ""md5""");
+			//printf("Seleccionaste obtener md5\n");
+			char ** parametros = string_split(linea, " ");
 
-								char ** parametros = string_split(linea, " ");
+			if(parametros[1] == NULL || parametros[2] == NULL ){
+				printf("Faltan argumentos. Para mas info use help.\n");}
+			else {
+			obtenerMD5Archivo(parametros[1], carpetas);
+			}
+		}else
+			if(!strncmp(linea, "ls", 2)) {
+			log_trace(logFS,"Consola recibe ""ls""");
 
-							}
-							else
-								if(!strncmp(linea, "mkdir", 5)) {
-									log_trace(logFS,"Consola recibe ""mkdir""");
+			listarDirectorios(carpetas, carpetaActual);
+			char* ruta =string_new();
+			string_append(&ruta, "ls metadata/archivos/");
+			string_append(&ruta, string_itoa(carpetaActual->index));
+			string_append(&ruta, " | tr '\n' ' '");
+			system(ruta);
+			printf("\n");
+			//printf("Seleccionaste ver directorios y archivos\n");
+		}else
+			if(!strncmp(linea, "info", 4)) {
+				log_trace(logFS,"Consola recibe ""info""");
+				//printf("Seleccionaste obtener informacion\n");
+				parametros = string_split(linea, " ");
 
-									char ** parametros = string_split(linea, " ");
-									/* variable = ltrim(variable);*/
+				if(parametros[1] == NULL || parametros[2] == NULL ){
+					printf("Faltan argumentos. Para mas info use help.\n");}
+				else {
+				imprimeMetadata(parametros[1], carpetas);
+				}
+		}else
+			if(!strncmp(linea, "statusfs", 4)) {
+				log_trace(logFS,"Consola recibe ""statusfs""");
 
-									if(parametros[1] == NULL){
-										printf("Falta argumento: nombre a designar al directorio.\n");}
-									else {
-										crearDirectorio(carpetas, carpetaActual, parametros[1]);
-									}
-									// printf("Seleccionaste crear carpeta %s\n", linea);
-								}
-								else
-									if(!strncmp(linea, "cd", 2)) {
-										log_trace(logFS,"Consola recibe ""cd""");
-										// printf("Seleccionaste cambiar diretorio\n");
-										char ** parametros = string_split(linea, " ");
-										carpetaActual = cambiarAdirectorio(parametros[1], carpetaActual, carpetas);
+				imprimeNodosBin();
+		}else
+			if(!strncmp(linea, "clear", 4)) {
+				log_trace(logFS,"Consola recibe ""cls""");
 
-									}
-									else
-										if(!strncmp(linea, "cpfrom", 6)) {
-											log_trace(logFS,"Consola recibe ""cpfrom""");
-											// printf("Seleccionaste copiar desde\n");
-											char ** parametros = string_split(linea, " ");
-											char * tipo_archivo = parametros[3];
-											if(tipo_archivo != NULL && !strcmp(parametros[3],"1")){
-												guardarArchivoLocalDeTextoEnFS(parametros[1],parametros[2], carpetas);
-											}else{
-												guardarArchivoLocalEnFS(parametros[1],parametros[2], carpetas);
-											}
-										}else
-											if(!strncmp(linea, "cpto", 4)) {
-												log_trace(logFS,"Consola recibe ""cpto""");
-												// printf("Seleccionaste copiar hasta\n");
-
-												if(estaEstable){
-													char ** parametros = string_split(linea, " ");
-													traerArchivoDeFs(parametros[1],parametros[2], carpetas, 0);
-												}
-
-											}else
-												if(!strncmp(linea, "cpblock", 7)) {
-													log_trace(logFS,"Consola recibe ""cpblock""");
-													printf("Seleccionaste copiar bloque\n");
-
-												}else
-													if(!strncmp(linea, "md5", 3)) {
-														log_trace(logFS,"Consola recibe ""md5""");
-														//printf("Seleccionaste obtener md5\n");
-														char ** parametros = string_split(linea, " ");
-														obtenerMD5Archivo(parametros[1], carpetas);
-													}else
-														if(!strncmp(linea, "ls", 2)) {
-															log_trace(logFS,"Consola recibe ""ls""");
-
-															listarDirectorios(carpetas, carpetaActual);
-															char* ruta =string_new();
-															string_append(&ruta, "ls metadata/archivos/");
-															string_append(&ruta, string_itoa(carpetaActual->index));
-															string_append(&ruta, " | tr '\n' ' '");
-															system(ruta);
-															printf("\n");
-															//printf("Seleccionaste ver directorios y archivos\n");
-
-														}else
-															if(!strncmp(linea, "info", 4)) {
-																log_trace(logFS,"Consola recibe ""info""");
-																//printf("Seleccionaste obtener informacion\n");
-																char ** parametros = string_split(linea, " ");
-																imprimeMetadata(parametros[1], carpetas);
-
-															}else
-																if(!strncmp(linea, "statusfs", 4)) {
-																	log_trace(logFS,"Consola recibe ""statusfs""");
-
-																	imprimeNodosBin();
-																}else
-																	if(!strncmp(linea, "clear", 4)) {
-																		log_trace(logFS,"Consola recibe ""cls""");
-
-																		cls();
-																	}else
-																		if(!strncmp(linea, "help",4)) {
-																			log_trace(logFS,"Consola recibe ""help""");
-																			printf("YamaFS Ayuda\n");
-																			printf("Los parámetros se indican con [] \n------\n");
-																			printf("format - Formatear el Filesystem.\n");
-																			printf("rename [path_original] [nombre_final] - Renombra un Archivo o Directorio");
-																			printf("rm [path_archivo] ó rm -d [path_directorio] ó rm -b [path_archivo] [nro_bloque] [nro_copia] - Eliminar un Archivo/Directorio/Bloque.\n");
-																			printf("mv [path_original] [path_final] - Mueve un Archivo o Directorio.\n");
-																			printf("cat [path_archivo] - Muestra el contenido del archivo como texto plano.\n");
-																			printf("mkdir [path_dir] - Crea un directorio. \n");
-																			printf("cpfrom [path_archivo_origen] [directorio_yamafs] [tipo_archivo]- Copiar un archivo local al yamafs, siguiendo los lineamientos en la operación Almacenar Archivo de la Interfaz del FileSystem. 1 para archivo de texto o 0 para binario, si no se especifica, por defecto se considera archivo binario.\n");
-																			printf("cpto [path_archivo_yamafs] [directorio_filesystem] - Copiar un archivo local desde el yamafs.\n");
-																			printf("cpblock [path_archivo] [nro_bloque] [id_nodo] - Crea una copia de un bloque de un archivo en el nodo dado.\n");
-																			printf("md5 [path_archivo_yamafs] - Solicitar el MD5 de un archivo en yamafs.\n");
-																			printf("ls [path_directorio] - Lista los archivos de un directorio.\n");
-																			printf("info [path_archivo] - Muestra toda la información del archivo, incluyendo tamaño, bloques, ubicación de los bloques, etc.\n");
-																			printf("exit - Sale del programa.\n");
-																		}
-																		else {
-																			printf("No se reconoce el comando %s\n",linea);
-																			printf("Para más información utilice el comando ""help"".\n");
-																		}
+				cls();
+		}else
+			if(!strncmp(linea, "help",4)) {
+				log_trace(logFS,"Consola recibe ""help""");
+				printf("YamaFS Ayuda\n");
+				printf("Los parámetros se indican con [] \n------\n");
+				printf("format - Formatear el Filesystem.\n");
+				printf("rename [path_original] [nombre_final] - Renombra un Archivo o Directorio");
+				printf("rm [path_archivo] ó rm -d [path_directorio] ó rm -b [path_archivo] [nro_bloque] [nro_copia] - Eliminar un Archivo/Directorio/Bloque.\n");
+				printf("mv [path_original] [path_final] - Mueve un Archivo o Directorio.\n");
+				printf("cat [path_archivo] - Muestra el contenido del archivo como texto plano.\n");
+				printf("mkdir [path_dir] - Crea un directorio. \n");
+				printf("cpfrom [path_archivo_origen] [directorio_yamafs] [tipo_archivo]- Copiar un archivo local al yamafs, siguiendo los lineamientos en la operación Almacenar Archivo de la Interfaz del FileSystem. 1 para archivo de texto o 0 para binario, si no se especifica, por defecto se considera archivo binario.\n");
+				printf("cpto [path_archivo_yamafs] [directorio_filesystem] - Copiar un archivo local desde el yamafs.\n");
+				printf("cpblock [path_archivo] [nro_bloque] [id_nodo] - Crea una copia de un bloque de un archivo en el nodo dado.\n");
+				printf("md5 [path_archivo_yamafs] - Solicitar el MD5 de un archivo en yamafs.\n");
+				printf("ls [path_directorio] - Lista los archivos de un directorio.\n");
+				printf("info [path_archivo] - Muestra toda la información del archivo, incluyendo tamaño, bloques, ubicación de los bloques, etc.\n");
+				printf("exit - Sale del programa.\n");
+		}
+		else {
+			printf("No se reconoce el comando %s\n",linea);
+			printf("Para más información utilice el comando ""help"".\n");
+		}
 	}
 }
+
 
 void actualizoArchivosDat(char* ruta_metadata, int flag){
 
@@ -1784,6 +1825,82 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList,
 	return 1;
 }
 
+int catArchivoDeFs(char* archivoABuscar, t_list* folderList){
+
+	if(!estaEstable()){
+		return 0;
+	}
+
+	void destruyoBloques(void* parametro) {
+		t_bloque* dir = (t_bloque*) parametro;
+		free(dir->Copia0);
+		free(dir->Copia1);
+		free(dir);
+	}
+
+	int carpeta = identificaDirectorio(archivoABuscar, folderList);
+	if(carpeta == -2){
+		printf("Error al traer el archivo.\n");
+		return 0;
+	}
+
+	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
+
+
+
+	t_list * lista_bloques = obtener_lista_metadata_para_imprimir(ruta_metadata);
+
+	if(lista_bloques==NULL){
+
+		free(ruta_metadata);
+		return -1;
+	}
+
+	int i = 0;
+	for(;i<list_size(lista_bloques);i++){
+
+		t_bloque* bloque = list_get(lista_bloques,i);
+		char ** parametros1 = string_get_string_as_array(bloque->Copia0);
+		t_nodo * nodo = getNodoPorNombre(parametros1[0],nodos);
+		unsigned char * buff;
+		buff = malloc((size_t)(bloque->tamanio_bloque));
+		if(leerBloque(nodo,atoi(parametros1[1]),bloque->tamanio_bloque,buff)<=0){
+			char ** parametros2 = string_get_string_as_array(bloque->Copia1);
+			t_nodo * nodo = getNodoPorNombre(parametros2[0],nodos);
+			free(parametros1);
+			if(leerBloque(nodo,atoi(parametros2[1]),bloque->tamanio_bloque,buff)<=0){
+				free(parametros2);
+				printf("No se puede recuperar bloque %d, Nodos inaccesibles:\n%s%sFS", bloque->bloque, bloque->Copia0, bloque->Copia1);
+				printf(ANSI_COLOR_BOLD ANSI_COLOR_RED " no estable" ANSI_COLOR_RESET ".\n");
+				list_destroy_and_destroy_elements(lista_bloques,destruyoBloques);
+
+
+				free(ruta_metadata);
+
+				estable = 0;
+				return -1;
+			}
+			free(parametros2);
+		}else{
+			free(parametros1);
+		}
+		// fprintf(destino,"%s",buff);
+		//fwrite(buff,sizeof(unsigned char),(size_t)(bloque->tamanio_bloque),destino);
+		printf(buff,"%s");
+
+		free(buff);
+	}
+
+
+
+	list_destroy_and_destroy_elements(lista_bloques,destruyoBloques);
+
+
+	free(ruta_metadata);
+
+	return 1;
+}
+
 t_list * obtener_lista_metadata(char * ruta_metadata){
 
 	FILE * metadata;
@@ -1812,6 +1929,80 @@ t_list * obtener_lista_metadata(char * ruta_metadata){
 
 	//linea de TIPO, todavía no hace nada particular
 	getline(&line, &len, metadata);
+
+	while (!feof(metadata)) {
+
+		getline(&line, &len, metadata); //primer getline lo hago antes para evaluar si esta para salir
+		if(feof(metadata))break;
+
+		int bloque;
+		t_bloque* currentBloque;
+		currentBloque = malloc(sizeof(t_bloque));
+
+		/* SECTOR COPIA 0 */
+		parametros = string_split(line,"=");
+		currentBloque->bloque = atoi(replace_char(replace_char(parametros[0],"BLOQUE", ""),"COPIA0", ""));
+		currentBloque->Copia0 = string_new();
+		string_append(&currentBloque->Copia0, parametros[1]);// string_get_string_as_array(parametros[1]);
+
+		/* SECTOR COPIA 1 */
+		getline(&line, &len, metadata);
+		parametros = string_split(line,"=");
+		currentBloque->Copia1 = string_new();
+		string_append(&currentBloque->Copia1, parametros[1]);// string_get_string_as_array(parametros[1]);
+
+		// currentBloque->Copia0 donde esta la copia 0, formato "[NOMBRENODO, NUMEROBLOQUE]"
+		// currentBloque->Copia1 donde esta la copia 1, formato "[NOMBRENODO, NUMEROBLOQUE]"
+
+		/*SECTOR TAMAÑO EN BYTES */
+		getline(&line, &len, metadata);
+		parametros = string_split(line,"=");
+		currentBloque->tamanio_bloque = atoi(parametros[1]);
+
+		/*Ya tengo el nodo y el bit donde esta el bloque, de dos fuentes distintas, y el tamaño que debería leer. Agrego todo a la lista*/
+		list_add(listaBloques, currentBloque);
+
+	}
+
+	fclose(metadata);
+	if(line) free(line);
+
+	return listaBloques;
+}
+
+t_list * obtener_lista_metadata_para_imprimir(char * ruta_metadata){
+
+	FILE * metadata;
+
+	char * line = NULL;
+	size_t len = 0;
+
+	metadata = fopen(ruta_metadata,"r");
+	if (metadata == NULL){
+		printf("Error al acceder a metadata.\n");
+		return NULL;}
+
+	t_list *listaBloques;
+	listaBloques = list_create();
+
+	//linea de la ruta
+	getline(&line, &len, metadata);
+	//linea de tamaño
+	getline(&line, &len, metadata);
+
+	char** parametros;
+
+	parametros = string_split(line,"=");
+	int tamArch = atoi(parametros[1]);
+	int copiaNotAvail = 0;
+
+	//linea de TIPO, todavía no hace nada particular
+	getline(&line, &len, metadata);
+	parametros = string_split(line,"=");
+	if (!string_contains(parametros[1],"TEXTO")){
+		printf("Error: archivo no esta marcado como TEXTO\n");
+		return NULL;
+	}
 
 	while (!feof(metadata)) {
 
@@ -1956,7 +2147,74 @@ void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList){
 }
 
 void moverArchivo(char* archivoABuscar, char* destino, t_list* folderList){
-	int folderIndex = identificaDirectorio(archivoABuscar, folderList);
+		int folderIndex = identificaDirectorio(archivoABuscar, folderList);
+		int destinyIndex = identificaDirectorio(destino, folderList);
+
+		if(destinyIndex < 0 || folderIndex < 0){
+			printf("Error al usar la funcion. Para ayuda ingrese help.\n");
+			return;
+		}
+
+		char* ruta_metadata = string_new();
+		ruta_metadata = getRutaMetadata(archivoABuscar,folderList, folderIndex);
+		char* str = string_new();
+		string_append(&str, ruta_metadata);
+
+		if(buscoEnArchivosDat(str)){
+			FILE* metadata = fopen(ruta_metadata,"r+");
+			char* nomArch = getNombreArchivo(ruta_metadata);
+			if (metadata == NULL){
+				printf("Archivo inexistente en yamafs.\n");
+				return;
+			}
+
+			char* new_ruta_metadata = string_new();
+			string_append(&new_ruta_metadata, "./metadata/archivos/");
+			string_append(&new_ruta_metadata, string_itoa(destinyIndex));
+			string_append(&new_ruta_metadata, "/");
+			string_append(&new_ruta_metadata, nomArch);
+
+			char * line = NULL;
+			size_t len = 0;
+			FILE* new_metadata = fopen(new_ruta_metadata,"w");
+
+			if (new_metadata == NULL){
+				if(line)free(line);
+				free(new_ruta_metadata);
+				fclose(metadata);
+				return;
+			}
+
+			fprintf(new_metadata,"%s%s",new_ruta_metadata,"\n");
+			actualizoArchivosDat(ruta_metadata, 0);
+			actualizoArchivosDat(new_ruta_metadata, 1);
+
+			getline(&line,&len,metadata);
+
+			while(!feof(metadata)){
+				getline(&line,&len,metadata);
+				if(feof(metadata)){break;}
+				fprintf(new_metadata,"%s",line);
+			}
+
+			fclose(metadata);
+			replace_char(ruta_metadata, '\n',NULL);
+			remove(ruta_metadata);
+
+			if(line)free(line);
+			free(new_ruta_metadata);
+			fclose(new_metadata);
+			free(ruta_metadata);
+			return;
+
+		} else if(folderIndex > 0 && destinyIndex > 0){
+			t_directory* cambiarIndex;
+			cambiarIndex = list_get(folderList, folderIndex);
+			cambiarIndex->padre = destinyIndex;
+			return;
+		} else {
+			printf("Archivo o directorio erróneo, imposible mover.\n");
+		}
 }
 
 void renombrarArchivo(char* archivoABuscar, char* nombreNuevo, t_list* folderList){
@@ -2017,7 +2275,7 @@ void renombrarArchivo(char* archivoABuscar, char* nombreNuevo, t_list* folderLis
 
 	} else if(folderIndex > 0){
 		t_directory* cambiarNombre;
-		list_get(folderList, folderIndex);
+		cambiarNombre = list_get(folderList, folderIndex);
 		strcpy(cambiarNombre->nombre,nombreNuevo);
 		return;
 	} else {
