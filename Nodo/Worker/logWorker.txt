@@ -168,3 +168,40 @@
 [INFO] 18:03:49:626 WORKER/(10329:10329): El directorio scripts ya existe
 [TRACE] 18:03:49:626 WORKER/(10329:10329): Lectura de archivo de configuracion
 [TRACE] 18:03:49:626 WORKER/(10329:10329): Creacion socket para conexion con Master
+[TRACE] 11:16:37:47 WORKER/(2941:2941): Se crea el directorio scripts
+[INFO] 11:17:04:675 WORKER/(2973:2973): El directorio scripts ya existe
+[INFO] 11:19:57:0 WORKER/(3136:3136): El directorio scripts ya existe
+[INFO] 11:20:07:575 WORKER/(3167:3167): El directorio scripts ya existe
+[INFO] 11:20:28:766 WORKER/(3205:3205): El directorio scripts ya existe
+[INFO] 11:20:55:170 WORKER/(3276:3276): El directorio scripts ya existe
+[TRACE] 11:20:55:172 WORKER/(3276:3276): Lectura de archivo de configuracion
+[TRACE] 11:20:55:172 WORKER/(3276:3276): Creacion socket para conexion con Master
+[TRACE] 11:20:55:172 WORKER/(3276:3276): Esperando conexiones de Master
+[TRACE] 11:20:55:172 WORKER/(3279:3279): Esperando conexiones de Master
+[TRACE] 11:20:55:172 WORKER/(3276:3281): Nueva conexion de un Worker recibida!
+[INFO] 11:22:10:676 WORKER/(3344:3344): El directorio scripts ya existe
+[TRACE] 11:22:10:677 WORKER/(3344:3344): Lectura de archivo de configuracion
+[TRACE] 11:22:10:677 WORKER/(3344:3344): Creacion socket para conexion con Master
+[TRACE] 11:22:10:677 WORKER/(3344:3344): Esperando conexiones de Master
+[TRACE] 11:22:10:677 WORKER/(3345:3345): Esperando conexiones de Master
+[TRACE] 11:22:10:678 WORKER/(3344:3347): Nueva conexion de un Worker recibida!
+[INFO] 11:22:45:621 WORKER/(3376:3376): El directorio scripts ya existe
+[TRACE] 11:22:46:404 WORKER/(3376:3376): Lectura de archivo de configuracion
+[TRACE] 11:22:49:59 WORKER/(3376:3376): Creacion socket para conexion con Master
+[TRACE] 11:22:50:499 WORKER/(3401:3401): Esperando conexiones de Master
+[TRACE] 11:22:50:508 WORKER/(3345:3402): Nueva conexion de un Worker recibida!
+[TRACE] 11:23:03:87 WORKER/(3376:3376): Esperando conexiones de Master
+[INFO] 11:24:09:193 WORKER/(3482:3482): El directorio scripts ya existe
+[TRACE] 11:24:10:178 WORKER/(3482:3482): Lectura de archivo de configuracion
+[TRACE] 11:24:14:776 WORKER/(3482:3482): Creacion socket para conexion con Master
+[TRACE] 11:24:17:334 WORKER/(3345:3506): Nueva conexion de un Worker recibida!
+[INFO] 11:25:14:966 WORKER/(3525:3525): El directorio scripts ya existe
+[TRACE] 11:25:14:967 WORKER/(3525:3525): Lectura de archivo de configuracion
+[TRACE] 11:25:14:967 WORKER/(3525:3525): Creacion socket para conexion con Master
+[TRACE] 11:25:14:967 WORKER/(3525:3525): Esperando conexiones de Master
+[TRACE] 11:25:14:967 WORKER/(3345:3527): Nueva conexion de un Worker recibida!
+[INFO] 11:25:48:9 WORKER/(3572:3572): El directorio scripts ya existe
+[TRACE] 11:25:48:14 WORKER/(3572:3572): Lectura de archivo de configuracion
+[TRACE] 11:25:48:14 WORKER/(3572:3572): Creacion socket para conexion con Master
+[TRACE] 11:25:48:14 WORKER/(3572:3572): Esperando conexiones de Master
+[TRACE] 11:25:48:19 WORKER/(3572:3577): Nueva conexion de un Worker recibida!

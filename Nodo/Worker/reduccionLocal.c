@@ -15,7 +15,7 @@
 int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
-	t_log* worker_error_log = log_create(ruta_archivo_log, "WORKER", 1, level_ERROR);
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
 	//retorno de la funcion que persiste el programa de reduccion
 	int retorno;
@@ -59,8 +59,8 @@ void responderSolicitudRL(int socket, int exit_code){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
-	t_log* worker_log = log_create(ruta_archivo_log, "WORKER", 1, level);
-	t_log* worker_error_log = log_create(ruta_archivo_log, "WORKER", 1, level_ERROR);
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
 	switch(exit_code){
 
