@@ -1149,7 +1149,16 @@ void *escucharConsola(){
 		}else
 			if(!strncmp(linea, "cpblock", 7)) {
 				log_trace(logFS,"Consola recibe ""cpblock""");
-				printf("Seleccionaste copiar bloque\n");
+				// printf("Seleccionaste copiar bloque\n");
+			char ** parametros = string_split(linea, " ");
+				if(parametros[1] == NULL || parametros[2] == NULL || parametros[3] == NULL){
+					printf("Faltan argumentos. Para mas info use help.\n");}
+				else {
+				if(estaEstable){
+					int bloque = atoi(parametros[2]);
+					copiarBloqueANodo(parametros[1],bloque,parametros[3], carpetas);
+					}
+				}
 
 		}else
 			if(!strncmp(linea, "md5", 3)) {
@@ -1784,6 +1793,7 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList,
 		t_bloque* bloque = list_get(lista_bloques,i);
 		char ** parametros1 = string_get_string_as_array(bloque->Copia0);
 		t_nodo * nodo = getNodoPorNombre(parametros1[0],nodos);
+
 		unsigned char * buff;
 		buff = malloc((size_t)(bloque->tamanio_bloque));
 		if(leerBloque(nodo,atoi(parametros1[1]),bloque->tamanio_bloque,buff)<=0){
@@ -1845,8 +1855,17 @@ t_bloque* getBloquePorIndex(int bloque, t_list* listaABuscar){
 void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_list* folderList){
 
 		if(!estaEstable()){
-				return;
+			return;
 		}
+
+		t_nodo* nodoD = getNodoPorNombre(nodoDestino, nodos);
+
+		int error = enviarInt(nodoD->socket_nodo, ESTA_VIVO_NODO);
+		if(error < 0){
+			printf("Nodo destino no conectado.\n");
+			return;
+		}else{recibirInt(nodoD->socket_nodo,error);}
+
 
 		int tengoUnaCopia = -1;
 
@@ -1869,19 +1888,24 @@ void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_li
 
 		int err;
 		int err2;
-		t_bloque* bloqueBuscado = getBloquePorIndex(bloque, ruta_metadata);
+		t_bloque* bloqueBuscado = list_get(lista_bloques,bloque);//getBloquePorIndex(bloque, lista_bloques);
 
 		char ** parametros1 = string_get_string_as_array(bloqueBuscado->Copia0);
 		t_nodo * nodoCopia0 = getNodoPorNombre(parametros1[0],nodos);
 		char ** parametros2 = string_get_string_as_array(bloqueBuscado->Copia1);
 		t_nodo * nodoCopia1 = getNodoPorNombre(parametros2[0],nodos);
 
-		err = enviarInt(nodoCopia0->socket_nodo, ESTA_VIVO_NODO);
-		err2 = enviarInt(nodoCopia1->socket_nodo, ESTA_VIVO_NODO);
+		if(nodoCopia0 == NULL || nodoCopia0->socket_nodo < 0){
+				err = -1;
+		} else {err = enviarInt(nodoCopia0->socket_nodo, ESTA_VIVO_NODO);
+		recibirInt(nodoCopia0->socket_nodo,&estable);}
+
+		if(nodoCopia1 == NULL || nodoCopia1->socket_nodo < 0){
+				err2 = -1;
+		} else {err2 = enviarInt(nodoCopia1->socket_nodo, ESTA_VIVO_NODO);
+			recibirInt(nodoCopia1->socket_nodo,&estable);}
 
 		if(err != -1 && err2 != -1){
-			recibirInt(nodoCopia0->socket_nodo,&estable);
-			recibirInt(nodoCopia1->socket_nodo,&estable);
 			log_error("El bloque %d ya tiene 2 copias activas y estables. No se efectua la copia.", bloque);
 			free(parametros1);
 			free(parametros2);
@@ -1895,7 +1919,7 @@ void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_li
 
 		if(tengoUnaCopia == 1){
 			buff = malloc((size_t)(bloqueBuscado->tamanio_bloque));
-				if(leerBloque(nodoCopia1,atoi(parametros2[1]),bloqueBuscado->tamanio_bloque,buff)>0){
+				if(leerBloque(nodoCopia1,atoi(parametros2[1]),bloqueBuscado->tamanio_bloque,buff)<=0){
 					printf("No se puede recuperar bloque %d, Nodos inaccesibles:\n%s%sFS", bloqueBuscado->bloque, bloqueBuscado->Copia0, bloqueBuscado->Copia1);
 					printf(ANSI_COLOR_BOLD ANSI_COLOR_RED " no estable" ANSI_COLOR_RESET ".\n");
 					free(parametros1);
@@ -1906,7 +1930,7 @@ void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_li
 				}
 		}else if(tengoUnaCopia == 0){
 			buff = malloc((size_t)(bloqueBuscado->tamanio_bloque));
-				if(leerBloque(nodoCopia0,atoi(parametros1[1]),bloqueBuscado->tamanio_bloque,buff)>0){
+				if(leerBloque(nodoCopia0,atoi(parametros1[1]),bloqueBuscado->tamanio_bloque,buff)<=0){
 					printf("No se puede recuperar bloque %d, Nodos inaccesibles:\n%s%sFS", bloqueBuscado->bloque, bloqueBuscado->Copia0, bloqueBuscado->Copia1);
 					printf(ANSI_COLOR_BOLD ANSI_COLOR_RED " no estable" ANSI_COLOR_RESET ".\n");
 					free(parametros1);
@@ -1924,9 +1948,15 @@ void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_li
 			return;
 		}
 
+		if(tengoUnaCopia == 0){
+			tengoUnaCopia = 1;
+		}else{
+			tengoUnaCopia = 0;
+		}
+
 		int bloqueEnNodo = escribirBufferEnNodo(buff,nodoDestino);
 		cambioMetadata(bloque, ruta_metadata, tengoUnaCopia, nodoDestino, bloqueEnNodo);
-
+		list_destroy_and_destroy_elements(lista_bloques,destruyoBloques);
 }
 
 int escribirBufferEnNodo(unsigned char* buffer, char* nodoDestino){
@@ -2002,7 +2032,7 @@ int cambioMetadata(int bloqueArch ,char* ruta_metadata, int copiaReemplazada, ch
 			string_append(&lineaReemplazada,", ");
 			string_append(&lineaReemplazada,string_itoa(bloqueEnNodo));
 			string_append(&lineaReemplazada,"]\n");
-			if(!copiaReemplazada){
+			if(copiaReemplazada){
 				fprintf(metadatanew,"BLOQUE%dCOPIA%d=%s",bloqueArch,0,bloqueBuscado->Copia0);
 				fprintf(metadatanew,"BLOQUE%dCOPIA%d=%s",bloqueArch,1,lineaReemplazada);
 			}else{
@@ -2380,7 +2410,7 @@ void removerBloque(char* archivoABuscar, int bloque, int numeroDeCopia, t_list* 
 		escribirBitMap(nodo->tamanio, nodo->nombre_nodo, t_fs_bitmap);
 		destruir_bitmap(t_fs_bitmap);
 		nodo->bloquesLibres++;
-		cambioMetadata(bloque, ruta_metadata, numeroDeCopia, "void", -1);
+		cambioMetadata(bloque, ruta_metadata, numeroDeCopia, "", -1);
 		free(parametros1);
 	}else if(numeroDeCopia == 1){
 		char ** parametros2 = string_get_string_as_array(bloqueArc->Copia1);
@@ -2391,7 +2421,7 @@ void removerBloque(char* archivoABuscar, int bloque, int numeroDeCopia, t_list* 
 		escribirBitMap(nodo->tamanio, nodo->nombre_nodo, t_fs_bitmap);
 		destruir_bitmap(t_fs_bitmap);
 		nodo->bloquesLibres++;
-		cambioMetadata(bloque, ruta_metadata, numeroDeCopia, "void", -1);
+		cambioMetadata(bloque, ruta_metadata, numeroDeCopia, "", -1);
 		free(parametros2);
 	}else{
 		printf("Numero de copia errónea. Abortando el proceso.");
