@@ -90,6 +90,9 @@ void deserializar_a_nodo(void* serializado, t_nodo *nodo);
 t_nodo* getNodoPorNombre(char* nombre_nodo, t_list* listaABuscar);
 int getNodosMenosCargados(int* indexs);
 void getNodosRelacionadosDeMetadata(char* ruta_metadata, t_list* listaNodosRelacionados);
+t_bloque* getBloquePorIndex(int bloque, t_list* listaABuscar);
+int cambioMetadata(int bloque,char* ruta_metadata, int copiaReemplazada, char* nombreNodo, int bloqueEnNodo);
+int escribirBufferEnNodo(unsigned char* buffer, char* nodoDestino);
 
 /*Funciones de bitmap*/
 t_bitarray* creaAbreBitmap(int tamNodo, char nombreNodo[10]);
@@ -106,10 +109,11 @@ void destruir_bitmap(t_bitarray* bitmap);
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList);
 void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList);
 int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList, int md5flag);
+void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_list* folderList);
 int catArchivoDeFs(char* archivoABuscar, t_list* folderList);
-void copioBloque(char* archivoABuscar, char* nodoDestino, t_list* folderList);
 
 void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList);
+void removerBloque(char* archivoABuscar, int bloque, int numeroDeCopia, t_list* folderList);
 void moverArchivo(char* archivoABuscar, char* destino, t_list* folderList);
 void renombrarArchivo(char* archivoABuscar, char* nombreNuevo, t_list* folderList);
 

@@ -1046,9 +1046,13 @@ void *escucharConsola(){
 						printf("Faltan argumentos.\n");}
 					else if (parametros[2] == NULL){
 						removerArchivo(parametros[1], "", carpetas);
-					} else {
+					} else if(parametros[3] == NULL){
 						removerArchivo(parametros[1], parametros[2], carpetas);
-					}
+					} else if(parametros[4] != NULL && !strcmp(parametros[1],"-b")){
+						int bloque = atoi(parametros[3]);
+						int copia = atoi(parametros[4]);
+						removerBloque(parametros[2],bloque, copia, carpetas);
+					} else{printf("Parámetros incorrectos. Para más info utilice help.\n");}
 
 		}else
 				if(!strncmp(linea, "rename", 6)) {
@@ -1060,7 +1064,7 @@ void *escucharConsola(){
 				}
 				else if (parametros[2] == NULL){
 					printf("Faltan argumentos: rename [path_original] [nombre_final]  \n");
-				} else {
+				}else{
 					renombrarArchivo(parametros[1], parametros[2], carpetas);
 				}
 		}
@@ -1084,7 +1088,7 @@ void *escucharConsola(){
 				//printf("Seleccionaste concatenar\n");
 				parametros = string_split(linea, " ");
 				if(parametros[1] == NULL){
-				printf("Faltan argumentos: rename [path_original] [nombre_final]  \n");
+				printf("Faltan argumentos: cat [path] \n");
 				}else {
 				catArchivoDeFs(parametros[1], carpetas);
 				}
@@ -1722,7 +1726,6 @@ FILE * crearMetadata(char * destino, char* directorio_yamafs, t_list* folderList
 
 }
 
-
 int estaEstable(){
 
 	if(!estable){
@@ -1818,9 +1821,206 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList,
 	free(ruta_metadata);
 
 	if(!md5flag){
-		printf("Archivo guardado correctamente en %s.\n", directorio);
+			printf("Archivo guardado correctamente en %s.\n", directorio);
+		}
+
+	return 1;
+}
+
+t_bloque* getBloquePorIndex(int bloque, t_list* listaABuscar){
+
+	t_bloque* bloqueBuscado;
+
+	bool* buscaBloquePorInt(void* parametro) {
+		t_bloque* nodo = (t_bloque*) parametro;
+		return (bloqueBuscado->bloque == bloque);
 	}
 
+	bloqueBuscado = list_find(listaABuscar,buscaBloquePorInt);
+
+	return bloqueBuscado;
+
+}
+
+void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_list* folderList){
+
+		if(!estaEstable()){
+				return;
+		}
+
+		int tengoUnaCopia = -1;
+
+		void destruyoBloques(void* parametro) {
+			t_bloque* dir = (t_bloque*) parametro;
+			free(dir->Copia0);
+			free(dir->Copia1);
+			free(dir);
+		}
+
+		int carpeta = identificaDirectorio(archivoABuscar, folderList);
+		if(carpeta == -2){
+			printf("Error al traer el archivo.\n");
+			return;
+		}
+		unsigned char* buff;
+		char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
+
+		t_list * lista_bloques = obtener_lista_metadata(ruta_metadata);
+
+		int err;
+		int err2;
+		t_bloque* bloqueBuscado = getBloquePorIndex(bloque, ruta_metadata);
+
+		char ** parametros1 = string_get_string_as_array(bloqueBuscado->Copia0);
+		t_nodo * nodoCopia0 = getNodoPorNombre(parametros1[0],nodos);
+		char ** parametros2 = string_get_string_as_array(bloqueBuscado->Copia1);
+		t_nodo * nodoCopia1 = getNodoPorNombre(parametros2[0],nodos);
+
+		err = enviarInt(nodoCopia0->socket_nodo, ESTA_VIVO_NODO);
+		err2 = enviarInt(nodoCopia1->socket_nodo, ESTA_VIVO_NODO);
+
+		if(err != -1 && err2 != -1){
+			recibirInt(nodoCopia0->socket_nodo,&estable);
+			recibirInt(nodoCopia1->socket_nodo,&estable);
+			log_error("El bloque %d ya tiene 2 copias activas y estables. No se efectua la copia.", bloque);
+			free(parametros1);
+			free(parametros2);
+			list_destroy_and_destroy_elements(lista_bloques,destruyoBloques);
+			return;
+		} else if(err == -1) {
+			tengoUnaCopia = 1;
+		} else if(err2 == -1){
+			tengoUnaCopia = 0;
+		}
+
+		if(tengoUnaCopia == 1){
+			buff = malloc((size_t)(bloqueBuscado->tamanio_bloque));
+				if(leerBloque(nodoCopia1,atoi(parametros2[1]),bloqueBuscado->tamanio_bloque,buff)>0){
+					printf("No se puede recuperar bloque %d, Nodos inaccesibles:\n%s%sFS", bloqueBuscado->bloque, bloqueBuscado->Copia0, bloqueBuscado->Copia1);
+					printf(ANSI_COLOR_BOLD ANSI_COLOR_RED " no estable" ANSI_COLOR_RESET ".\n");
+					free(parametros1);
+					free(parametros2);
+					free(buff);
+					list_destroy_and_destroy_elements(lista_bloques,destruyoBloques);
+					return;
+				}
+		}else if(tengoUnaCopia == 0){
+			buff = malloc((size_t)(bloqueBuscado->tamanio_bloque));
+				if(leerBloque(nodoCopia0,atoi(parametros1[1]),bloqueBuscado->tamanio_bloque,buff)>0){
+					printf("No se puede recuperar bloque %d, Nodos inaccesibles:\n%s%sFS", bloqueBuscado->bloque, bloqueBuscado->Copia0, bloqueBuscado->Copia1);
+					printf(ANSI_COLOR_BOLD ANSI_COLOR_RED " no estable" ANSI_COLOR_RESET ".\n");
+					free(parametros1);
+					free(parametros2);
+					free(buff);
+					list_destroy_and_destroy_elements(lista_bloques,destruyoBloques);
+					return;
+				}
+		}else if(tengoUnaCopia == -1){
+			printf("No se puede recuperar bloque %d, Nodos inaccesibles:\n%s%sFS", bloqueBuscado->bloque, bloqueBuscado->Copia0, bloqueBuscado->Copia1);
+			printf(ANSI_COLOR_BOLD ANSI_COLOR_RED " no estable" ANSI_COLOR_RESET ".\n");
+			free(parametros1);
+			free(parametros2);
+			list_destroy_and_destroy_elements(lista_bloques,destruyoBloques);
+			return;
+		}
+
+		int bloqueEnNodo = escribirBufferEnNodo(buff,nodoDestino);
+		cambioMetadata(bloque, ruta_metadata, tengoUnaCopia, nodoDestino, bloqueEnNodo);
+
+}
+
+int escribirBufferEnNodo(unsigned char* buffer, char* nodoDestino){
+
+	t_bitarray* t_fs_bitmap;
+	t_nodo* nodo = getNodoPorNombre(nodoDestino,nodos);
+
+	t_fs_bitmap = creaAbreBitmap(nodo->tamanio, nodo->nombre_nodo);
+	int bitLibre = findFreeBloque(nodo->tamanio, t_fs_bitmap);
+	bitarray_set_bit(t_fs_bitmap,bitLibre);
+	escribirBitMap(nodo->tamanio, nodo->nombre_nodo, t_fs_bitmap);
+	destruir_bitmap(t_fs_bitmap);
+
+	escribirBloque(nodo->socket_nodo, bitLibre, buffer, nodo->tamanio);
+
+	return bitLibre;
+}
+
+int cambioMetadata(int bloqueArch ,char* ruta_metadata, int copiaReemplazada, char* nombreNodo, int bloqueEnNodo){
+
+	FILE* metadata = fopen(ruta_metadata,"r");
+
+	if (metadata == NULL){
+		printf("Archivo inexistente en yamafs.\n");
+		return 0;
+	}
+
+	char * line = NULL;
+	size_t len = 0;
+
+	char* linea1 = string_new();
+	char* linea2 = string_new();
+	char* linea3 = string_new();
+
+	getline(&line,&len,metadata);
+	string_append(&linea1,line);
+	getline(&line,&len,metadata);
+	string_append(&linea2,line);
+	getline(&line,&len,metadata);
+	string_append(&linea3,line);
+
+	t_list * lista_bloques = obtener_lista_metadata(ruta_metadata);
+
+	fclose(metadata);
+
+	FILE* metadatanew = fopen(ruta_metadata,"w");
+
+	if (metadatanew == NULL){
+		printf("Archivo inexistente en yamafs.\n");
+		return 0;
+	}
+
+	fprintf(metadatanew,"%s",linea1);
+	fprintf(metadatanew,"%s",linea2);
+	fprintf(metadatanew,"%s",linea3);
+
+	free(linea1);
+	free(linea2);
+	free(linea3);
+
+	int i = 0;
+	int j = 0;
+
+
+
+	for(;i<list_size(lista_bloques);i++){
+		t_bloque* bloqueBuscado = list_get(lista_bloques,i);
+
+		if(bloqueBuscado->bloque == bloqueArch){
+			char* lineaReemplazada = string_new();
+			string_append(&lineaReemplazada,"[");
+			string_append(&lineaReemplazada,nombreNodo);
+			string_append(&lineaReemplazada,", ");
+			string_append(&lineaReemplazada,string_itoa(bloqueEnNodo));
+			string_append(&lineaReemplazada,"]\n");
+			if(!copiaReemplazada){
+				fprintf(metadatanew,"BLOQUE%dCOPIA%d=%s",bloqueArch,0,bloqueBuscado->Copia0);
+				fprintf(metadatanew,"BLOQUE%dCOPIA%d=%s",bloqueArch,1,lineaReemplazada);
+			}else{
+				fprintf(metadatanew,"BLOQUE%dCOPIA%d=%s",bloqueArch,0,lineaReemplazada);
+				fprintf(metadatanew,"BLOQUE%dCOPIA%d=%s",bloqueArch,1,bloqueBuscado->Copia1);
+			}
+			fprintf(metadatanew,"BLOQUE%dBYTES=%d\n",bloqueBuscado->bloque,bloqueBuscado->tamanio_bloque);
+		}else{
+		fprintf(metadatanew,"BLOQUE%dCOPIA%d=%s",bloqueBuscado->bloque,j,bloqueBuscado->Copia0);
+		j++;
+		fprintf(metadatanew,"BLOQUE%dCOPIA%d=%s",bloqueBuscado->bloque,j,bloqueBuscado->Copia1);
+		fprintf(metadatanew,"BLOQUE%dBYTES=%d\n",bloqueBuscado->bloque,bloqueBuscado->tamanio_bloque);
+		}
+		j=0;
+	}
+
+	fclose(metadatanew);
+	free(ruta_metadata);
 	return 1;
 }
 
@@ -1940,7 +2140,8 @@ t_list * obtener_lista_metadata(char * ruta_metadata){
 
 		/* SECTOR COPIA 0 */
 		parametros = string_split(line,"=");
-		currentBloque->bloque = atoi(replace_char(replace_char(parametros[0],"BLOQUE", ""),"COPIA0", ""));
+		char* block = string_substring(parametros[0],6,1);
+		currentBloque->bloque = atoi(block);	// atoi(replace_char(replace_char(parametros[0],"BLOQUE", ""),"COPIA0", ""));
 		currentBloque->Copia0 = string_new();
 		string_append(&currentBloque->Copia0, parametros[1]);// string_get_string_as_array(parametros[1]);
 
@@ -2074,10 +2275,6 @@ void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList){
 		return;
 	}
 
-	if(!strcmp(parametro,"-b")){
-		return;
-	}
-
 	if(!estaEstable()){
 		return;
 	}
@@ -2140,6 +2337,70 @@ void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList){
 	actualizoArchivosDat(ruta_metadata,0);
 
 	free(ruta_metadata);
+
+	return;
+
+}
+
+void removerBloque(char* archivoABuscar, int bloque, int numeroDeCopia, t_list* folderList){
+
+	int carpeta = identificaDirectorio(archivoABuscar, folderList);
+
+	void destruyoBloques(void* parametro) {
+		t_bloque* dir = (t_bloque*) parametro;
+		free(dir->Copia0);
+		free(dir->Copia1);
+		free(dir);
+	}
+
+	if(carpeta == -2 || carpeta == -1){
+		printf("Error al traer el archivo.\n");
+		return;
+	}
+
+	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
+	t_list * lista_bloques = obtener_lista_metadata(ruta_metadata);
+
+	if(lista_bloques == NULL){
+		printf("Verifique la existencia del archivo.\n");
+		return;
+	}
+
+	int i = 0;
+
+	t_bitarray* t_fs_bitmap;
+
+	t_bloque* bloqueArc = list_get(lista_bloques,bloque);
+	if(numeroDeCopia == 0){
+		char ** parametros1 = string_get_string_as_array(bloqueArc->Copia0);
+		t_nodo * nodo = getNodoPorNombre(parametros1[0],nodos);
+
+		t_fs_bitmap = creaAbreBitmap(nodo->tamanio, nodo->nombre_nodo);
+		bitarray_clean_bit(t_fs_bitmap,atoi(parametros1[1]));
+		escribirBitMap(nodo->tamanio, nodo->nombre_nodo, t_fs_bitmap);
+		destruir_bitmap(t_fs_bitmap);
+		nodo->bloquesLibres++;
+		cambioMetadata(bloque, ruta_metadata, numeroDeCopia, "void", -1);
+		free(parametros1);
+	}else if(numeroDeCopia == 1){
+		char ** parametros2 = string_get_string_as_array(bloqueArc->Copia1);
+		t_nodo * nodo = getNodoPorNombre(parametros2[0],nodos);
+
+		t_fs_bitmap = creaAbreBitmap(nodo->tamanio, nodo->nombre_nodo);
+		bitarray_clean_bit(t_fs_bitmap,atoi(parametros2[1]));
+		escribirBitMap(nodo->tamanio, nodo->nombre_nodo, t_fs_bitmap);
+		destruir_bitmap(t_fs_bitmap);
+		nodo->bloquesLibres++;
+		cambioMetadata(bloque, ruta_metadata, numeroDeCopia, "void", -1);
+		free(parametros2);
+	}else{
+		printf("Numero de copia errónea. Abortando el proceso.");
+	}
+
+
+	actualizarNodosBin();
+	list_destroy_and_destroy_elements(lista_bloques,destruyoBloques);
+	//free(ruta_metadata);
 
 	return;
 
