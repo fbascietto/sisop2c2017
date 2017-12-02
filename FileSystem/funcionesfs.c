@@ -2772,8 +2772,8 @@ char* serializar_un_bloque(t_bloque_serializado* unBloque){
 	serializarDato(buffer, &(unBloque->bytes_ocupados) ,sizeof(uint32_t), &offset);
 	serializarDato(buffer, &(unBloque->ip),LENGTH_IP,&offset);
 	serializarDato(buffer, &(unBloque->puerto),sizeof(uint32_t), &offset);
-	serializarDato(buffer, &(unBloque->idNodo),sizeof(char)*NOMBRE_NODO, &offset);
 	serializarDato(buffer, &(unBloque->idBloque), sizeof(uint32_t), &offset);
+	serializarDato(buffer, &(unBloque->idNodo),sizeof(char)*NOMBRE_NODO, &offset);
 	return buffer;
 }
 
@@ -2837,11 +2837,71 @@ char* serializar_bloques(t_bloques_enviados* bloques, uint32_t* id_master, uint3
 
 	char* serialized_blocks = serialize_blocks(&(bloques->lista_bloques),bloques->cantidad_bloques);
 	serializarDato(paqueteSerializado,serialized_blocks,sizeof(char)*size_blocks,&offset);
+	printf("%d\n", strlen(serialized_blocks));
 
 	free(serialized_blocks);
 
 	return paqueteSerializado;
 
+}
+
+/******************************** deserealizacion by agus *****************************/
+
+t_bloques_enviados* deserializarBloques(char* serialized, uint32_t* idMaster){
+	t_bloques_enviados* bloquesRecibidos = malloc(sizeof(t_bloque_serializado));
+	int offset = 0;
+
+	/**obtengo id del master **/
+	deserializarDato(idMaster,serialized,sizeof(uint32_t),&offset);
+
+	/**obtengo cantidad de bloques **/
+	deserializarDato(&(bloquesRecibidos->cantidad_bloques),serialized,sizeof(uint32_t),&offset);
+
+
+	uint32_t size_items;
+	deserializarDato(&size_items,serialized,sizeof(uint32_t),&offset);
+
+	char* serialized_items = malloc(sizeof(char)*size_items);
+	deserializarDato(serialized_items,serialized,size_items,&offset);
+	bloquesRecibidos->lista_bloques = deserializar_bloques_serializados(serialized_items,bloquesRecibidos->cantidad_bloques);
+
+	free(serialized);
+	free(serialized_items);
+
+	return bloquesRecibidos;
+}
+
+/*t_bloque_serializado* deserializar_bloques_serializados(char* serialized, uint32_t items_cantidad){
+	int offset = 0;
+	uint32_t size_item = getLongitud_bloques(items_cantidad);
+	//item_transformacion* item_transformacion = NULL;
+	t_bloque_serializado* bloquesSerializados = malloc(size_item);
+	int i;
+	for (i = 0; i < items_cantidad; i++) {
+		uint32_t size_item;
+		deserializarDato(&(size_item),serialized,sizeof(uint32_t),&offset);
+		char* serialized_item = malloc(sizeof(char)*size_item);
+		deserializarDato(serialized_item,serialized,size_item,&offset);
+		t_bloque_serializado* aux;
+		aux = deserializar_bloque_serializado(serialized_item);
+		bloquesSerializados[i] = *(aux);
+		free(aux);
+	}
+	return bloquesSerializados;
+}*/
+
+t_bloque_serializado* deserializar_bloque_serializado(char* serialized){
+	t_bloque_serializado* bloqueSerializado = malloc(sizeof(t_bloque_serializado));
+	int offset = 0;
+
+	deserializarDato(&(bloqueSerializado->numero_bloque),serialized,sizeof(uint32_t),&offset);
+	deserializarDato(&(bloqueSerializado->bytes_ocupados),serialized,sizeof(uint32_t),&offset);
+	deserializarDato(&(bloqueSerializado->ip),serialized,LENGTH_IP,&offset);
+	deserializarDato(&(bloqueSerializado->puerto),serialized,sizeof(uint32_t),&offset);
+	deserializarDato(&(bloqueSerializado->idNodo),serialized,NOMBRE_NODO,&offset);
+	deserializarDato(&(bloqueSerializado->idBloque),serialized,sizeof(uint32_t),&offset);
+
+	return bloqueSerializado;
 }
 
 
@@ -2850,7 +2910,10 @@ int serializar_y_enviar_yama(t_bloques_enviados* bloques, uint32_t id_master, in
 	uint32_t longitud;
 	int enviados;
 
-	paqueteSerializado = serializar_bloques(bloques, &id_master, &longitud);
+	paqueteSerializado = serializarBloquesEnviados(bloques, &id_master, &longitud);
+
+
+	t_bloques_enviados* deserializado = deserializar_bloques_enviados(paqueteSerializado,&id_master);
 
 	enviados = enviarMensajeSocketConLongitud(socketYama, RECIBIR_BLOQUES, paqueteSerializado, longitud);
 
@@ -2866,7 +2929,6 @@ t_bloque_serializado* crearBloqueSerializado(uint32_t numeroBloque, uint32_t byt
 	bloque->puerto = puerto;
 	strcpy(bloque->idNodo,idNodo);
 	bloque->idBloque = idBloque;
-	printf("%d, %d \n", bloque->numero_bloque, bloque->idBloque);
 	return bloque;
 }
 
@@ -2898,7 +2960,8 @@ void transformacionFinalWorker(int nuevoSocket){
 
 void procesarSolicitudYama(void* args){
 
-	t_esperar_mensaje *argumentos = (t_esperar_mensaje*) args;
+	t_esperar_mensaje *argumentos = malloc(sizeof(t_esperar_mensaje));
+			argumentos = (t_esperar_mensaje*) args;
 	int nuevoSocket = argumentos->socketCliente;
 	free(args);
 
@@ -2933,7 +2996,7 @@ void procesarSolicitudYama(void* args){
 	printf("carpeta numero %d\n", carpeta);
 
 	char* ruta_metadata = getRutaMetadata(ruta_archivo,carpetas, carpeta);
-	printf("ruta metadata %s", ruta_metadata);
+	printf("ruta metadata %s\n", ruta_metadata);
 
 	t_list * lista_bloques = obtener_lista_metadata(ruta_metadata);
 	int i = 0;
@@ -2970,6 +3033,8 @@ void procesarSolicitudYama(void* args){
 
 		nroBloque = atoi(parametros1[1]);
 
+		printf("numero bloque A: %d\n", nroBloque);
+
 		t_bloque_serializado* bloqueAAgregar1 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo1->ip, nodo1->puerto, nodo1->nombre_nodo, bloque->bloque);
 		agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar1);
 
@@ -2979,11 +3044,136 @@ void procesarSolicitudYama(void* args){
 		t_nodo* nodo2 = getNodoPorNombre(parametros2[0],nodos);
 		nroBloque = atoi(parametros2[1]);
 
+		printf("numero bloque B: %d\n", nroBloque);
+
 		t_bloque_serializado* bloqueAAgregar2 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo2->ip, nodo2->puerto, nodo2->nombre_nodo, bloque->bloque);
 		agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar2);
 
 	}
-	printf("Fin de lista_bloques, todo cerealizado");
 	serializar_y_enviar_yama(bloquesEnviados,numMaster,nuevoSocket);
 
 }
+
+char* serializarBloquesEnviados(t_bloques_enviados* bloques, uint32_t* id_master, uint32_t* total_size){
+
+	*total_size = getLong_BloquesEnviados(bloques);
+
+	char *serializedPackage = malloc(*total_size);
+
+	int offset = 0;
+	int size_to_send;
+
+	serializarDato(serializedPackage, id_master, sizeof(uint32_t), &offset);
+
+	serializarDato(serializedPackage,&(bloques->cantidad_bloques),sizeof(uint32_t),&offset);
+
+	//serializar items
+	uint32_t size_items = getLong_bloques_serializados(bloques->lista_bloques,bloques->cantidad_bloques);
+	serializarDato(serializedPackage,&(size_items),sizeof(uint32_t),&offset);
+
+	char* serialized_items = serializar_lista_bloques(&(bloques->lista_bloques),bloques->cantidad_bloques);
+	serializarDato(serializedPackage,serialized_items,sizeof(char)*size_items,&offset);
+	free(serialized_items);
+
+	return serializedPackage;
+}
+
+char* serializar_lista_bloques(t_bloque_serializado** lista_bloques, uint32_t item_cantidad){
+	t_bloque_serializado* aux_lista_bloques = *lista_bloques;
+	uint32_t total_size = getLong_bloques_serializados(aux_lista_bloques, item_cantidad);
+	char *serializedPackage = malloc(sizeof(char)*total_size);
+
+	int offset = 0;
+
+	int i;
+	for (i = 0; i < item_cantidad; i++) {
+		char* serialized_bloque_serializado = serializar_bloque_serializado(&aux_lista_bloques[i]);//TODO: ver como pasarle el puntero como parametro
+		uint32_t size_bloque_serializado = getLong_one_bloque_serializado(&aux_lista_bloques[i]);
+		serializarDato(serializedPackage,&(size_bloque_serializado),sizeof(uint32_t),&offset);//size_item_transformacion
+		serializarDato(serializedPackage,serialized_bloque_serializado,sizeof(char)*size_bloque_serializado,&offset);//item_transformacion
+		free(serialized_bloque_serializado);
+	}
+	return serializedPackage;
+}
+
+uint32_t getLong_BloquesEnviados(t_bloques_enviados* bloquesEnviados){
+	uint32_t total_size = 0;
+
+	uint32_t size_items = getLong_bloques_serializados(bloquesEnviados->lista_bloques,bloquesEnviados->cantidad_bloques);
+	total_size += sizeof(uint32_t)*3;//campo item_cantidad, id_master y size_items
+	total_size += size_items;
+
+	return total_size;
+}
+
+uint32_t getLong_bloques_serializados(t_bloque_serializado* bloques_serializados, uint32_t item_cantidad){
+	uint32_t total = 0;
+	int i;
+	for(i=0; i<item_cantidad; i++){
+		total += sizeof(uint32_t);
+		total += getLong_one_bloque_serializado(&(bloques_serializados[i]));
+	}
+	return total;
+}
+
+uint32_t getLong_one_bloque_serializado(t_bloque_serializado* bloques_serializados){
+	uint32_t longitud = 0;
+	longitud += sizeof(uint32_t)*4;
+	longitud += sizeof(char[LENGTH_IP]); //ip_worker,
+	longitud += sizeof(char[NOMBRE_NODO]); //nodo id
+	return longitud;
+}
+
+char* serializar_bloque_serializado(t_bloque_serializado* bloque_serializado){
+	uint32_t total_size = getLong_one_bloque_serializado(bloque_serializado);
+	char *serializedPackage = malloc(sizeof(char)*total_size);
+
+	int offset = 0;
+
+	serializarDato(serializedPackage,&(bloque_serializado->numero_bloque),sizeof(uint32_t),&offset);
+	serializarDato(serializedPackage,&(bloque_serializado->bytes_ocupados),sizeof(uint32_t),&offset);
+	serializarDato(serializedPackage,&(bloque_serializado->ip),sizeof(char[LENGTH_IP]),&offset);
+	serializarDato(serializedPackage,&(bloque_serializado->puerto),sizeof(uint32_t),&offset);
+	serializarDato(serializedPackage,&(bloque_serializado->idNodo),sizeof(char[NOMBRE_NODO]),&offset);
+	serializarDato(serializedPackage,&(bloque_serializado->idBloque),sizeof(uint32_t),&offset);
+
+	return serializedPackage;
+}
+
+t_bloques_enviados* deserializar_bloques_enviados(char* serialized, uint32_t* idMaster){
+	t_bloques_enviados* bloquesEnviados = malloc(sizeof(t_bloques_enviados));
+	int offset = 0;
+	/**obtengo id del master **/
+	deserializarDato(idMaster,serialized,sizeof(uint32_t),&offset);
+	deserializarDato(&(bloquesEnviados->cantidad_bloques),serialized,sizeof(uint32_t),&offset);
+
+	uint32_t size_items;
+	deserializarDato(&size_items,serialized,sizeof(uint32_t),&offset);
+
+	char* serialized_items = malloc(sizeof(char)*size_items);
+	deserializarDato(serialized_items,serialized,size_items,&offset);
+	bloquesEnviados->lista_bloques = deserializar_bloques_serializados(serialized_items,bloquesEnviados->cantidad_bloques);
+	free(serialized_items);
+
+	return bloquesEnviados;
+}
+
+t_bloque_serializado* deserializar_bloques_serializados(char* serialized, uint32_t items_cantidad){
+	int offset = 0;
+
+	//item_transformacion* item_transformacion = NULL;
+	t_bloque_serializado* bloquesSerializado = malloc(sizeof(t_bloque_serializado)*items_cantidad);
+	int i;
+	for (i = 0; i < items_cantidad; i++) {
+		uint32_t size_item;
+		deserializarDato(&(size_item),serialized,sizeof(uint32_t),&offset);
+		char* serialized_item = malloc(sizeof(char)*size_item);
+		deserializarDato(serialized_item,serialized,size_item,&offset);
+		t_bloque_serializado* aux = deserializar_bloque_serializado(serialized_item);
+		bloquesSerializado[i] = *(aux);
+		free(aux);
+		free(serialized_item);
+	}
+	return bloquesSerializado;
+}
+

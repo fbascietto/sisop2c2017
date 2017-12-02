@@ -16,6 +16,14 @@
 #include "prePlanificacion.h"
 
 void main() {
+
+	socketFS=0;
+	nodosConectados=list_create();
+	valorBaseTemporal=0;
+	rutaGlobal=0;
+	jobsActivos=list_create();
+	jobsFinalizados=list_create();
+
 	socketFS = 0;
 	int socketEscucha;
 	fd_set fdSocketsEscucha;

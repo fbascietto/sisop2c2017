@@ -63,10 +63,11 @@ void crearNuevoJob(int idMaster, t_list* bloques, t_job* nuevoJob, char* algorit
 	t_list* bloquesReducidos;
 	// ---------------------------- CREO JOB ----------------------------------------------
 
+	/** insertar mutex **/
 	nodos = obtenerNodosParticipantes(bloques);
 	bloquesReducidos = reducirBloques(bloques);
 	nuevoJob = crearJob(bloquesReducidos, nodos, algoritmo, idMaster);
-	list_add(jobsActivos, nuevoJob);
+	list_add(jobsActivos, jobGlobal);
 
 	//todo
 	//loguearEstadoJob(nuevoJob, RECIBIR_BLOQUES);
@@ -95,14 +96,16 @@ void recibirMensajeFS(void *args){
 	int enviados;
 	t_list* bloques;
 
-	bloques = procesarBloquesRecibidos(package->message, &idMaster);
 
 	/* proceso los bloques */
 	switch(package->msgCode){
 	case RECIBIR_BLOQUES:
 
+	bloques = procesarBloquesRecibidos(package->message, &idMaster);
 		crearNuevoJob(idMaster, bloques, nuevoJob, algoritmo);
 
+		nuevoJob = jobGlobal;
+		/** fin mutex **/
 		// ------------------ ENVIO SOLICITUD TRANSFORMACION A MASTER -------------------------
 
 		solicitudTransformacion = obtenerSolicitudTrasnformacion(nuevoJob);
@@ -160,11 +163,6 @@ void *esperarConexionMasterYFS(void *args) {
 			//TODO: iniciar un hilo para manejar cliente
 			case PROCESO_MASTER:
 				er1 = pthread_create(&threadSolicitudes, NULL,recibirMensajeMaster,(void*) tEsperarMensaje);
-				pthread_join(threadSolicitudes, NULL);
-				break;
-			case PROCESO_FILESYSTEM:
-				tEsperarMensaje->socketCliente = nuevoSocket;
-				er1 = pthread_create(&threadSolicitudes, NULL, recibirMensajeFS,(void*) tEsperarMensaje);
 				pthread_join(threadSolicitudes, NULL);
 				break;
 			}
@@ -275,6 +273,7 @@ solicitud_transformacion* obtenerSolicitudTrasnformacion(t_job* job){
 
 	// menos 1 porque esta el de reduccion global en la planificacion
 	solicitud_transformacion* solicitud = malloc(sizeof(solicitud_transformacion));
+	solicitud->items_transformacion = malloc(sizeof(item_transformacion)*tamanioTransformacion);
 	item_transformacion* item = malloc(sizeof(item_transformacion));
 
 	for(i=0; i<tamanioTransformacion ;i++){
@@ -536,11 +535,10 @@ void procesarResultadoAlmacenadoFinal(int nuevoSocket, Package* package, uint32_
 
 void procesarSolicitudArchivoMaster(int nuevoSocket, Package* package){
 	//solicitud_transformacion* solicitudTransformacion = obtenerSolicitudTrasnformacion(message);
-	char* solicitudArchivo = malloc(package->message_long+1);
+	char* solicitudArchivo = malloc(package->message_long);
 	uint32_t* tamanioSerializado = malloc(sizeof(uint32_t));
 
 	strcpy(solicitudArchivo, package->message);
-	solicitudArchivo[(package->message_long)+1] = '\0';
 
 	enviarInt(socketFS, nuevoSocket);
 	enviarMensaje(socketFS, solicitudArchivo);
@@ -549,6 +547,10 @@ void procesarSolicitudArchivoMaster(int nuevoSocket, Package* package){
 	free(package);
 	free(tamanioSerializado);
 
+	t_esperar_mensaje* tEsperarMensaje = malloc(sizeof(t_esperar_mensaje));
+	tEsperarMensaje->socketCliente = socketFS;
+	recibirMensajeFS(tEsperarMensaje);
+
 }
 
 //se obtiene ademas el id del master (va primero en la serializacion ((todo))
@@ -556,7 +558,7 @@ t_list* procesarBloquesRecibidos(char* message, uint32_t* masterId){
 	t_bloques_enviados* bloquesRecibidos;
 
 	//todo
-	bloquesRecibidos = deserializarBloques(message, masterId);
+	bloquesRecibidos = deserializar_bloques_enviados(message, masterId);
 
 	t_list* bloques = list_create();
 
@@ -570,11 +572,11 @@ t_list* procesarBloquesRecibidos(char* message, uint32_t* masterId){
  * con formatos t_bloque*
  */
 void adaptarBloques(t_bloques_enviados* bloquesRecibidos, t_list* bloques){
-	t_bloque* unBloque = malloc(sizeof(t_bloque));
 	t_bloque_serializado* bloqueRecibido;
 
 	int i;
 	for(i=0; i<bloquesRecibidos->cantidad_bloques; i++){
+	t_bloque* unBloque = malloc(sizeof(t_bloque));
 		bloqueRecibido = &(bloquesRecibidos->lista_bloques[i]);
 
 		unBloque->bytesOcupados = bloqueRecibido->bytes_ocupados;
@@ -585,8 +587,8 @@ void adaptarBloques(t_bloques_enviados* bloquesRecibidos, t_list* bloques){
 
 		list_add(bloques, unBloque);
 
-		free(bloqueRecibido);
 	}
+		free(bloquesRecibidos);
 }
 
 /*

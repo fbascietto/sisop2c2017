@@ -164,6 +164,16 @@ uint32_t longitudBloques(t_bloques_enviados* bloques);
 char* serializar_bloques(t_bloques_enviados* bloques, uint32_t* id_master, uint32_t* longitud);
 int serializar_y_enviar_yama(t_bloques_enviados* bloques, uint32_t id_master, int socketYama);
 
+t_bloque_serializado* deserializar_bloque_serializado(char* serialized);
+t_bloque_serializado* deserializar_bloques_serializados(char* serialized, uint32_t items_cantidad);
+t_bloques_enviados* deserializar_bloques_enviados(char* serialized, uint32_t* idMaster);
+char* serializar_bloque_serializado(t_bloque_serializado* bloque_serializado);
+uint32_t getLong_one_bloque_serializado(t_bloque_serializado* bloques_serializados);
+uint32_t getLong_bloques_serializados(t_bloque_serializado* bloques_serializados, uint32_t item_cantidad);
+uint32_t getLong_BloquesEnviados(t_bloques_enviados* bloquesEnviados);
+char* serializar_lista_bloques(t_bloque_serializado** lista_bloques, uint32_t item_cantidad);
+char* serializarBloquesEnviados(t_bloques_enviados* bloques, uint32_t* id_master, uint32_t* longitud);
+
 /*
 Ejemplo para usar:
 t_bloques_enviados* bloquesEnviados = malloc(sizeof(t_bloques_enviados));

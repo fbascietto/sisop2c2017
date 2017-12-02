@@ -198,7 +198,7 @@ void testSerializarSolicitudTrasnformacion(){
 }
 
 void agregarItemTransformacion(solicitud_transformacion* solicitudTransformacion, item_transformacion* item){
-	solicitudTransformacion->items_transformacion = realloc(solicitudTransformacion->items_transformacion,sizeof(item_transformacion)*(solicitudTransformacion->item_cantidad+1));
+	//solicitudTransformacion->items_transformacion = realloc(solicitudTransformacion->items_transformacion,sizeof(item_transformacion)*(solicitudTransformacion->item_cantidad+1));
 	strcpy(solicitudTransformacion->items_transformacion[solicitudTransformacion->item_cantidad].archivo_temporal,item->archivo_temporal);
 	solicitudTransformacion->items_transformacion[solicitudTransformacion->item_cantidad].bloque = item->bloque;
 	solicitudTransformacion->items_transformacion[solicitudTransformacion->item_cantidad].bytes_ocupados = item->bytes_ocupados;

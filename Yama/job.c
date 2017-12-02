@@ -14,7 +14,7 @@ int jobsID = 0;
  * recibe una lista de bloques, una lista de nodos, un tipo de algoritmo y un id de master
  * y devuelve un nuevo job
  */
-t_job* crearJob(t_list* bloques, t_list* listaNodos, char* tipoAlgoritmo, int idMaster){
+void crearJob(t_list* bloques, t_list* listaNodos, char* tipoAlgoritmo, int idMaster){
 	int valorBase = dispBase;
 	t_list* nuevaPrePlanificacion = prePlanificacion(bloques, valorBase, listaNodos, tipoAlgoritmo);
 	t_job* nuevoJob = malloc (sizeof(t_job));
@@ -26,7 +26,7 @@ t_job* crearJob(t_list* bloques, t_list* listaNodos, char* tipoAlgoritmo, int id
 
 	jobsID++;
 
-	return nuevoJob;
+	jobGlobal = nuevoJob;
 
 }
 
@@ -339,9 +339,9 @@ t_list* obtenerEInicializarNodosDeBloques(t_list* bloques){
 	int i;
 	int cantidadBloques = list_size(bloques);
 
-	t_bloque* unBloque;
+	t_bloque* unBloque = malloc(sizeof(t_bloque));
 	t_list* listaNodos = list_create();
-	t_nodo* nuevoNodo;
+	t_nodo* nuevoNodo = malloc(sizeof(t_nodo));
 
 	for(i=0; i<cantidadBloques; i++){
 		unBloque = list_get(bloques, i);
@@ -356,6 +356,7 @@ t_list* obtenerEInicializarNodosDeBloques(t_list* bloques){
 
 t_nodo* inicializarNodo(t_bloque* bloque){
 	t_nodo* nodo = malloc(sizeof(t_nodo));
+	nodo->bloquesAsignados = list_create();
 	strncpy(nodo->idNodo, bloque->idNodo, NOMBRE_NODO);
 	nodo->cargaDeTrabajo = 0;
 	nodo->cargaDeTrabajoActual = 0;
@@ -385,8 +386,8 @@ void setearNodos(t_list* nodos){
 	int i;
 	int cantidadNodos = list_size(nodos);
 
-	t_nodo* unNodo;
-	t_nodo* nodoConectado;
+	t_nodo* unNodo = malloc(sizeof(t_nodo));
+	t_nodo* nodoConectado = malloc(sizeof(t_nodo));
 
 	for(i=0; i<cantidadNodos; i++){
 		unNodo = list_get(nodos, i);

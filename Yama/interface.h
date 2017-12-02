@@ -35,8 +35,15 @@ char* serializar_archivos_temporales(archivo_temp** archivos_temporales, uint32_
 archivo_temp* deserializar_archivo_temp(char* serialized);
 archivo_temp* deserializar_archivos_temporales(char* serialized, uint32_t items_cantidad);
 
-t_bloques_enviados* deserializarBloques(char* serialized, uint32_t* idMaster);
-t_bloque_serializado* deserializar_bloques_serializados(char* serialized, uint32_t items_cantidad);
+//t_bloques_enviados* deserializarBloques(char* serialized, uint32_t* idMaster);
+//t_bloque_serializado* deserializar_bloques_serializados(char* serialized, uint32_t items_cantidad);
+//t_bloque_serializado* deserializar_bloque_serializado(char* serialized);
+
 t_bloque_serializado* deserializar_bloque_serializado(char* serialized);
+t_bloque_serializado* deserializar_bloques_serializados(char* serialized, uint32_t items_cantidad);
+t_bloques_enviados* deserializar_bloques_enviados(char* serialized, uint32_t* idMaster);
+uint32_t getLong_one_bloque_serializado(t_bloque_serializado* bloques_serializados);
+uint32_t getLong_bloques_serializados(t_bloque_serializado* bloques_serializados, uint32_t item_cantidad);
+uint32_t getLong_BloquesEnviados(t_bloques_enviados* bloquesEnviados);
 
 #endif /* INTERFACE_H_ */

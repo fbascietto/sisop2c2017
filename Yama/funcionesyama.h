@@ -108,6 +108,8 @@ typedef struct{
 	t_list* planificacion;
 }t_job;
 
+t_job* jobGlobal;
+
 void *esperarConexionMasterYFS(void *args);
 void inicializarConfigYama();
 void cargarValoresPlanificacion();

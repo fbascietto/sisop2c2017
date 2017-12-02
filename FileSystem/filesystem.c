@@ -70,7 +70,7 @@ void main(int argc, char *argv[]){
 	int er2 = pthread_create(&threadEsperaConexiones, NULL,esperarConexiones,(void*) esperarConexion);
 
 	pthread_join(threadEscucharConsola, NULL);
-	//pthread_join(threadEsperaConexiones, NULL);
+	//pthread_join(threadEsperaConexionstring_append(&es, NULL);
 	pthread_kill(threadEsperaConexiones, SIGUSR1);
 
 	log_trace(logFS,"Se sale del fs.");
