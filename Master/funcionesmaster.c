@@ -66,7 +66,7 @@ void enviarTransformacionWorker(void *args){
 			break;
 	}
 	gettimeofday(&end, NULL);
-	double secs = timeval_diff(&t_fin, &t_ini);
+	double secs = timeval_diff(&end, &init);
 	cantidadEtapasTranformacion++;
 	tiempoAcumEtapasTransformacion += secs;
 }
@@ -144,7 +144,7 @@ void enviarReduccionLocalWorker(void *args){
 			break;
 	}
 	gettimeofday(&end, NULL);
-	double secs = timeval_diff(&t_fin, &t_ini);
+	double secs = timeval_diff(&end, &init);
 	cantidadEtapasReduccionLocal++;
 	tiempoAcumEtapasReduccionLocal += secs;
 
@@ -203,7 +203,7 @@ void enviarReduccionGlobalWorker(void *args){
 	}
 
 	gettimeofday(&end, NULL);
-	double secs = timeval_diff(&t_fin, &t_ini);
+	double secs = timeval_diff(&end, &init);
 	cantidadEtapasReduccionGlobal += solicitudRedGlobal->item_cantidad;
 	tiempoAcumEtapasReduccionGlobal += secs;
 }
