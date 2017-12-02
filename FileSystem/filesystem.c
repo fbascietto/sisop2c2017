@@ -36,6 +36,7 @@ void main(int argc, char *argv[]){
 	nodos_file = "nodos.bin";
 	archivos_file = "archivos.dat";
 	cantNodos = 0;
+	formatted = 0;
 	nodos = list_create();
 	pthread_mutex_init(&mx_nodobin, NULL);
 
@@ -84,7 +85,6 @@ void main(int argc, char *argv[]){
 	 */
 
 	free(esperarConexion);
-
 
 }
 

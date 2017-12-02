@@ -159,8 +159,6 @@ typedef struct {
 } solicitud_recibir_palabra;
 
 //-------------------------------------------------------------------------------------------------------------------
-
-
 /*Structs de comunicacion YAMA con FS*/
 
 typedef struct{

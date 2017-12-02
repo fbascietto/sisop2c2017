@@ -31,19 +31,21 @@ void formatFs(){
 	/*creo carpeta bitmap*/
 	status = mkdir("metadata/bitmap", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	/*creo carpeta para archivos*/
-	status = mkdir("metadata/archivos", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	status = mkdir("metadata/a		uint32_t nroBloque;rchivos", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
 	/*Genero nuevo directorios.dat*/
 	inicializarDirectorios();
 
-	/*Si existe nodos.bin, actualizo la lista nodos*/
+	/*Si existe nodos.bin, actualizo la lista nodos
 
 	if( access(nodos_file, F_OK) != -1 ) {
 		list_clean(nodos);
 		creoListaNodosDesdeNodosBin(nodos);
 	}
+	 */
 
 	/*Actualizo los nodos, seteandolos todos como limpios*/
+
 	int size = list_size(nodos);
 	int i =0;
 
@@ -645,12 +647,14 @@ void *esperarConexiones(void *args) {
 		if (nuevoSocket != -1) {
 			log_trace(logSockets,"Nuevo Socket!");
 			printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
+
 			int cliente;
 			recibirInt(nuevoSocket,&cliente);
 
 			t_esperar_mensaje *tEsperarMensaje = malloc(sizeof(t_esperar_mensaje));
 						tEsperarMensaje->socketCliente = nuevoSocket;
 			printf("soy el cliente numero: %d\n", cliente);
+
 			switch(cliente){
 			case PROCESO_NODO:
 				recibirConexionDataNode(nuevoSocket);
@@ -706,6 +710,8 @@ int recibirConexionDataNode(int nuevoSocket){
 	if(nodoReal != NULL){
 		nodo = nodoReal;
 		nodo->socket_nodo = nuevoSocket;
+		strcpy(nodo->ip, inet_ntoa(sa.sin_addr));
+		nodo->puerto = ntohs(sa.sin_port);
 		nuevo = 0;
 	}
 
@@ -2190,8 +2196,8 @@ t_list * obtener_lista_metadata(char * ruta_metadata){
 
 		/* SECTOR COPIA 0 */
 		parametros = string_split(line,"=");
-		char* block = string_substring(parametros[0],6,1);
-		currentBloque->bloque = atoi(block);	// atoi(replace_char(replace_char(parametros[0],"BLOQUE", ""),"COPIA0", ""));
+		//char* block = string_substring(parametros[0],6,1);
+		currentBloque->bloque = getBloque(parametros[0]);	// atoi(replace_char(replace_char(parametros[0],"BLOQUE", ""),"COPIA0", ""));
 		currentBloque->Copia0 = string_new();
 		string_append(&currentBloque->Copia0, parametros[1]);// string_get_string_as_array(parametros[1]);
 
@@ -2265,7 +2271,7 @@ t_list * obtener_lista_metadata_para_imprimir(char * ruta_metadata){
 
 		/* SECTOR COPIA 0 */
 		parametros = string_split(line,"=");
-		currentBloque->bloque = atoi(replace_char(replace_char(parametros[0],"BLOQUE", ""),"COPIA0", ""));
+		currentBloque->bloque = getBloque(parametros[0]);
 		currentBloque->Copia0 = string_new();
 		string_append(&currentBloque->Copia0, parametros[1]);// string_get_string_as_array(parametros[1]);
 
@@ -2724,6 +2730,28 @@ char* replace_char(char* str, char find, char replace){
 	return str;
 }
 
+int getBloque(char* str){
+	int bloq;
+	int i = 0;
+	int j = 0;
+
+	char* new = malloc(sizeof(int));
+
+	while(!isdigit(str[i])){
+		i++;
+	}
+
+	while(isdigit(str[i])){
+//		strcat(new,str[i]);
+		new[j] = str[i];
+		i++;
+		j++;
+	}
+
+	bloq = atoi(new);
+	return bloq;
+}
+
 void serializarDato(char* buffer, void* dato, int size_to_send, int* offset){
 	memcpy(buffer + *offset, dato, size_to_send);
 	*offset += size_to_send;
@@ -2744,7 +2772,8 @@ char* serializar_un_bloque(t_bloque_serializado* unBloque){
 	serializarDato(buffer, &(unBloque->bytes_ocupados) ,sizeof(uint32_t), &offset);
 	serializarDato(buffer, &(unBloque->ip),LENGTH_IP,&offset);
 	serializarDato(buffer, &(unBloque->puerto),sizeof(uint32_t), &offset);
-	serializarDato(buffer, &(unBloque->idNodo),sizeof(uint32_t), &offset);
+	serializarDato(buffer, &(unBloque->idNodo),sizeof(char)*NOMBRE_NODO, &offset);
+	serializarDato(buffer, &(unBloque->idBloque), sizeof(uint32_t), &offset);
 	return buffer;
 }
 
@@ -2757,21 +2786,23 @@ char* serialize_blocks(t_bloque_serializado** bloques, uint32_t item_cantidad){
 	int offset = 0;
 
 	int i;
+	uint32_t size_un_bloque = getLongitud_bloques(1);
 	for (i = 0; i < item_cantidad; i++) {
 		char* serialized_block = serializar_un_bloque(&aux_bloques[i]);
-		uint32_t size_un_bloque = getLongitud_bloques(1);
-		serializarDato(serializedPackage,&(size_un_bloque),sizeof(uint32_t),&offset); //size_un_bloque
-		serializarDato(serializedPackage,serialized_block,sizeof(char)*size_un_bloque,&offset); //block
+//		serializarDato(serializedPackage,&(size_un_bloque),sizeof(uint32_t),&offset); //size_un_bloque
+		serializarDato(serializedPackage,serialized_block,size_un_bloque,&offset); //block
 		free(serialized_block);
 	}
 	return serializedPackage;
 }
 
 uint32_t getLongitud_bloques(uint32_t item_cantidad){
-	uint32_t total;
+	uint32_t total = 0;
 
-	total += sizeof(uint32_t);
-	total += sizeof(t_bloque_serializado);
+//	total += sizeof(uint32_t);
+	total += sizeof(uint32_t)*4 ;
+	total += NOMBRE_NODO;
+	total += LENGTH_IP;
 	total = total * item_cantidad;
 	return total;
 }
@@ -2781,7 +2812,7 @@ uint32_t longitudBloques(t_bloques_enviados* bloques){
 	uint32_t total_size = 0;
 
 	uint32_t size_blocks = getLongitud_bloques(bloques->cantidad_bloques);
-	total_size += sizeof(uint32_t)*2; //campo cantidad_bloques y size_items
+	total_size += sizeof(uint32_t)*3; //campo cantidad_bloques y size_items
 	total_size += size_blocks;
 
 	return total_size;
@@ -2790,13 +2821,15 @@ uint32_t longitudBloques(t_bloques_enviados* bloques){
 char* serializar_bloques(t_bloques_enviados* bloques, uint32_t* id_master, uint32_t* longitud){
 	char* paqueteSerializado;
 	int offset = 0;
-	uint32_t longitudTotal;
+	//uint32_t longitudTotal;
 
-	longitudTotal = longitudBloques(bloques);
+	*longitud = longitudBloques(bloques);
 
-	paqueteSerializado = malloc(longitudTotal);
+	paqueteSerializado = malloc(*longitud);
 
 	serializarDato(paqueteSerializado, id_master, sizeof(uint32_t), &offset);
+
+	serializarDato(paqueteSerializado, &(bloques->cantidad_bloques), sizeof(uint32_t), &offset);
 
 	//serializar items
 	uint32_t size_blocks = getLongitud_bloques(bloques->cantidad_bloques);
@@ -2821,8 +2854,10 @@ int serializar_y_enviar_yama(t_bloques_enviados* bloques, uint32_t id_master, in
 
 	enviados = enviarMensajeSocketConLongitud(socketYama, RECIBIR_BLOQUES, paqueteSerializado, longitud);
 
+	printf("%d\n", enviados);
 	return enviados;
 }
+
 t_bloque_serializado* crearBloqueSerializado(uint32_t numeroBloque, uint32_t bytesOcupados, char* ip, uint32_t puerto, char* idNodo, uint32_t idBloque){
 	t_bloque_serializado *bloque = malloc(sizeof(t_bloque_serializado));
 	bloque->numero_bloque = numeroBloque;
@@ -2831,11 +2866,12 @@ t_bloque_serializado* crearBloqueSerializado(uint32_t numeroBloque, uint32_t byt
 	bloque->puerto = puerto;
 	strcpy(bloque->idNodo,idNodo);
 	bloque->idBloque = idBloque;
+	printf("%d, %d \n", bloque->numero_bloque, bloque->idBloque);
 	return bloque;
 }
 
 void agregarBloqueSerializado(t_bloques_enviados* bloquesEnviados, t_bloque_serializado* bloqueAAgregar){
-	bloquesEnviados->lista_bloques = realloc(&(bloquesEnviados->lista_bloques),sizeof(t_bloque_serializado)*(bloquesEnviados->cantidad_bloques+1));
+	//bloquesEnviados->lista_bloques = realloc(bloquesEnviados->lista_bloques,sizeof(t_bloque_serializado)*(bloquesEnviados->cantidad_bloques+1));
 	bloquesEnviados->lista_bloques[bloquesEnviados->cantidad_bloques].numero_bloque=(bloqueAAgregar->numero_bloque);
 	bloquesEnviados->lista_bloques[bloquesEnviados->cantidad_bloques].bytes_ocupados=(bloqueAAgregar->bytes_ocupados);
 	strcpy(bloquesEnviados->lista_bloques[bloquesEnviados->cantidad_bloques].ip,bloqueAAgregar->ip);
@@ -2917,21 +2953,27 @@ void procesarSolicitudYama(void* args){
 	return bloquesEnviados;
 	 */
 
+
+	int size = list_size(lista_bloques);
+	uint32_t nroBloque;
+
 	t_bloques_enviados* bloquesEnviados;
+	bloquesEnviados = malloc(sizeof(t_bloques_enviados));
+	bloquesEnviados->lista_bloques = malloc(sizeof(t_bloque_serializado)*size*2);
+	bloquesEnviados->cantidad_bloques = 0;
+
 	for(;i < list_size(lista_bloques);i++){
 
-		bloquesEnviados = malloc(sizeof(t_bloques_enviados));
 		t_bloque* bloque = list_get(lista_bloques,i);
 		parametros1 = string_get_string_as_array(bloque->Copia0);
 		t_nodo* nodo1 = getNodoPorNombre(parametros1[0],nodos);
 
-		uint32_t nroBloque;
 		nroBloque = atoi(parametros1[1]);
 
 		t_bloque_serializado* bloqueAAgregar1 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo1->ip, nodo1->puerto, nodo1->nombre_nodo, bloque->bloque);
 		agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar1);
 
-		printf("bloque 1 serializado");
+
 
 		parametros2 = string_get_string_as_array(bloque->Copia1);
 		t_nodo* nodo2 = getNodoPorNombre(parametros2[0],nodos);
@@ -2940,9 +2982,8 @@ void procesarSolicitudYama(void* args){
 		t_bloque_serializado* bloqueAAgregar2 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo2->ip, nodo2->puerto, nodo2->nombre_nodo, bloque->bloque);
 		agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar2);
 
-		printf("bloque 2 serializado");
 	}
-
+	printf("Fin de lista_bloques, todo cerealizado");
 	serializar_y_enviar_yama(bloquesEnviados,numMaster,nuevoSocket);
 
 }

@@ -3,3 +3,5 @@
 [INFO] 20:44:01:938 MASTER/(8832:8832): La ruta del archivo que se procesara en el job es: yamafs:/datos.csv
 [INFO] 20:44:01:939 MASTER/(8832:8832): La ruta del archivo resultante del job es: yamafs:/analisis/resultado.json
 [ERROR] 20:44:40:651 MASTER/(8928:8928): Cantidad de parametros incorrectos.
+[ERROR] 02:39:35:753 MASTER/(16216:16216): Cantidad de parametros incorrectos.
+[ERROR] 02:39:57:553 MASTER/(16255:16255): Cantidad de parametros incorrectos.

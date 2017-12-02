@@ -34,6 +34,7 @@ int cantNodos;
 int estable;
 int end;
 int formatted;
+int clean;
 
 typedef struct {
 	int socketCliente;
@@ -184,6 +185,7 @@ void transformacionFinalWorker(int nuevoSocket);
 
 /*Misc*/
 char* replace_char(char* str, char find, char replace);
+int getBloque(char* str);
 void destruir_carpeta(t_directory* carpeta);
 
 /*Deprecated*/
