@@ -18,6 +18,7 @@
 
 
 void main(int args, char* argv[]) {
+
 	//testSerializarSolicitudTrasnformacion();
 	//testSerializarItemTransformacion();
 	//testSerializarSolicitudReduccionLocal();
@@ -87,7 +88,7 @@ void main(int args, char* argv[]) {
 		socketConn = conectarseA(yamaIP, yamaPort);
 		sleep(3);
 	}
-
+	gettimeofday(&t_ini, NULL);
 	enviarInt(socketConn,PROCESO_MASTER);
 	int len = strlen(ruta_archivo_del_job);
 	uint32_t message_long = sizeof(char)*len;
@@ -116,11 +117,64 @@ void main(int args, char* argv[]) {
 				//enviarMensajeSocketConLongitud(socketConn,RESULTADO_ALMACENADO_FINAL,archivoMensage,len);
 				break;
 		}
-
 	}
-
+	gettimeofday(&t_fin, NULL);
+	metrica();
 	log_destroy(worker_info_log);
 	log_destroy(worker_error_log);
 
+}
+
+void metrica(){
+	t_log_level level_INFO = LOG_LEVEL_INFO;
+	t_log* metricas_info_log = log_create("master-metricas.txt", "MASTER", 1, level_INFO);
+
+	//Tiempo total de Ejecución del Job.
+	double tiempoDeEjecucionTotal = timeval_diff(&t_fin, &t_ini);
+
+	//Tiempo promedio de ejecución de cada etapa principal del Job (Transformación, Reducción y Reducción Local).
+	double tiempoPromEtapasTransformacion = tiempoAcumEtapasTransformacion/cantidadEtapasTranformacion;
+	double tiempoPromEtapasReduccionLocal = tiempoAcumEtapasReduccionLocal/cantidadEtapasReduccionLocal;
+	double tiempoPromEtapasReduccionGlobal = tiempoAcumEtapasReduccionLocal/cantidadEtapasReduccionLocal;
+
+	//Cantidad máxima de tareas de Transformación y Reducción Local ejecutadas de forma paralela.
+	int cantidadMayorTransformacion = cantidadMayorTransformacion;
+	int cantidadMayorReduccionLocal = cantidadMayorReduccionLocal;
+
+	//Cantidad total de tareas realizadas en cada etapa principal del Job.
+	int cantidadTareasTransformacion = cantidadEtapasTranformacion;
+	int cantidadTareasReduccionLocal = cantidadEtapasReduccionLocal;
+	int cantidadTareasReduccionGlobal = cantidadEtapasReduccionLocal;
+
+	//Cantidad de fallos obtenidos en la realización de un Job.
+	int fallosTotal = fallosEnTotal;
+
+	char* info = string_from_format("Tiempo total de Ejecución del Job: %.16g", tiempoDeEjecucionTotal);
+	log_info(metricas_info_log, info);
+	free(info);
+
+	info = string_from_format("Tiempo promedio de ejecución Transformación: %.16g", tiempoPromEtapasTransformacion);
+	log_info(metricas_info_log, info);
+	free(info);
+
+	info = string_from_format("Tiempo promedio de ejecución Reducción: %.16g", tiempoPromEtapasReduccionLocal);
+	log_info(metricas_info_log, info);
+	free(info);
+
+	info = string_from_format("Tiempo promedio de ejecución Reducción Local: %s", tiempoPromEtapasReduccionGlobal);
+	log_info(metricas_info_log, info);
+	free(info);
+
+	info = string_from_format("Cantidad máxima de tareas de Transformación ejecutadas de forma paralela: %s", cantidadMayorTransformacion);
+	log_info(metricas_info_log, info);
+	free(info);
+
+	info = string_from_format("Cantidad máxima de tareas de Reducción Local ejecutadas de forma paralela: %s", cantidadMayorReduccionLocal);
+	log_info(metricas_info_log, info);
+	free(info);
+
+	info = string_from_format("Cantidad de fallos obtenidos en la realización de un Job: %s", fallosEnTotal);
+	log_info(metricas_info_log, info);
+	free(info);
 }
 
