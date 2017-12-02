@@ -281,7 +281,6 @@ solicitud_recibir_palabra* recibirSolicitudWorker(int nuevoSocket){
 		palabra = deserializarSolicitudRecibirPalabra(package->message);
 		break;
 	case CONTINUAR_ENVIO:
-		printf("Aca llego");
 		break;
 
 	}

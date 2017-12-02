@@ -71,6 +71,29 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 }
 
 
+void prepararParaApareo(t_list* elementos_para_RG, t_worker* worker, int posicion){
+
+	t_elemento* unElemento = malloc(sizeof(t_elemento));
+
+	unElemento->socket = conectarseA(worker->ip_worker, worker->puerto_worker);
+	solicitud_leer_y_enviar_archivo_temp* solicitud = malloc(sizeof(solicitud_leer_y_enviar_archivo_temp));
+	strcpy(solicitud->ruta_archivo_red_local_temp, worker->archivo_temporal_reduccion_local);
+	char* serialized = serializar_solicitud_leer_y_enviar_archivo_temp(solicitud);
+	enviarInt(unElemento->socket, PROCESO_WORKER);
+	enviarMensajeSocket(unElemento->socket, COMENZAR_REDUCCION_GLOBAL, serialized);
+	free(solicitud);
+
+	unElemento->ultima_palabra = "";
+	unElemento->worker = worker;
+	unElemento->pedir = true;
+	unElemento->fin = false;
+	unElemento->posicion = posicion;
+
+	list_add(elementos_para_RG, unElemento);
+
+
+}
+
 int leerYEnviarArchivoTemp(char* ruta_arch_temp, int socket){
 
 	t_log_level level = LOG_LEVEL_TRACE;
@@ -152,30 +175,6 @@ int leerYEnviarArchivoTemp(char* ruta_arch_temp, int socket){
 	log_destroy(worker_error_log);
 
 	return 0;
-
-}
-
-
-void prepararParaApareo(t_list* elementos_para_RG, t_worker* worker, int posicion){
-
-	t_elemento* unElemento = malloc(sizeof(t_elemento));
-
-	unElemento->socket = conectarseA(worker->ip_worker, worker->puerto_worker);
-	solicitud_leer_y_enviar_archivo_temp* solicitud = malloc(sizeof(solicitud_leer_y_enviar_archivo_temp));
-	strcpy(solicitud->ruta_archivo_red_local_temp, worker->archivo_temporal_reduccion_local);
-	char* serialized = serializar_solicitud_leer_y_enviar_archivo_temp(solicitud);
-	enviarInt(unElemento->socket, PROCESO_WORKER);
-	enviarMensajeSocket(unElemento->socket, COMENZAR_REDUCCION_GLOBAL, serialized);
-	free(solicitud);
-
-	unElemento->ultima_palabra = "";
-	unElemento->worker = worker;
-	unElemento->pedir = true;
-	unElemento->fin = false;
-	unElemento->posicion = posicion;
-
-	list_add(elementos_para_RG, unElemento);
-
 
 }
 
@@ -288,7 +287,6 @@ int aparear(t_list* lista){
 
 	int retorno;
 
-	char* palabraCandidata;
 	t_elemento* elegido;
 
 	//siempre y cuando haya algun elemento de la lista que falte terminar de recorrer el archivo
