@@ -13,7 +13,7 @@
 void almacenamientoFinal(char* IP_fs, int puerto_fs, solicitud_realizar_almacenamiento_final* solicitudDeserializada){
 
 	t_log_level level = LOG_LEVEL_TRACE;
-	t_log* worker_log = log_create(ruta_archivo_log, "WORKER", 1, level);
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
 
 	//conexion al fs
 	int socketConn;

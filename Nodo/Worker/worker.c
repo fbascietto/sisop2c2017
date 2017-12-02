@@ -40,7 +40,6 @@ void main() {
 	fd_set fdSocketsEscucha;
 	FD_ZERO(&fdSocketsEscucha);
 
-
 	socketEscucha= escuchar(puerto);
 	FD_SET(socketEscucha, &fdSocketsEscucha);
 

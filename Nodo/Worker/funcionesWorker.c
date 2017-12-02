@@ -13,7 +13,7 @@ void iniciarWorker(){
 	//--------------WORKER LEE ARCHIVO DE CONFIGURACION--------------------
 
 
-	infoConfig = config_create("config.txt");
+	infoConfig = config_create("../config.txt");
 
 
 	if(config_has_property(infoConfig,"NOMBRE_NODO")){
@@ -233,7 +233,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 		log_trace(worker_log, "Comienzo de reduccion global");
 		solicitudRGDeserializada = deserializarSolicitudProgramaReduccionGlobal(package->message);
 		strcpy(ruta_archivo_temp_final, solicitudRGDeserializada->archivo_temporal_resultante);
-		exit_code = reduccionGlobal(solicitudRGDeserializada, nombreNodo);
+		exit_code = reduccionGlobal(solicitudRGDeserializada);
 		responderSolicitudRG(nuevoSocket, exit_code);
 		log_destroy(worker_log);
 		free(solicitudRGDeserializada);
@@ -281,6 +281,7 @@ solicitud_recibir_palabra* recibirSolicitudWorker(int nuevoSocket){
 		palabra = deserializarSolicitudRecibirPalabra(package->message);
 		break;
 	case CONTINUAR_ENVIO:
+		printf("Aca llego");
 		break;
 
 	}
