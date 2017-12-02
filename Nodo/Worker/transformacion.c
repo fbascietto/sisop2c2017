@@ -8,6 +8,7 @@
 #include "etapas.h"
 #include <commons/log.h>
 #include <commons/string.h>
+#include <sys/mman.h>
 #include "../../bibliotecas/sockets.c"
 #include "../../bibliotecas/sockets.h"
 #include "../../bibliotecas/protocolo.h"
@@ -46,21 +47,30 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada, ch
 
 	log_trace(worker_log, "Archivo data.bin abierto");
 
-	//me desplazo hasta el bloque que quiero leer
-	fseek(f1, TAMANIO_BLOQUE*solicitudDeserializada->bloque, SEEK_SET);
+	int fd = fileno(f1);
+
+	struct stat filestat;
+	if(fstat(fd, &filestat) < 0){
+
+		log_error(worker_error_log, "Error fstat");
+		return -3;
+
+	}
+
+	unsigned char* map =
+			(unsigned char*) mmap(NULL, filestat.st_size, PROT_READ, MAP_SHARED, fd, sizeof(unsigned char)*solicitudDeserializada->bloque*TAMANIO_BLOQUE);
 
 	//buffer donde pongo datos que leo del bloque del data.bin
 	char* buffer = malloc(solicitudDeserializada->bytes_ocupados);
+	int i;
 
-	//leer bloque de archivo
-	leidos = fread(buffer, 1, solicitudDeserializada->bytes_ocupados, f1);
-	if(leidos!= solicitudDeserializada->bytes_ocupados){
-		log_error(worker_error_log, "No se leyo correctamente el bloque");
-		free(buffer);
-		log_destroy(worker_log);
-		log_destroy(worker_error_log);
-		return -4;
+	for(i = 0; i<solicitudDeserializada->bytes_ocupados; i++){
+
+		buffer[i] = map[i];
+
 	}
+
+	munmap(map, filestat.st_size);
 
 	log_trace(worker_log, "Bloque leido");
 
@@ -111,10 +121,8 @@ void responderSolicitudT(int socket, int exit_code){
 		enviarMensajeSocketConLongitud(socket, TRANSFORMACION_ERROR_ESCRITURA, NULL, 0);
 		break;
 	case -3:
-		//enviar ERROR de apertura de data.bin
-		break;
-	case -4:
-		//enviar ERROR de lectura de data.bin
+		log_error(worker_error_log, "Se envia a Master el error al acceder a los datos del archivo del data.bin");
+		enviarMensajeSocketConLongitud(socket, FSTAT_ERROR, NULL, 0);
 		break;
 	case -10:
 		log_error(worker_error_log, "Se envia a Master el error al dar permisos de ejecucion al programa de transformacion");

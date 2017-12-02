@@ -53,11 +53,9 @@ void enviarTransformacionWorker(void *args){
 			//log_error(worker_error_log, "Se envia a Master el error de escritura del contenido del programa de transformacion");
 			enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
 			break;
-		case 100:
-			//recibir ERROR de apertura de data.bin
-			break;
-		case 200:
-			//recibir ERROR de lectura de data.bin
+		case FSTAT_ERROR:
+			fallosEnTotal++;
+			enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
 			break;
 		case TRANSFORMACION_ERROR_PERMISOS:
 			fallosEnTotal++;
