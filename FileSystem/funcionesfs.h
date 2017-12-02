@@ -33,6 +33,7 @@ t_list * carpetas;
 int cantNodos;
 int estable;
 int end;
+int formatted;
 
 typedef struct {
 	int socketCliente;
@@ -111,6 +112,7 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList, int md5flag);
 void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_list* folderList);
 int catArchivoDeFs(char* archivoABuscar, t_list* folderList);
+void formatFs();
 
 void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList);
 void removerBloque(char* archivoABuscar, int bloque, int numeroDeCopia, t_list* folderList);

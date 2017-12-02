@@ -86,7 +86,10 @@ void formatFs(){
 	fclose(nodosbin);
 	pthread_mutex_unlock(&mx_nodobin);
 
+	formatted = 1;
+
 	printf("Formato finalizado con éxito.\n");
+	chequeoEstadoFS();
 	imprimeNodosBin();
 
 }
@@ -985,6 +988,7 @@ void imprimeNodosBin(){
 
 	if (line){
 		free(line);}
+	estaEstable();
 }
 
 int traeBloquesLibres(){
@@ -1309,22 +1313,30 @@ int chequeoEstadoFS(){
 			iteration++;
 		}
 	}
-	if(iteration == 0 && list_size(nodos) >= 2){
+
+	if(iteration == 0 && list_size(nodos) >= 2 && formatted == 1){
 		estable = 1;
 	} else if(iteration == 0 && list_size(nodos) < 2){
 		estable = 0;
 	}
 
-	int i, size;
+	int i, size, err;
 	i = 0;
 	size = list_size(listaNodosRelacionados);
 
 	for(;i < size;i++){
 		nodo = list_get(listaNodosRelacionados,i);
-		enviarInt(nodo->socket_nodo, ESTA_VIVO_NODO);
-		if(nodo->socket_nodo != -1){
+		err = enviarInt(nodo->socket_nodo, ESTA_VIVO_NODO);
+		if(nodo->socket_nodo != -1 && err > 0){
 			recibirInt(nodo->socket_nodo,&estable);
+			formatted = estable;
+		}else{
+			estable = 0;
 		}
+	}
+
+	if(!(estable == 1 && formatted == 1)){
+		estable =0;
 	}
 
 	list_destroy(listaNodosRelacionados);
@@ -1348,7 +1360,7 @@ void getNodosRelacionadosDeMetadata(char* ruta_metadata, t_list* listaNodosRelac
 	//linea de tamaño
 	getline(&line, &len, metadata);
 
-	char** parametros;
+	char ** parametros;
 	char ** parametros1;
 
 	//linea de TIPO
@@ -1390,6 +1402,9 @@ void getNodosRelacionadosDeMetadata(char* ruta_metadata, t_list* listaNodosRelac
 		getline(&line, &len, metadata);
 
 	}
+
+	if(parametros) free(parametros);
+	if(parametros1) free(parametros1);
 
 	fclose(metadata);
 	if(line) free(line);
@@ -1742,6 +1757,9 @@ int estaEstable(){
 		printf(ANSI_COLOR_BOLD ANSI_COLOR_RED " no estable" ANSI_COLOR_RESET);
 		printf(". No se puede operar de esta manera. Verifique nodos conectados.\n");
 		return 0;
+	} else{
+		printf("Filesystem");
+		printf(ANSI_COLOR_BOLD ANSI_COLOR_GREEN " estable" ANSI_COLOR_RESET ".\n");
 	}
 
 	return 1;
@@ -1853,6 +1871,8 @@ t_bloque* getBloquePorIndex(int bloque, t_list* listaABuscar){
 }
 
 void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_list* folderList){
+
+		/* TODO AGREGAR VALIDACIÓN si NODODESTINO YA POSEE ESTE BLOQUE DE ESTE ARCHIVO */
 
 		if(!estaEstable()){
 			return;
@@ -2815,7 +2835,7 @@ t_bloque_serializado* crearBloqueSerializado(uint32_t numeroBloque, uint32_t byt
 }
 
 void agregarBloqueSerializado(t_bloques_enviados* bloquesEnviados, t_bloque_serializado* bloqueAAgregar){
-	bloquesEnviados->lista_bloques = realloc(bloquesEnviados->lista_bloques,sizeof(t_bloque_serializado)*(bloquesEnviados->cantidad_bloques+1));
+	bloquesEnviados->lista_bloques = realloc(&(bloquesEnviados->lista_bloques),sizeof(t_bloque_serializado)*(bloquesEnviados->cantidad_bloques+1));
 	bloquesEnviados->lista_bloques[bloquesEnviados->cantidad_bloques].numero_bloque=(bloqueAAgregar->numero_bloque);
 	bloquesEnviados->lista_bloques[bloquesEnviados->cantidad_bloques].bytes_ocupados=(bloqueAAgregar->bytes_ocupados);
 	strcpy(bloquesEnviados->lista_bloques[bloquesEnviados->cantidad_bloques].ip,bloqueAAgregar->ip);
