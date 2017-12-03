@@ -602,8 +602,9 @@ void adaptarBloques(t_bloques_enviados* bloquesRecibidos, t_list* bloques){
 	t_bloque_serializado* bloqueRecibido;
 
 	int i;
-	for(i=0; i<bloquesRecibidos->cantidad_bloques; i++){
 	t_bloque* unBloque = malloc(sizeof(t_bloque));
+
+	for(i=0; i<bloquesRecibidos->cantidad_bloques; i++){
 		bloqueRecibido = &(bloquesRecibidos->lista_bloques[i]);
 
 		unBloque->bytesOcupados = bloqueRecibido->bytes_ocupados;
@@ -615,6 +616,7 @@ void adaptarBloques(t_bloques_enviados* bloquesRecibidos, t_list* bloques){
 		list_add(bloques, unBloque);
 
 	}
+		free(unBloque);
 		free(bloquesRecibidos);
 }
 
@@ -731,7 +733,7 @@ void inicializarConfigYama(){
 
 	log_trace(yama_log, "Inicializacion de la configuracion de Yama");
 
-	t_config* infoConfig = config_create("../config.txt");
+	t_config* infoConfig = config_create("config.txt");
 
 	if(config_has_property(infoConfig,"IP_FILESYSTEM")){
 		fsIP = config_get_string_value(infoConfig,"IP_FILESYSTEM");
@@ -757,7 +759,7 @@ void cargarValoresPlanificacion(){
 
 	log_trace(yama_log, "Carga de valores de planificacion");
 
-	t_config* infoConfig = config_create("../config.txt");
+	t_config* infoConfig = config_create("config.txt");
 
 	if(config_has_property(infoConfig,"RETARDO_PLANIFICACION")){
 		retardoPlanificacion = config_get_int_value(infoConfig,"RETARDO_PLANIFICACION");

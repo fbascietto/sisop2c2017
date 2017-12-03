@@ -65,7 +65,7 @@ void main(int args, char* argv[]) {
 	int socketConn;
 
 
-	infoConfig = config_create("../config.txt");
+	infoConfig = config_create("config.txt");
 
 	if(config_has_property(infoConfig,"YAMA_IP")){
 		yamaIP = config_get_string_value(infoConfig,"YAMA_IP");
