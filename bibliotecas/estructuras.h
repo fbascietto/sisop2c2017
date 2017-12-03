@@ -164,9 +164,9 @@ typedef struct {
 typedef struct{
 	uint32_t numero_bloque;
 	uint32_t bytes_ocupados;
+	char idNodo[NOMBRE_NODO];
 	char ip[LENGTH_IP];
 	uint32_t puerto;
-	char idNodo[NOMBRE_NODO];
 	uint32_t idBloque;
 } t_bloque_serializado;
 

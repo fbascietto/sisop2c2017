@@ -83,32 +83,6 @@ void recibirMensajeFS(void *args){
 
 	uint32_t idMaster;
 
-	/*Querido Agustin,
-	 *
-	 * Hemos testeado la deserializacion de la estructura t_bloques_enviados inmediatamente despues de llegar a Yama.
-	 * Concluimos con los printf que se encuentran a continuacion que el error no recae en las funciones que el estimado
-	 * Nahuel ha desarrollado con mucha dedicacion, esfuerzo y voluntad para ayudarle a usted a conseguir los datos solicitados
-	 * en el proceso Yama. Por lo tanto, le sugiero revisar su codigo para verificar que no la este cagando.
-	 *
-	 * xoxo sapnu puas
-	 *
-	 * P.D: puto el que lee
-	 *
-	 * t_bloques_enviados* bloquesx = deserializar_bloques_enviados(package->message, &idMaster);
-
-	int i;
-
-	for(i=0; i<bloquesx->cantidad_bloques; i++){
-
-		printf("Los bytes ocupados de %d son: %d\n",i, bloquesx->lista_bloques[i].bytes_ocupados);
-		printf("El id de bloque de %d es: %d\n",i,bloquesx->lista_bloques[i].idBloque);
-		printf("El nombre de nodo de %d es: %s\n",i,bloquesx->lista_bloques[i].idNodo);
-		printf("El ip de %d es: %s\n",i,bloquesx->lista_bloques[i].ip);
-		printf("El numero de bloque %d son: %d\n",i,bloquesx->lista_bloques[i].numero_bloque);
-		printf("El puerto de %d es: %d\n\n",i,bloquesx->lista_bloques[i].puerto);
-
-	}*/
-
 	printf("codigo de mensaje: %d\n",	package->msgCode);
 
 
@@ -128,7 +102,7 @@ void recibirMensajeFS(void *args){
 	switch(package->msgCode){
 	case RECIBIR_BLOQUES:
 
-	bloques = procesarBloquesRecibidos(package->message, &idMaster);
+		bloques = procesarBloquesRecibidos(package->message, &idMaster);
 		crearNuevoJob(idMaster, bloques, nuevoJob, algoritmo);
 
 		nuevoJob = jobGlobal;
@@ -587,6 +561,21 @@ t_list* procesarBloquesRecibidos(char* message, uint32_t* masterId){
 	//todo
 	bloquesRecibidos = deserializar_bloques_enviados(message, masterId);
 
+	int i;
+
+	for(i=0;i<bloquesRecibidos->cantidad_bloques;i++){
+
+	printf("------------------------\n");
+	printf("Los bytes ocupados de %d son: %d\n",i, bloquesRecibidos->lista_bloques[i].bytes_ocupados);
+	printf("El id de bloque de %d es: %d\n",i,bloquesRecibidos->lista_bloques[i].idBloque);
+	printf("El numero de bloque %d son: %d\n",i,bloquesRecibidos->lista_bloques[i].numero_bloque);
+	printf("El nombre de nodo de %d es: %s\n",i,bloquesRecibidos->lista_bloques[i].idNodo);
+	printf("El ip de %d es: %s\n",i,bloquesRecibidos->lista_bloques[i].ip);
+	printf("El puerto de %d es: %d\n\n",i,bloquesRecibidos->lista_bloques[i].puerto);
+	printf("------------------------\n");
+
+	}
+
 	t_list* bloques = list_create();
 
 	adaptarBloques(bloquesRecibidos, bloques);
@@ -599,25 +588,15 @@ t_list* procesarBloquesRecibidos(char* message, uint32_t* masterId){
  * con formatos t_bloque*
  */
 void adaptarBloques(t_bloques_enviados* bloquesRecibidos, t_list* bloques){
-	t_bloque_serializado* bloqueRecibido;
 
 	int i;
-	t_bloque* unBloque = malloc(sizeof(t_bloque));
 
 	for(i=0; i<bloquesRecibidos->cantidad_bloques; i++){
-		bloqueRecibido = &(bloquesRecibidos->lista_bloques[i]);
 
-		unBloque->bytesOcupados = bloqueRecibido->bytes_ocupados;
-		strcpy(unBloque->idNodo, bloqueRecibido->idNodo);
-		strcpy(unBloque->ip, bloqueRecibido->ip);
-		unBloque->numeroBloque = bloqueRecibido->numero_bloque;
-		unBloque->puerto = bloqueRecibido->puerto;
-
-		list_add(bloques, unBloque);
+		list_add(bloques, &(bloquesRecibidos->lista_bloques[i]));
 
 	}
-		free(unBloque);
-		free(bloquesRecibidos);
+
 }
 
 /*
@@ -780,8 +759,8 @@ void cargarValoresPlanificacion(){
 
 void recargarConfiguracion(int signal){
 
-		printf("SIGUSR1 recibido correctamente\n");
-		printf("SIGUSR1 cargando nuevamente configuracion\n");
-		cargarValoresPlanificacion();
+	printf("SIGUSR1 recibido correctamente\n");
+	printf("SIGUSR1 cargando nuevamente configuracion\n");
+	cargarValoresPlanificacion();
 
 }
