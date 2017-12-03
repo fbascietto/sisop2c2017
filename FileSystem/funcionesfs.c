@@ -31,7 +31,7 @@ void formatFs(){
 	/*creo carpeta bitmap*/
 	status = mkdir("metadata/bitmap", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	/*creo carpeta para archivos*/
-	status = mkdir("metadata/a		uint32_t nroBloque;rchivos", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	status = mkdir("metadata/archivos", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
 	/*Genero nuevo directorios.dat*/
 	inicializarDirectorios();
