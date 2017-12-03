@@ -81,6 +81,34 @@ void recibirMensajeFS(void *args){
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
 
+	uint32_t idMaster;
+
+	/*Querido Agustin,
+	 *
+	 * Hemos testeado la deserializacion de la estructura t_bloques_enviados inmediatamente despues de llegar a Yama.
+	 * Concluimos con los printf que se encuentran a continuacion que el error no recae en las funciones que el estimado
+	 * Nahuel ha desarrollado con mucha dedicacion, esfuerzo y voluntad para ayudarle a usted a conseguir los datos solicitados
+	 * en el proceso Yama. Por lo tanto, le sugiero revisar su codigo para verificar que no la este cagando.
+	 *
+	 * xoxo sapnu puas
+	 *
+	 * P.D: puto el que lee
+	 *
+	 * t_bloques_enviados* bloquesx = deserializar_bloques_enviados(package->message, &idMaster);
+
+	int i;
+
+	for(i=0; i<bloquesx->cantidad_bloques; i++){
+
+		printf("Los bytes ocupados de %d son: %d\n",i, bloquesx->lista_bloques[i].bytes_ocupados);
+		printf("El id de bloque de %d es: %d\n",i,bloquesx->lista_bloques[i].idBloque);
+		printf("El nombre de nodo de %d es: %s\n",i,bloquesx->lista_bloques[i].idNodo);
+		printf("El ip de %d es: %s\n",i,bloquesx->lista_bloques[i].ip);
+		printf("El numero de bloque %d son: %d\n",i,bloquesx->lista_bloques[i].numero_bloque);
+		printf("El puerto de %d es: %d\n\n",i,bloquesx->lista_bloques[i].puerto);
+
+	}*/
+
 	printf("codigo de mensaje: %d\n",	package->msgCode);
 
 
@@ -88,7 +116,6 @@ void recibirMensajeFS(void *args){
 	t_job* nuevoJob;
 	char* algoritmo = algoritmoBalanceo;
 
-	uint32_t idMaster;
 
 	solicitud_transformacion* solicitudTransformacion;
 	char* solicitudTransfSerializado;
