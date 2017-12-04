@@ -9,7 +9,7 @@
 
 
 
-t_nodo* inicializoDataBin(char* rutaBin, char* nombreNodo){
+t_nodo* inicializoDataBin(char* rutaBin, char* nombreNodo, int puerto){
 
 		t_nodo* nodo;
 		nodo = malloc(sizeof(t_nodo));
@@ -38,6 +38,7 @@ t_nodo* inicializoDataBin(char* rutaBin, char* nombreNodo){
 
 	    nodo->espacio_total = (int) file_stat.st_size;
 	    strcpy(nodo->nombre,nombreNodo);
+	    nodo->puerto = puerto;
 	    nodo->espacio_libre = 0;
 	    close(rutaBin);
 	    return nodo;
@@ -79,7 +80,7 @@ void iniciarDataNode(){
 		socketConn = conectarseA(fsIP, fsPort);
 		enviarInt(socketConn, PROCESO_NODO);
 
-		nodo = inicializoDataBin(rutaNodo, nombreNodo);
+		nodo = inicializoDataBin(rutaNodo, nombreNodo, puerto);
 
 		log_trace(logNodo,"tamanio total %d\n",nodo->espacio_total);
 
@@ -138,8 +139,8 @@ int esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 		int data = open(rutaNodo,O_RDWR);
 		struct stat fileStat;
 		if (fstat(data, &fileStat) < 0){
-			log_error(logNodo, "Error fstat --> %s");
-			  exit(EXIT_FAILURE);
+			log_error(logNodo, "Error fstat");
+			exit(EXIT_FAILURE);
 		}
 
 		map = (unsigned char*) mmap(NULL, fileStat.st_size /*/(fileStat.st_size/(1024*1024))*/ , PROT_READ | PROT_WRITE, MAP_SHARED, data, sizeof(unsigned char)*bloque*(1024*1024));
@@ -197,6 +198,7 @@ void *serializarNodo(t_nodo* nodo){
 	int offset = 0;
 	serializar_desde_int(serializado, nodo->espacio_total, &offset);
 	serializar_desde_int(serializado, nodo->espacio_libre, &offset);
+	serializar_desde_int(serializado, nodo->puerto, &offset);
 	serializar_desde_string(serializado, nodo->nombre, sizeof(char[10]),&offset);
 	return serializado;
 

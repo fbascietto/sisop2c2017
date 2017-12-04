@@ -151,6 +151,7 @@ void creoListaNodosDesdeNodosBin(){
 	parametros = string_split(line,"=");
 	int tamanio = atoi(parametros[1]);
 	if(tamanio==0){
+		string_iterate_lines(parametros,free);
 		free(parametros);
 		free(line);
 		return;
@@ -167,7 +168,6 @@ void creoListaNodosDesdeNodosBin(){
 	parametros = string_split(line,"=");
 
 	char ** nombresNodos = string_get_string_as_array(parametros[1]);
-
 
 	int i = 0;
 
@@ -191,7 +191,9 @@ void creoListaNodosDesdeNodosBin(){
 		list_add(nodos, nodo);
 	}
 
+	string_iterate_lines(parametros,free);
 	free(parametros);
+	string_iterate_lines(nombresNodos, free);
 	free(nombresNodos);
 	free(line);
 }
@@ -292,8 +294,11 @@ t_list* inicializarDirectorios(){
 		char* ruta = string_new();
 		/*creo la carpeta para root*/
 		string_append(&ruta, "./metadata/archivos/");
-		string_append(&ruta, string_itoa(folders->index));
+		char* folderindx = string_itoa(folders->index);
+		string_append(&ruta, folderindx);
 		mkdir(ruta, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		free(folderindx);
+		free(ruta);
 	} else {
 		//cargo directorios.dat
 		char* linea[256];
@@ -313,6 +318,7 @@ t_list* inicializarDirectorios(){
 			}
 			fgets(linea,sizeof(linea),fptr);
 		}
+
 	}
 
 	fclose(fptr);
@@ -692,7 +698,7 @@ int recibirConexionDataNode(int nuevoSocket){
 	}
 
 	strcpy(nodo->ip, inet_ntoa(sa.sin_addr));
-	nodo->puerto = ntohs(sa.sin_port);
+	// nodo->puerto = ntohs(sa.sin_port);
 
 	size_t tam_buffer = 0;
 	recibirInt(nuevoSocket,&tam_buffer);
@@ -934,6 +940,7 @@ void deserializar_a_nodo(void* serializado, t_nodo *nodo){
 	int offset =0;
 	deserializar_a_int(serializado, &nodo->tamanio,&offset);
 	deserializar_a_int(serializado, &nodo->bloquesLibres,&offset);
+	deserializar_a_int(serializado, &nodo->puerto, &offset);
 	deserializar_a_string(serializado, nodo->nombre_nodo, sizeof(char[10]),&offset);
 }
 
@@ -1823,8 +1830,10 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList,
 		if(leerBloque(nodo,atoi(parametros1[1]),bloque->tamanio_bloque,buff)<=0){
 			char ** parametros2 = string_get_string_as_array(bloque->Copia1);
 			t_nodo * nodo = getNodoPorNombre(parametros2[0],nodos);
+			string_iterate_lines(parametros1,free);
 			free(parametros1);
 			if(leerBloque(nodo,atoi(parametros2[1]),bloque->tamanio_bloque,buff)<=0){
+				string_iterate_lines(parametros2,free);
 				free(parametros2);
 				printf("No se puede recuperar bloque %d, Nodos inaccesibles:\n%s%sFS", bloque->bloque, bloque->Copia0, bloque->Copia1);
 				printf(ANSI_COLOR_BOLD ANSI_COLOR_RED " no estable" ANSI_COLOR_RESET ".\n");
@@ -1933,7 +1942,9 @@ void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_li
 
 		if(err != -1 && err2 != -1){
 			log_error("El bloque %d ya tiene 2 copias activas y estables. No se efectua la copia.", bloque);
+			string_iterate_lines(parametros1,free);
 			free(parametros1);
+			string_iterate_lines(parametros1,free);
 			free(parametros2);
 			list_destroy_and_destroy_elements(lista_bloques,destruyoBloques);
 			return;
@@ -1948,7 +1959,9 @@ void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_li
 				if(leerBloque(nodoCopia1,atoi(parametros2[1]),bloqueBuscado->tamanio_bloque,buff)<=0){
 					printf("No se puede recuperar bloque %d, Nodos inaccesibles:\n%s%sFS", bloqueBuscado->bloque, bloqueBuscado->Copia0, bloqueBuscado->Copia1);
 					printf(ANSI_COLOR_BOLD ANSI_COLOR_RED " no estable" ANSI_COLOR_RESET ".\n");
+					string_iterate_lines(parametros1,free);
 					free(parametros1);
+					string_iterate_lines(parametros2,free);
 					free(parametros2);
 					free(buff);
 					list_destroy_and_destroy_elements(lista_bloques,destruyoBloques);
@@ -1959,7 +1972,9 @@ void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_li
 				if(leerBloque(nodoCopia0,atoi(parametros1[1]),bloqueBuscado->tamanio_bloque,buff)<=0){
 					printf("No se puede recuperar bloque %d, Nodos inaccesibles:\n%s%sFS", bloqueBuscado->bloque, bloqueBuscado->Copia0, bloqueBuscado->Copia1);
 					printf(ANSI_COLOR_BOLD ANSI_COLOR_RED " no estable" ANSI_COLOR_RESET ".\n");
+					string_iterate_lines(parametros1,free);
 					free(parametros1);
+					string_iterate_lines(parametros2,free);
 					free(parametros2);
 					free(buff);
 					list_destroy_and_destroy_elements(lista_bloques,destruyoBloques);
@@ -1968,7 +1983,9 @@ void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_li
 		}else if(tengoUnaCopia == -1){
 			printf("No se puede recuperar bloque %d, Nodos inaccesibles:\n%s%sFS", bloqueBuscado->bloque, bloqueBuscado->Copia0, bloqueBuscado->Copia1);
 			printf(ANSI_COLOR_BOLD ANSI_COLOR_RED " no estable" ANSI_COLOR_RESET ".\n");
+			string_iterate_lines(parametros1,free);
 			free(parametros1);
+			string_iterate_lines(parametros2,free);
 			free(parametros2);
 			list_destroy_and_destroy_elements(lista_bloques,destruyoBloques);
 			return;
@@ -2065,6 +2082,7 @@ int cambioMetadata(int bloqueArch ,char* ruta_metadata, int copiaReemplazada, ch
 				fprintf(metadatanew,"BLOQUE%dCOPIA%d=%s",bloqueArch,0,lineaReemplazada);
 				fprintf(metadatanew,"BLOQUE%dCOPIA%d=%s",bloqueArch,1,bloqueBuscado->Copia1);
 			}
+			free(lineaReemplazada);
 			fprintf(metadatanew,"BLOQUE%dBYTES=%d\n",bloqueBuscado->bloque,bloqueBuscado->tamanio_bloque);
 		}else{
 		fprintf(metadatanew,"BLOQUE%dCOPIA%d=%s",bloqueBuscado->bloque,j,bloqueBuscado->Copia0);
@@ -2122,8 +2140,10 @@ int catArchivoDeFs(char* archivoABuscar, t_list* folderList){
 		if(leerBloque(nodo,atoi(parametros1[1]),bloque->tamanio_bloque,buff)<=0){
 			char ** parametros2 = string_get_string_as_array(bloque->Copia1);
 			t_nodo * nodo = getNodoPorNombre(parametros2[0],nodos);
+			string_iterate_lines(parametros1,free);
 			free(parametros1);
 			if(leerBloque(nodo,atoi(parametros2[1]),bloque->tamanio_bloque,buff)<=0){
+				string_iterate_lines(parametros2,free);
 				free(parametros2);
 				printf("No se puede recuperar bloque %d, Nodos inaccesibles:\n%s%sFS", bloque->bloque, bloque->Copia0, bloque->Copia1);
 				printf(ANSI_COLOR_BOLD ANSI_COLOR_RED " no estable" ANSI_COLOR_RESET ".\n");
@@ -2135,8 +2155,10 @@ int catArchivoDeFs(char* archivoABuscar, t_list* folderList){
 				estable = 0;
 				return -1;
 			}
+			string_iterate_lines(parametros2,free);
 			free(parametros2);
 		}else{
+			string_iterate_lines(parametros1,free);
 			free(parametros1);
 		}
 		// fprintf(destino,"%s",buff);
@@ -2257,6 +2279,8 @@ t_list * obtener_lista_metadata_para_imprimir(char * ruta_metadata){
 	parametros = string_split(line,"=");
 	if (!string_contains(parametros[1],"TEXTO")){
 		printf("Error: archivo no esta marcado como TEXTO\n");
+		string_iterate_lines(parametros,free);
+		free(parametros);
 		return NULL;
 	}
 
@@ -2381,7 +2405,9 @@ void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList){
 		destruir_bitmap(t_fs_bitmap2);
 		nodo->bloquesLibres++;
 
+		string_iterate_lines(parametros1,free);
 		free(parametros1);
+		string_iterate_lines(parametros2,free);
 		free(parametros2);
 	}
 
@@ -2437,6 +2463,7 @@ void removerBloque(char* archivoABuscar, int bloque, int numeroDeCopia, t_list* 
 		destruir_bitmap(t_fs_bitmap);
 		nodo->bloquesLibres++;
 		cambioMetadata(bloque, ruta_metadata, numeroDeCopia, "", -1);
+		string_iterate_lines(parametros1,free);
 		free(parametros1);
 	}else if(numeroDeCopia == 1){
 		char ** parametros2 = string_get_string_as_array(bloqueArc->Copia1);
@@ -2448,6 +2475,7 @@ void removerBloque(char* archivoABuscar, int bloque, int numeroDeCopia, t_list* 
 		destruir_bitmap(t_fs_bitmap);
 		nodo->bloquesLibres++;
 		cambioMetadata(bloque, ruta_metadata, numeroDeCopia, "", -1);
+		string_iterate_lines(parametros2,free);
 		free(parametros2);
 	}else{
 		printf("Numero de copia errónea. Abortando el proceso.");
@@ -2580,7 +2608,7 @@ void renombrarArchivo(char* archivoABuscar, char* nombreNuevo, t_list* folderLis
 		}
 
 		fclose(metadata);
-		replace_char(ruta_metadata, '\n',NULL);
+		replace_char(ruta_metadata, '\n',"");
 		remove(ruta_metadata);
 
 		if(line)free(line);
@@ -3050,6 +3078,12 @@ void procesarSolicitudYama(void* args){
 		agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar2);
 
 	}
+
+	string_iterate_lines(parametros1,free);
+	free(parametros1);
+	string_iterate_lines(parametros2,free);
+	free(parametros2);
+
 	serializar_y_enviar_yama(bloquesEnviados,numMaster,nuevoSocket);
 
 }

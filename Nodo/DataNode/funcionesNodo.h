@@ -28,6 +28,7 @@ typedef struct {
   char nombre[10];
   int espacio_libre;
   int espacio_total;
+  int puerto;
 } t_nodo;
 
 t_config* infoConfig;
@@ -38,8 +39,7 @@ char* rutaNodo;
 int socketConn;
 int puerto;
 
-t_nodo * inicializoDataBin(char* rutaBin, char* nombreNodo);
-char* empaquetoNodo(t_nodo nodo);
+t_nodo * inicializoDataBin(char* rutaBin, char* nombreNodo, int puerto);
 void iniciarDataNode();
 
 int esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo);
