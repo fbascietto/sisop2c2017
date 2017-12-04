@@ -57,7 +57,7 @@ void* obtenerNodos(void* elemento);
 
 //prueba de preplanificacion
 void inicializarNodoTest(t_nodo* nodo, char* id);
-void inicializarBloque(t_nodo* nodo, t_bloque* bloque, int numeroBloque);
+void inicializarBloque(t_nodo* nodo, t_bloque* bloque, int numero_bloque);
 void ejemploPrePlanificacion();
 
 #endif /* PREPLANIFICACION_H_ */

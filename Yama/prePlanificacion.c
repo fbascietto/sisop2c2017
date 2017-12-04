@@ -12,6 +12,13 @@ void agregarNodoALaPlanificacion(t_bloque* bloque, t_nodo* nodo, t_list* planifi
 
 		cantBloques = list_size(nodo->bloquesAsignados);
 
+		/**
+		 * este for se hace porque se agrega el bloque
+		 * que tiene el nodo y no el bloque con el que
+		 * se compara porque si bien tienen el mismo id
+		 * de bloque, no necesariamente tienen el mismo
+		 * numero de bloque
+		 **/
 		for (i=0; i<cantBloques; i++){
 			unBloque = list_get(nodo->bloquesAsignados, i);
 			if(unBloque->idBloque == bloque->idBloque){
@@ -250,7 +257,7 @@ void loguear_nodos_asignados(t_list* planificacion){
 	for(i=0; i<cantidadBloques; i++){
 		unaPlanificacion = list_get(planificacion, i);
 		log_trace(yama_log, "bloque %d  asignado al nodo: %s",
-				unaPlanificacion->bloque->numeroBloque, unaPlanificacion->nodo->idNodo);
+				unaPlanificacion->bloque->numero_bloque, unaPlanificacion->nodo->idNodo);
 		log_trace(yama_log, "con disponibilidad restante : %d  y reduccionGlobal (deberia estar en 0): %d\n",
 				unaPlanificacion->nodo->disponibilidad, unaPlanificacion->reduccionGlobal);
 	}
@@ -313,8 +320,8 @@ t_list* prePlanificacion(t_list* bloques, int valorBase, t_list* listaNodos, cha
 	t_log* yama_error_log = log_create("logYama.txt", "YAMA", 1, level_ERROR);
 
 	//recorren los nodos de la lista de nodos
-	t_nodo* nodo = NULL;
-	t_nodo* aux = NULL;
+	t_nodo* nodo;
+	t_nodo* aux;
 
 	t_list* planificacionNodos = list_create();
 
@@ -468,12 +475,15 @@ void desconectarNodo(char* idNodo){
 void estadisticas(void* unaPlanif){
 	t_estado* unaPlanificacion = (t_estado*) unaPlanif;
 	if(unaPlanificacion->nodoPlanificado->reduccionGlobal == 0){
-		printf("bloque: %d nodo: %d cargaDeTrabajoActual: %d \n",
-				unaPlanificacion->nodoPlanificado->bloque->numeroBloque,
+		printf("\n\n-------------------------------------------------\n");
+		printf("bloque: %d nodo: %s, ip: %s, puerto: %d, cargaDeTrabajoActual: %d \n",
+				unaPlanificacion->nodoPlanificado->bloque->idBloque,
 				unaPlanificacion->nodoPlanificado->nodo->idNodo,
+				unaPlanificacion->nodoPlanificado->nodo->ipWorker,
+				unaPlanificacion->nodoPlanificado->nodo->puerto,
 				unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajoActual);
 	}else{
-		printf("nodo de reduccion final: %d con una cargaDeTrabajoActual: %d \n",
+		printf("nodo de reduccion final: %s con una cargaDeTrabajoActual: %d \n",
 				unaPlanificacion->nodoPlanificado->nodo->idNodo,
 				unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajoActual);
 	}

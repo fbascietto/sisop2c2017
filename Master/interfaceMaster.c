@@ -106,7 +106,7 @@ solicitud_transformacion* deserializar_solicitud_transformacion(char* serialized
 	char* serialized_items = malloc(sizeof(char)*size_items);
 	deserializarDato(serialized_items,serialized,size_items,&offset);
 	solicitudTransformacion->items_transformacion = deserializar_items_transformacion(serialized_items,solicitudTransformacion->item_cantidad);
-	free(serialized_items);
+	//free(serialized_items);
 
 	return solicitudTransformacion;
 }
@@ -124,8 +124,16 @@ item_transformacion* deserializar_items_transformacion(char* serialized, uint32_
 		deserializarDato(serialized_item,serialized,size_item,&offset);
 		item_transformacion* aux = deserializar_item_transformacion(serialized_item);
 		itemsTransformacion[i] = *(aux);
-		free(aux);
-		free(serialized_item);
+		//free(aux);
+		printf("\n-------------------------------------------------\n");
+		printf("bloque %d\n", i);
+		printf("numero bloque %d\n", itemsTransformacion[i].bloque);
+		printf("tamaño bloque %d\n", itemsTransformacion[i].bytes_ocupados);
+		printf("ip worker %s\n", itemsTransformacion[i].ip_worker);
+		printf("puerto worker %d", itemsTransformacion[i].puerto_worker);
+		printf("id nodo %s", itemsTransformacion[i].nodo_id);
+		printf("ruta temporal %s", itemsTransformacion[i].archivo_temporal);
+		//free(serialized_item);
 	}
 	return itemsTransformacion;
 }

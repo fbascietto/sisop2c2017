@@ -55,19 +55,20 @@ void recibirMensajeMaster(void *args){
 }
 
 /*
- * crea el job y lo agrega a jobsActivos
+ * crea el job y guarda en jobGlobal
+ * y lo agrega a jobsActivos
  * en base a un paquete de bloques
  */
-void crearNuevoJob(int idMaster, t_list* bloques, t_job* nuevoJob, char* algoritmo) {
+void crearNuevoJob(int idMaster, t_list* bloques, char* algoritmo) {
 	t_list* nodos;
 	t_list* bloquesReducidos;
+	t_job* nuevoJob = malloc(sizeof(t_job));
 	// ---------------------------- CREO JOB ----------------------------------------------
 
 	/** insertar mutex **/
 	nodos = obtenerNodosParticipantes(bloques);
 	bloquesReducidos = reducirBloques(bloques);
-	nuevoJob = crearJob(bloquesReducidos, nodos, algoritmo, idMaster);
-	list_add(jobsActivos, jobGlobal);
+	crearJob(bloquesReducidos, nodos, algoritmo, idMaster);
 
 	//todo
 	//loguearEstadoJob(nuevoJob, RECIBIR_BLOQUES);
@@ -103,16 +104,30 @@ void recibirMensajeFS(void *args){
 	case RECIBIR_BLOQUES:
 
 		bloques = procesarBloquesRecibidos(package->message, &idMaster);
-		crearNuevoJob(idMaster, bloques, nuevoJob, algoritmo);
+		crearNuevoJob(idMaster, bloques, algoritmo);
 
 		nuevoJob = jobGlobal;
 		/** fin mutex **/
+
+		printf("\n\nTERMINE EL JOB LA CONCHA DE TU MADRE, PODES APROBARME EL TP?\n\n");
+
+		printf("\nDATOS TRANSFORMACION\n");
+		list_iterate(nuevoJob->estadosTransformaciones, estadisticas);
+		printf("\nDATOS REDUCCIONLOCAL\n");
+		list_iterate(nuevoJob->estadosReduccionesLocales, estadisticas);
+		printf("id de Job: %d\n", nuevoJob->idJob);
+		printf("serializando transformaciones\n");
 		// ------------------ ENVIO SOLICITUD TRANSFORMACION A MASTER -------------------------
 
 		solicitudTransformacion = obtenerSolicitudTrasnformacion(nuevoJob);
 
+		printf("solicitud de transformacion terminada\n");
+
 		solicitudTransfSerializado = serializarSolicitudTransformacion(solicitudTransformacion);
 		longitud = getLong_SolicitudTransformacion(solicitudTransformacion);
+
+		printf("solicitud de transformacion serializada\n se enviaran %d bytes a master\n", longitud);
+
 
 		enviados = enviarMensajeSocketConLongitud(idMaster,ACCION_PROCESAR_TRANSFORMACION,solicitudTransfSerializado,longitud);
 	}
@@ -279,12 +294,7 @@ solicitud_transformacion* obtenerSolicitudTrasnformacion(t_job* job){
 
 	for(i=0; i<tamanioTransformacion ;i++){
 		unEstado = list_get(job->estadosTransformaciones, i);
-		item = crearItemTransformacion(unEstado->nodoPlanificado->nodo->idNodo,
-				unEstado->nodoPlanificado->nodo->ipWorker,
-				unEstado->nodoPlanificado->nodo->puerto,
-				unEstado->nodoPlanificado->bloque->numeroBloque,
-				unEstado->nodoPlanificado->bloque->bytesOcupados,
-				unEstado->archivoTemporal);
+		item = crearItemTransformacion(unEstado->nodoPlanificado->nodo->idNodo, unEstado->nodoPlanificado->nodo->ipWorker, unEstado->nodoPlanificado->nodo->puerto, unEstado->nodoPlanificado->bloque->numero_bloque, unEstado->nodoPlanificado->bloque->bytes_ocupados, unEstado->archivoTemporal);
 		agregarItemTransformacion(solicitud, item);
 	}
 	return solicitud;
@@ -385,9 +395,9 @@ void procesarResultadoTransformacion(int nuevoSocket, Package* package, uint32_t
 	/* (i) */
 	int offset = 0;
 	char idNodo[NOMBRE_NODO];
-	uint32_t numeroBloque;
+	uint32_t numero_bloque;
 
-	deserializarDato(&numeroBloque, package->message, sizeof(uint32_t), &offset);
+	deserializarDato(&numero_bloque, package->message, sizeof(uint32_t), &offset);
 	deserializarDato(idNodo, package->message, NOMBRE_NODO, &offset);
 
 	int idJob;
@@ -395,14 +405,14 @@ void procesarResultadoTransformacion(int nuevoSocket, Package* package, uint32_t
 	idJob = obtenerIdJob(nuevoSocket, jobsActivos);
 
 	/* (iii) */
-	actualizarEstado(idNodo, numeroBloque, RESULTADO_TRANSFORMACION, idJob, resultado);
+	actualizarEstado(idNodo, numero_bloque, RESULTADO_TRANSFORMACION, idJob, resultado);
 
 	/* (ii) */
 	if(resultado == TRANSFORMACION_OK){
 
 
 		/* (iv) */
-		if(finalizoTransformacionesNodo(idNodo, numeroBloque, idJob)){
+		if(finalizoTransformacionesNodo(idNodo, numero_bloque, idJob)){
 
 			/* (v) */
 
@@ -442,7 +452,11 @@ void procesarResultadoTransformacion(int nuevoSocket, Package* package, uint32_t
 			char* solicitudTransfSerializado;
 			uint32_t longitud;
 
-			crearNuevoJob(idMaster, bloques, jobReplanificado, algoritmoBalanceo);
+			/** insertar mutex **/
+			crearNuevoJob(idMaster, bloques, algoritmoBalanceo);
+
+			jobReplanificado = jobGlobal;
+			/** insertar mutex **/
 
 			solicitudTransformacion = obtenerSolicitudTrasnformacion(jobReplanificado);
 
@@ -454,7 +468,8 @@ void procesarResultadoTransformacion(int nuevoSocket, Package* package, uint32_t
 			free(solicitudTransformacion);
 			free(solicitudTransfSerializado);
 		}else{
-			free(bloques);
+			t_job* job = obtenerJob(idJob, jobsFinalizados);
+			terminarJob(job);
 
 		}
 	}
@@ -464,7 +479,7 @@ void procesarResultadoReduccionLocal(int nuevoSocket, Package* package, uint32_t
 
 	int offset = 0;
 	char idNodo[NOMBRE_NODO];
-	uint32_t numeroBloque;
+	uint32_t numero_bloque;
 
 	deserializarDato(idNodo, package->message, NOMBRE_NODO, &offset);
 
@@ -496,7 +511,7 @@ void procesarResultadoReduccionGlobal(int nuevoSocket, Package* package, uint32_
 
 	int offset = 0;
 	char idNodo[NOMBRE_NODO];
-	uint32_t numeroBloque;
+	uint32_t numero_bloque;
 
 	deserializarDato(idNodo, package->message, NOMBRE_NODO, &offset);
 
@@ -522,7 +537,7 @@ void procesarResultadoAlmacenadoFinal(int nuevoSocket, Package* package, uint32_
 
 	int offset = 0;
 	char idNodo[NOMBRE_NODO];
-	uint32_t numeroBloque;
+	uint32_t numero_bloque;
 
 	deserializarDato(idNodo, package->message, NOMBRE_NODO, &offset);
 
@@ -554,31 +569,31 @@ void procesarSolicitudArchivoMaster(int nuevoSocket, Package* package){
 
 }
 
+void datosBloques(void* elemento){
+	t_bloque* bloque = (t_bloque*) elemento;
+	int i = rutaGlobal++;
+	printf("------------------------\n");
+	printf("Los bytes ocupados de %d son: %d\n",i, bloque->bytes_ocupados);
+	printf("El id de bloque de %d es: %d\n",i, bloque->idBloque);
+	printf("El numero de bloque %d son: %d\n",i,bloque->numero_bloque);
+	printf("El nombre de nodo de %d es: %s\n",i,bloque->idNodo);
+	printf("El ip de %d es: %s\n",i,bloque->ip);
+	printf("El puerto de %d es: %d\n\n",i,bloque->puerto);
+	printf("------------------------\n");
+}
+
 //se obtiene ademas el id del master (va primero en la serializacion ((todo))
 t_list* procesarBloquesRecibidos(char* message, uint32_t* masterId){
-	t_bloques_enviados* bloquesRecibidos;
 
 	//todo
-	bloquesRecibidos = deserializar_bloques_enviados(message, masterId);
-
-	int i;
-
-	for(i=0;i<bloquesRecibidos->cantidad_bloques;i++){
-
-	printf("------------------------\n");
-	printf("Los bytes ocupados de %d son: %d\n",i, bloquesRecibidos->lista_bloques[i].bytes_ocupados);
-	printf("El id de bloque de %d es: %d\n",i,bloquesRecibidos->lista_bloques[i].idBloque);
-	printf("El numero de bloque %d son: %d\n",i,bloquesRecibidos->lista_bloques[i].numero_bloque);
-	printf("El nombre de nodo de %d es: %s\n",i,bloquesRecibidos->lista_bloques[i].idNodo);
-	printf("El ip de %d es: %s\n",i,bloquesRecibidos->lista_bloques[i].ip);
-	printf("El puerto de %d es: %d\n\n",i,bloquesRecibidos->lista_bloques[i].puerto);
-	printf("------------------------\n");
-
-	}
+	t_bloques_enviados* bloquesRecibidos = deserializar_bloques_enviados(message, masterId);
 
 	t_list* bloques = list_create();
 
 	adaptarBloques(bloquesRecibidos, bloques);
+
+	list_iterate(bloques, datosBloques);
+	rutaGlobal = 0;
 
 	return bloques;
 }
@@ -593,6 +608,7 @@ void adaptarBloques(t_bloques_enviados* bloquesRecibidos, t_list* bloques){
 
 	for(i=0; i<bloquesRecibidos->cantidad_bloques; i++){
 
+		printf("posicion de memoria: %p", &(bloquesRecibidos->lista_bloques[i]));
 		list_add(bloques, &(bloquesRecibidos->lista_bloques[i]));
 
 	}
@@ -607,7 +623,7 @@ void adaptarBloques(t_bloques_enviados* bloquesRecibidos, t_list* bloques){
  * y si se pone de actualizar el estado de almacenado final a ok
  * modificar el estado de reduccion global a "job finalizado
  */
-void actualizarEstado(char* idNodo, int numeroBloque, int etapa, int idJob, int resultado){
+void actualizarEstado(char* idNodo, int numero_bloque, int etapa, int idJob, int resultado){
 	t_job* job;
 	t_estado* estado;
 
@@ -615,7 +631,7 @@ void actualizarEstado(char* idNodo, int numeroBloque, int etapa, int idJob, int 
 
 	switch(etapa){
 	case RESULTADO_TRANSFORMACION:
-		//todo estado = obtenerEstadoTransformacion(job->estadosTransformaciones, idNodo, numeroBloque);
+		//todo estado = obtenerEstadoTransformacion(job->estadosTransformaciones, idNodo, numero_bloque);
 		if(resultado == TRANSFORMACION_OK){
 			strcpy(estado->estado, "finalizado");
 		}else{
@@ -649,7 +665,7 @@ void actualizarEstado(char* idNodo, int numeroBloque, int etapa, int idJob, int 
 	}
 }
 
-bool finalizoTransformacionesNodo(char* idNodo, int numeroBloque, int idJob){
+bool finalizoTransformacionesNodo(char* idNodo, int numero_bloque, int idJob){
 	int i;
 	int tamanioTransformaciones;
 	t_job* job;

@@ -144,15 +144,37 @@ item_transformacion* deserializar_item_transformacion(char* serialized){
 	return itemTransformacion;
 }
 
-item_transformacion* crearItemTransformacion(char nodo[NOMBRE_NODO],char* ipWorker,uint32_t puerto_worker, uint32_t bloque, uint32_t bytesOcupados, char* archivoTemporal){
+item_transformacion* crearItemTransformacion(char nodo[NOMBRE_NODO],char* ipWorker,uint32_t puerto_worker, uint32_t bloque, uint32_t bytes_ocupados, char* archivoTemporal){
 	item_transformacion *item = malloc(sizeof(item_transformacion));
 	strcpy(item->archivo_temporal,archivoTemporal);
 	item->bloque = bloque;
-	item->bytes_ocupados = bytesOcupados;
+	item->bytes_ocupados = bytes_ocupados;
 	strcpy(item->nodo_id, nodo);
 	strcpy(item->ip_worker,ipWorker);
-	item->puerto_worker = puerto_worker;
+//todo cambiar a puerto   vvvvvvvvvvvvvvvvvvvvvvv
+	item->puerto_worker = puertoHardCodeado(nodo);
 	return item;
+}
+
+int puertoHardCodeado(char nodo[NOMBRE_NODO]){
+	if(strcmp("NODO1", nodo) == 0){
+
+		return 6000;}
+	else if(strcmp("NODO2", nodo) == 0){
+
+		return 6001;}
+		else if(strcmp("NODO3", nodo) == 0){
+
+		return 6002;}
+		else if (strcmp("NODO4", nodo) == 0){
+
+		return 6003;}
+		else{
+		printf("le pifiaste pelotudo, aca dice %s\n"
+				"pone NODO1, NODO2, NODO3 o NODO4"
+				, nodo);
+		return 0;
+	}
 }
 
 void testSerializarSolicitudTrasnformacion(){

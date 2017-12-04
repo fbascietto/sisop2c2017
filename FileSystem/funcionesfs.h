@@ -71,7 +71,7 @@ typedef struct {
 	char* Copia0;
 	char* Copia1;
 	int tamanio_bloque;
-} t_bloque;
+} t_bloque_nodo;
 
 typedef struct {
 	int bitsOcupados;
@@ -92,7 +92,7 @@ void deserializar_a_nodo(void* serializado, t_nodo *nodo);
 t_nodo* getNodoPorNombre(char* nombre_nodo, t_list* listaABuscar);
 int getNodosMenosCargados(int* indexs);
 void getNodosRelacionadosDeMetadata(char* ruta_metadata, t_list* listaNodosRelacionados);
-t_bloque* getBloquePorIndex(int bloque, t_list* listaABuscar);
+t_bloque_nodo* getBloquePorIndex(int bloque, t_list* listaABuscar);
 int cambioMetadata(int bloque,char* ruta_metadata, int copiaReemplazada, char* nombreNodo, int bloqueEnNodo);
 int escribirBufferEnNodo(unsigned char* buffer, char* nodoDestino);
 
@@ -157,21 +157,21 @@ void procesarSolicitudYama(void* args);
 
 void serializarDato(char* buffer, void* dato, int size_to_send, int* offset);
 void deserializarDato(void* dato, char* buffer, int size, int* offset);
-char* serializar_un_bloque(t_bloque_serializado* unBloque);
-char* serialize_blocks(t_bloque_serializado** bloques, uint32_t item_cantidad);
+char* serializar_un_bloque(t_bloque* unBloque);
+char* serialize_blocks(t_bloque** bloques, uint32_t item_cantidad);
 uint32_t getLongitud_bloques(uint32_t item_cantidad);
 uint32_t longitudBloques(t_bloques_enviados* bloques);
 char* serializar_bloques(t_bloques_enviados* bloques, uint32_t* id_master, uint32_t* longitud);
 int serializar_y_enviar_yama(t_bloques_enviados* bloques, uint32_t id_master, int socketYama);
 
-t_bloque_serializado* deserializar_bloque_serializado(char* serialized);
-t_bloque_serializado* deserializar_bloques_serializados(char* serialized, uint32_t items_cantidad);
+t_bloque* deserializar_bloque_serializado(char* serialized);
+t_bloque* deserializar_bloques_serializados(char* serialized, uint32_t items_cantidad);
 t_bloques_enviados* deserializar_bloques_enviados(char* serialized, uint32_t* idMaster);
-char* serializar_bloque_serializado(t_bloque_serializado* bloque_serializado);
-uint32_t getLong_one_bloque_serializado(t_bloque_serializado* bloques_serializados);
-uint32_t getLong_bloques_serializados(t_bloque_serializado* bloques_serializados, uint32_t item_cantidad);
+char* serializar_bloque_serializado(t_bloque* bloque_serializado);
+uint32_t getLong_one_bloque_serializado(t_bloque* bloques_serializados);
+uint32_t getLong_bloques_serializados(t_bloque* bloques_serializados, uint32_t item_cantidad);
 uint32_t getLong_BloquesEnviados(t_bloques_enviados* bloquesEnviados);
-char* serializar_lista_bloques(t_bloque_serializado** lista_bloques, uint32_t item_cantidad);
+char* serializar_lista_bloques(t_bloque** lista_bloques, uint32_t item_cantidad);
 char* serializarBloquesEnviados(t_bloques_enviados* bloques, uint32_t* id_master, uint32_t* longitud);
 
 /*
@@ -185,8 +185,8 @@ agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar2);
 return bloquesEnviados;
  */
 
-t_bloque_serializado* crearBloqueSerializado(uint32_t numeroBloque, uint32_t bytesOcupados, char* ip, uint32_t puerto, char* idNodo, uint32_t idBloque);
-void agregarBloqueSerializado(t_bloques_enviados* bloquesEnviados, t_bloque_serializado* bloqueAAgregar);
+t_bloque* crearBloqueSerializado(uint32_t numeroBloque, uint32_t bytesOcupados, char* ip, uint32_t puerto, char* idNodo, uint32_t idBloque);
+void agregarBloqueSerializado(t_bloques_enviados* bloquesEnviados, t_bloque* bloqueAAgregar);
 
 void procesarSolicitudYama(void* args);
 

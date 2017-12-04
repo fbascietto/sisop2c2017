@@ -168,10 +168,10 @@ typedef struct{
 	char ip[LENGTH_IP];
 	uint32_t puerto;
 	uint32_t idBloque;
-} t_bloque_serializado;
+} t_bloque;
 
 typedef struct{
-	t_bloque_serializado* lista_bloques;
+	t_bloque* lista_bloques;
 	uint32_t cantidad_bloques;
 } t_bloques_enviados;
 

@@ -5,3 +5,44 @@
 [ERROR] 20:44:40:651 MASTER/(8928:8928): Cantidad de parametros incorrectos.
 [ERROR] 02:39:35:753 MASTER/(16216:16216): Cantidad de parametros incorrectos.
 [ERROR] 02:39:57:553 MASTER/(16255:16255): Cantidad de parametros incorrectos.
+[ERROR] 18:39:45:865 MASTER/(15132:15132): Cantidad de parametros incorrectos.
+[INFO] 18:41:01:366 MASTER/(15190:15190): El programa transformador que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/transformador.py
+[INFO] 18:41:01:366 MASTER/(15190:15190): El programa reductor que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/reductor.py
+[INFO] 18:41:01:366 MASTER/(15190:15190): La ruta del archivo que se procesara en el job es: yamafs:/base/nombres.csv
+[INFO] 18:41:01:366 MASTER/(15190:15190): La ruta del archivo resultante del job es: yamafs:/analisis/resultado.json
+[INFO] 18:52:13:226 MASTER/(15303:15303): El programa transformador que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/transformador.py
+[INFO] 18:52:13:226 MASTER/(15303:15303): El programa reductor que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/reductor.py
+[INFO] 18:52:13:226 MASTER/(15303:15303): La ruta del archivo que se procesara en el job es: yamafs:/base/nombres.csv
+[INFO] 18:52:13:226 MASTER/(15303:15303): La ruta del archivo resultante del job es: yamafs:/analisis/resultado.json
+[INFO] 19:00:25:962 MASTER/(15516:15516): El programa transformador que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/transformador.py
+[INFO] 19:00:25:962 MASTER/(15516:15516): El programa reductor que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/reductor.py
+[INFO] 19:00:25:962 MASTER/(15516:15516): La ruta del archivo que se procesara en el job es: yamafs:/base/nombres.csv
+[INFO] 19:00:25:962 MASTER/(15516:15516): La ruta del archivo resultante del job es: yamafs:/analisis/resultado.json
+[INFO] 19:00:52:990 MASTER/(15534:15534): El programa transformador que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/transformador.py
+[INFO] 19:00:52:992 MASTER/(15534:15534): El programa reductor que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/reductor.py
+[INFO] 19:00:52:992 MASTER/(15534:15534): La ruta del archivo que se procesara en el job es: yamafs:/base/nombres.csv
+[INFO] 19:00:52:992 MASTER/(15534:15534): La ruta del archivo resultante del job es: yamafs:/analisis/resultado.json
+[INFO] 19:01:59:124 MASTER/(15613:15613): El programa transformador que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/transformador.py
+[INFO] 19:01:59:126 MASTER/(15613:15613): El programa reductor que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/reductor.py
+[INFO] 19:01:59:126 MASTER/(15613:15613): La ruta del archivo que se procesara en el job es: yamafs:/base/nombres.csv
+[INFO] 19:01:59:126 MASTER/(15613:15613): La ruta del archivo resultante del job es: yamafs:/analisis/resultado.json
+[INFO] 19:02:16:564 MASTER/(15628:15628): El programa transformador que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/transformador.py
+[INFO] 19:02:16:564 MASTER/(15628:15628): El programa reductor que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/reductor.py
+[INFO] 19:02:16:564 MASTER/(15628:15628): La ruta del archivo que se procesara en el job es: yamafs:/base/nombres.csv
+[INFO] 19:02:16:564 MASTER/(15628:15628): La ruta del archivo resultante del job es: yamafs:/analisis/resultado.json
+[INFO] 19:07:00:170 MASTER/(15840:15840): El programa transformador que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/transformador.py
+[INFO] 19:07:00:170 MASTER/(15840:15840): El programa reductor que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/reductor.py
+[INFO] 19:07:00:170 MASTER/(15840:15840): La ruta del archivo que se procesara en el job es: yamafs:/base/nombres.csv
+[INFO] 19:07:00:170 MASTER/(15840:15840): La ruta del archivo resultante del job es: yamafs:/analisis/resultado.json
+[INFO] 19:08:53:685 MASTER/(15979:15979): El programa transformador que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/transformador.py
+[INFO] 19:08:53:685 MASTER/(15979:15979): El programa reductor que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/reductor.py
+[INFO] 19:08:53:685 MASTER/(15979:15979): La ruta del archivo que se procesara en el job es: yamafs:/base/nombres.csv
+[INFO] 19:08:53:685 MASTER/(15979:15979): La ruta del archivo resultante del job es: yamafs:/analisis/resultado.json
+[INFO] 19:30:39:437 MASTER/(16350:16350): El programa transformador que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/transformador.py
+[INFO] 19:30:39:438 MASTER/(16350:16350): El programa reductor que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/reductor.py
+[INFO] 19:30:39:438 MASTER/(16350:16350): La ruta del archivo que se procesara en el job es: yamafs:/base/nombres.csv
+[INFO] 19:30:39:438 MASTER/(16350:16350): La ruta del archivo resultante del job es: yamafs:/analisis/resultado.json
+[INFO] 19:31:18:509 MASTER/(16377:16377): El programa transformador que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/transformador.py
+[INFO] 19:31:18:509 MASTER/(16377:16377): El programa reductor que se utilizara para el job es: /home/utnso/SO-Nombres-Dataset/reductor.py
+[INFO] 19:31:18:509 MASTER/(16377:16377): La ruta del archivo que se procesara en el job es: yamafs:/base/nombres.csv
+[INFO] 19:31:18:509 MASTER/(16377:16377): La ruta del archivo resultante del job es: yamafs:/analisis/resultado.json

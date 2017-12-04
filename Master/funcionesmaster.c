@@ -19,7 +19,7 @@ void enviarTransformacionWorker(void *args){
 	solicitud_programa_transformacion* solicitud = malloc(sizeof(solicitud_programa_transformacion));
 	strcpy(&(solicitud->programa_transformacion),ruta_programa_transformador);
 	char* filebuffer = fileToChar(ruta_programa_transformador);
-	printf("file = %s\n", filebuffer );
+	//printf("file = %s\n", filebuffer );
 	solicitud->programa = filebuffer;
 	strcpy(&(solicitud->archivo_temporal),itemTransformacion->archivo_temporal);
 	solicitud->length_programa = strlen(filebuffer);

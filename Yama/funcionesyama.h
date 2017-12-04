@@ -63,16 +63,6 @@ typedef struct {
 } t_esperar_conexion;
 
 
-typedef struct{
-	uint32_t numeroBloque;
-	uint32_t bytesOcupados;
-	char idNodo[NOMBRE_NODO];
-	char ip[LENGTH_IP];
-	uint32_t puerto;
-	uint32_t idBloque;
-}t_bloque;
-
-
 
 typedef struct{
 	char idNodo[NOMBRE_NODO];
@@ -125,8 +115,8 @@ t_list* procesarBloquesRecibidos(char* message, uint32_t* masterId);
 char* serializarSolicitudJob(char* solicitudArchivo, uint32_t masterId, uint32_t* tamanioSerializado);
 void adaptarBloques(t_bloques_enviados* bloquesRecibidos, t_list* bloques);
 bool resultadoOk(char* resultado);
-void actualizarEstado(char* idNodo, int numeroBloque, int etapa, int idJob, int resultado);
-bool finalizoTransformacionesNodo(char* idNodo, int numeroBloque, int idJob);
+void actualizarEstado(char* idNodo, int numero_bloque, int etapa, int idJob, int resultado);
+bool finalizoTransformacionesNodo(char* idNodo, int numero_bloque, int idJob);
 bool finalizaronReduccionesLocalesNodos(t_job* job);
 bool termino(void* elemento);
 void procesarSolicitudMaster(int nuevoSocket);

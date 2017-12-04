@@ -23,8 +23,8 @@ void hacerPedidoDeTransformacionYRL(){
 	list_add(rutasTemporales, prueba);
 	list_add(rutasTemporales, prueba2);
 
-	bloque->bytesOcupados=999;
-	bloque->numeroBloque=10;
+	bloque->bytes_ocupados=999;
+	bloque->numero_bloque=10;
 
 
 	strcpy(nodo->idNodo, "nodo1");
@@ -110,27 +110,27 @@ void ejemploPrePlanificacion(){
 
 		//bloques
 		t_bloque* bl0 = malloc(sizeof(t_bloque));
-				bl0->bytesOcupados = 100;
+				bl0->bytes_ocupados = 100;
 		list_add(listaBloques, &bl0);
 
 		t_bloque* bl1 = malloc(sizeof(t_bloque));
-				bl1->bytesOcupados = 150;
+				bl1->bytes_ocupados = 150;
 		list_add(listaBloques, &bl1);
 
 		t_bloque* bl2 = malloc(sizeof(t_bloque));
-						bl2->bytesOcupados = 10294;
+						bl2->bytes_ocupados = 10294;
 		list_add(listaBloques, &bl2);
 
 		t_bloque* bl3 = malloc(sizeof(t_bloque));
-						bl3->bytesOcupados = 2;
+						bl3->bytes_ocupados = 2;
 		list_add(listaBloques, &bl3);
 
 		t_bloque* bl4 = malloc(sizeof(t_bloque));
-						bl4->bytesOcupados = 720;
+						bl4->bytes_ocupados = 720;
 		list_add(listaBloques, &bl4);
 
 		t_bloque* bl5 = malloc(sizeof(t_bloque));
-						bl5->bytesOcupados = 102492;
+						bl5->bytes_ocupados = 102492;
 		list_add(listaBloques, &bl5);
 
 		int cantidadBloques = list_size(listaBloques);
@@ -186,7 +186,7 @@ void ejemploPrePlanificacion(){
 		for(i=0; i<cantidadBloques; i++){
 			unaPlanificacion = list_get(planificacion, i);
 			printf("bloque %d  asignado al nodo: %s  ",
-					unaPlanificacion->bloque->numeroBloque, unaPlanificacion->nodo->idNodo);
+					unaPlanificacion->bloque->numero_bloque, unaPlanificacion->nodo->idNodo);
 			printf("con disponibilidad restante : %d  y reduccionGlobal (deberia estar en 0): %d \n",
 					unaPlanificacion->nodo->disponibilidad, unaPlanificacion->reduccionGlobal);
 		}
@@ -211,7 +211,7 @@ void ejemploPrePlanificacion(){
 					for(i=0; i<cantidadBloques; i++){
 						unaPlanificacion = list_get(nuevaReplanificacion, i);
 						printf("bloque %d asignado al nodo: %s ",
-								unaPlanificacion->bloque->numeroBloque, unaPlanificacion->nodo->idNodo);
+								unaPlanificacion->bloque->numero_bloque, unaPlanificacion->nodo->idNodo);
 						printf("con disponibilidad: %d y reduccionGlobal: %d \n",
 								unaPlanificacion->nodo->disponibilidad, unaPlanificacion->reduccionGlobal);
 					}
@@ -240,10 +240,10 @@ void inicializarNodoTest(t_nodo* nodo, char* id){
 	nodo->disponibilidad = 0;
 }
 
-void inicializarBloque(t_nodo* nodo, t_bloque* bloque, int numeroBloque){
-	bloque->numeroBloque = numeroBloque;
+void inicializarBloque(t_nodo* nodo, t_bloque* bloque, int numero_bloque){
+	bloque->numero_bloque = numero_bloque;
 	strcpy(bloque->idNodo, nodo->idNodo);
-	printf("el nodo %s tiene un bloque en el lugar %d\n", nodo->idNodo, bloque->numeroBloque);
+	printf("el nodo %s tiene un bloque en el lugar %d\n", nodo->idNodo, bloque->numero_bloque);
 }
 
 

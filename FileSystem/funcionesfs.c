@@ -1385,8 +1385,8 @@ void getNodosRelacionadosDeMetadata(char* ruta_metadata, t_list* listaNodosRelac
 		if(feof(metadata))break;
 
 		int bloque;
-		t_bloque* currentBloque;
-		currentBloque = malloc(sizeof(t_bloque));
+		t_bloque_nodo* currentBloque;
+		currentBloque = malloc(sizeof(t_bloque_nodo));
 
 		/* SECTOR COPIA 0 */
 		parametros = string_split(line,"=");
@@ -1785,7 +1785,7 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList,
 	}
 
 	void destruyoBloques(void* parametro) {
-		t_bloque* dir = (t_bloque*) parametro;
+		t_bloque_nodo* dir = (t_bloque_nodo*) parametro;
 		free(dir->Copia0);
 		free(dir->Copia1);
 		free(dir);
@@ -1821,7 +1821,7 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList,
 	int i = 0;
 	for(;i<list_size(lista_bloques);i++){
 
-		t_bloque* bloque = list_get(lista_bloques,i);
+		t_bloque_nodo* bloque = list_get(lista_bloques,i);
 		char ** parametros1 = string_get_string_as_array(bloque->Copia0);
 		t_nodo * nodo = getNodoPorNombre(parametros1[0],nodos);
 
@@ -1870,12 +1870,12 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList,
 	return 1;
 }
 
-t_bloque* getBloquePorIndex(int bloque, t_list* listaABuscar){
+t_bloque_nodo* getBloquePorIndex(int bloque, t_list* listaABuscar){
 
-	t_bloque* bloqueBuscado;
+	t_bloque_nodo* bloqueBuscado;
 
 	bool* buscaBloquePorInt(void* parametro) {
-		t_bloque* nodo = (t_bloque*) parametro;
+		t_bloque_nodo* nodo = (t_bloque_nodo*) parametro;
 		return (bloqueBuscado->bloque == bloque);
 	}
 
@@ -1905,7 +1905,7 @@ void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_li
 		int tengoUnaCopia = -1;
 
 		void destruyoBloques(void* parametro) {
-			t_bloque* dir = (t_bloque*) parametro;
+			t_bloque_nodo* dir = (t_bloque_nodo*) parametro;
 			free(dir->Copia0);
 			free(dir->Copia1);
 			free(dir);
@@ -1923,7 +1923,7 @@ void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_li
 
 		int err;
 		int err2;
-		t_bloque* bloqueBuscado = list_get(lista_bloques,bloque);//getBloquePorIndex(bloque, lista_bloques);
+		t_bloque_nodo* bloqueBuscado = list_get(lista_bloques,bloque);//getBloquePorIndex(bloque, lista_bloques);
 
 		char ** parametros1 = string_get_string_as_array(bloqueBuscado->Copia0);
 		t_nodo * nodoCopia0 = getNodoPorNombre(parametros1[0],nodos);
@@ -2066,7 +2066,7 @@ int cambioMetadata(int bloqueArch ,char* ruta_metadata, int copiaReemplazada, ch
 
 
 	for(;i<list_size(lista_bloques);i++){
-		t_bloque* bloqueBuscado = list_get(lista_bloques,i);
+		t_bloque_nodo* bloqueBuscado = list_get(lista_bloques,i);
 
 		if(bloqueBuscado->bloque == bloqueArch){
 			char* lineaReemplazada = string_new();
@@ -2105,7 +2105,7 @@ int catArchivoDeFs(char* archivoABuscar, t_list* folderList){
 	}
 
 	void destruyoBloques(void* parametro) {
-		t_bloque* dir = (t_bloque*) parametro;
+		t_bloque_nodo* dir = (t_bloque_nodo*) parametro;
 		free(dir->Copia0);
 		free(dir->Copia1);
 		free(dir);
@@ -2132,7 +2132,7 @@ int catArchivoDeFs(char* archivoABuscar, t_list* folderList){
 	int i = 0;
 	for(;i<list_size(lista_bloques);i++){
 
-		t_bloque* bloque = list_get(lista_bloques,i);
+		t_bloque_nodo* bloque = list_get(lista_bloques,i);
 		char ** parametros1 = string_get_string_as_array(bloque->Copia0);
 		t_nodo * nodo = getNodoPorNombre(parametros1[0],nodos);
 		unsigned char * buff;
@@ -2213,8 +2213,8 @@ t_list * obtener_lista_metadata(char * ruta_metadata){
 		if(feof(metadata))break;
 
 		int bloque;
-		t_bloque* currentBloque;
-		currentBloque = malloc(sizeof(t_bloque));
+		t_bloque_nodo* currentBloque;
+		currentBloque = malloc(sizeof(t_bloque_nodo));
 
 		/* SECTOR COPIA 0 */
 		parametros = string_split(line,"=");
@@ -2290,8 +2290,8 @@ t_list * obtener_lista_metadata_para_imprimir(char * ruta_metadata){
 		if(feof(metadata))break;
 
 		int bloque;
-		t_bloque* currentBloque;
-		currentBloque = malloc(sizeof(t_bloque));
+		t_bloque_nodo* currentBloque;
+		currentBloque = malloc(sizeof(t_bloque_nodo));
 
 		/* SECTOR COPIA 0 */
 		parametros = string_split(line,"=");
@@ -2360,7 +2360,7 @@ void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList){
 	}
 
 	void destruyoBloques(void* parametro) {
-		t_bloque* dir = (t_bloque*) parametro;
+		t_bloque_nodo* dir = (t_bloque_nodo*) parametro;
 		free(dir->Copia0);
 		free(dir->Copia1);
 		free(dir);
@@ -2385,7 +2385,7 @@ void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList){
 	for(;i<list_size(lista_bloques);i++){
 		t_bitarray* t_fs_bitmap;
 		t_bitarray* t_fs_bitmap2;
-		t_bloque* bloque = list_get(lista_bloques,i);
+		t_bloque_nodo* bloque = list_get(lista_bloques,i);
 
 		char ** parametros1 = string_get_string_as_array(bloque->Copia0);
 		t_nodo * nodo = getNodoPorNombre(parametros1[0],nodos);
@@ -2429,7 +2429,7 @@ void removerBloque(char* archivoABuscar, int bloque, int numeroDeCopia, t_list* 
 	int carpeta = identificaDirectorio(archivoABuscar, folderList);
 
 	void destruyoBloques(void* parametro) {
-		t_bloque* dir = (t_bloque*) parametro;
+		t_bloque_nodo* dir = (t_bloque_nodo*) parametro;
 		free(dir->Copia0);
 		free(dir->Copia1);
 		free(dir);
@@ -2452,7 +2452,7 @@ void removerBloque(char* archivoABuscar, int bloque, int numeroDeCopia, t_list* 
 
 	t_bitarray* t_fs_bitmap;
 
-	t_bloque* bloqueArc = list_get(lista_bloques,bloque);
+	t_bloque_nodo* bloqueArc = list_get(lista_bloques,bloque);
 	if(numeroDeCopia == 0){
 		char ** parametros1 = string_get_string_as_array(bloqueArc->Copia0);
 		t_nodo * nodo = getNodoPorNombre(parametros1[0],nodos);
@@ -2790,7 +2790,7 @@ void deserializarDato(void* dato, char* buffer, int size, int* offset){
 	*offset += size;
 }
 
-char* serializar_un_bloque(t_bloque_serializado* unBloque){
+char* serializar_un_bloque(t_bloque* unBloque){
 	int offset = 0;
 	uint32_t tamanioBloque = getLongitud_bloques(1);
 
@@ -2806,8 +2806,8 @@ char* serializar_un_bloque(t_bloque_serializado* unBloque){
 }
 
 
-char* serialize_blocks(t_bloque_serializado** bloques, uint32_t item_cantidad){
-	t_bloque_serializado* aux_bloques = *bloques;
+char* serialize_blocks(t_bloque** bloques, uint32_t item_cantidad){
+	t_bloque* aux_bloques = *bloques;
 	uint32_t total_size = getLongitud_bloques(item_cantidad);
 	char *serializedPackage = malloc(sizeof(char)*total_size);
 
@@ -2876,7 +2876,7 @@ char* serializar_bloques(t_bloques_enviados* bloques, uint32_t* id_master, uint3
 /******************************** deserealizacion by agus *****************************/
 
 t_bloques_enviados* deserializarBloques(char* serialized, uint32_t* idMaster){
-	t_bloques_enviados* bloquesRecibidos = malloc(sizeof(t_bloque_serializado));
+	t_bloques_enviados* bloquesRecibidos = malloc(sizeof(t_bloques_enviados));
 	int offset = 0;
 
 	/**obtengo id del master **/
@@ -2918,8 +2918,8 @@ t_bloques_enviados* deserializarBloques(char* serialized, uint32_t* idMaster){
 	return bloquesSerializados;
 }*/
 
-t_bloque_serializado* deserializar_bloque_serializado(char* serialized){
-	t_bloque_serializado* bloqueSerializado = malloc(sizeof(t_bloque_serializado));
+t_bloque* deserializar_bloque_serializado(char* serialized){
+	t_bloque* bloqueSerializado = malloc(sizeof(t_bloque));
 	int offset = 0;
 
 	deserializarDato(&(bloqueSerializado->numero_bloque),serialized,sizeof(uint32_t),&offset);
@@ -2949,8 +2949,8 @@ int serializar_y_enviar_yama(t_bloques_enviados* bloques, uint32_t id_master, in
 	return enviados;
 }
 
-t_bloque_serializado* crearBloqueSerializado(uint32_t numeroBloque, uint32_t bytesOcupados, char* ip, uint32_t puerto, char* idNodo, uint32_t idBloque){
-	t_bloque_serializado *bloque = malloc(sizeof(t_bloque_serializado));
+t_bloque* crearBloqueSerializado(uint32_t numeroBloque, uint32_t bytesOcupados, char* ip, uint32_t puerto, char* idNodo, uint32_t idBloque){
+	t_bloque *bloque = malloc(sizeof(t_bloque));
 	bloque->numero_bloque = numeroBloque;
 	bloque->bytes_ocupados = bytesOcupados;
 	strcpy(bloque->ip,ip);
@@ -2960,7 +2960,7 @@ t_bloque_serializado* crearBloqueSerializado(uint32_t numeroBloque, uint32_t byt
 	return bloque;
 }
 
-void agregarBloqueSerializado(t_bloques_enviados* bloquesEnviados, t_bloque_serializado* bloqueAAgregar){
+void agregarBloqueSerializado(t_bloques_enviados* bloquesEnviados, t_bloque* bloqueAAgregar){
 	//bloquesEnviados->lista_bloques = realloc(bloquesEnviados->lista_bloques,sizeof(t_bloque_serializado)*(bloquesEnviados->cantidad_bloques+1));
 	bloquesEnviados->lista_bloques[bloquesEnviados->cantidad_bloques].numero_bloque=(bloqueAAgregar->numero_bloque);
 	bloquesEnviados->lista_bloques[bloquesEnviados->cantidad_bloques].bytes_ocupados=(bloqueAAgregar->bytes_ocupados);
@@ -3050,12 +3050,12 @@ void procesarSolicitudYama(void* args){
 
 	t_bloques_enviados* bloquesEnviados;
 	bloquesEnviados = malloc(sizeof(t_bloques_enviados));
-	bloquesEnviados->lista_bloques = malloc(sizeof(t_bloque_serializado)*size*2);
+	bloquesEnviados->lista_bloques = malloc(sizeof(t_bloque)*size*2);
 	bloquesEnviados->cantidad_bloques = 0;
 
 	for(;i < list_size(lista_bloques);i++){
 
-		t_bloque* bloque = list_get(lista_bloques,i);
+		t_bloque_nodo* bloque = list_get(lista_bloques,i);
 		parametros1 = string_get_string_as_array(bloque->Copia0);
 		t_nodo* nodo1 = getNodoPorNombre(parametros1[0],nodos);
 
@@ -3063,7 +3063,7 @@ void procesarSolicitudYama(void* args){
 
 		printf("numero bloque A: %d\n", nroBloque);
 
-		t_bloque_serializado* bloqueAAgregar1 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo1->ip, nodo1->puerto, nodo1->nombre_nodo, bloque->bloque);
+		t_bloque* bloqueAAgregar1 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo1->ip, nodo1->puerto, nodo1->nombre_nodo, bloque->bloque);
 		agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar1);
 
 
@@ -3074,7 +3074,7 @@ void procesarSolicitudYama(void* args){
 
 		printf("numero bloque B: %d\n", nroBloque);
 
-		t_bloque_serializado* bloqueAAgregar2 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo2->ip, nodo2->puerto, nodo2->nombre_nodo, bloque->bloque);
+		t_bloque* bloqueAAgregar2 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo2->ip, nodo2->puerto, nodo2->nombre_nodo, bloque->bloque);
 		agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar2);
 
 	}
@@ -3112,8 +3112,8 @@ char* serializarBloquesEnviados(t_bloques_enviados* bloques, uint32_t* id_master
 	return serializedPackage;
 }
 
-char* serializar_lista_bloques(t_bloque_serializado** lista_bloques, uint32_t item_cantidad){
-	t_bloque_serializado* aux_lista_bloques = *lista_bloques;
+char* serializar_lista_bloques(t_bloque** lista_bloques, uint32_t item_cantidad){
+	t_bloque* aux_lista_bloques = *lista_bloques;
 	uint32_t total_size = getLong_bloques_serializados(aux_lista_bloques, item_cantidad);
 	char *serializedPackage = malloc(sizeof(char)*total_size);
 
@@ -3140,7 +3140,7 @@ uint32_t getLong_BloquesEnviados(t_bloques_enviados* bloquesEnviados){
 	return total_size;
 }
 
-uint32_t getLong_bloques_serializados(t_bloque_serializado* bloques_serializados, uint32_t item_cantidad){
+uint32_t getLong_bloques_serializados(t_bloque* bloques_serializados, uint32_t item_cantidad){
 	uint32_t total = 0;
 	int i;
 	for(i=0; i<item_cantidad; i++){
@@ -3150,7 +3150,7 @@ uint32_t getLong_bloques_serializados(t_bloque_serializado* bloques_serializados
 	return total;
 }
 
-uint32_t getLong_one_bloque_serializado(t_bloque_serializado* bloques_serializados){
+uint32_t getLong_one_bloque_serializado(t_bloque* bloques_serializados){
 	uint32_t longitud = 0;
 	longitud += sizeof(uint32_t)*4;
 	longitud += sizeof(char[LENGTH_IP]); //ip_worker,
@@ -3158,7 +3158,7 @@ uint32_t getLong_one_bloque_serializado(t_bloque_serializado* bloques_serializad
 	return longitud;
 }
 
-char* serializar_bloque_serializado(t_bloque_serializado* bloque_serializado){
+char* serializar_bloque_serializado(t_bloque* bloque_serializado){
 	uint32_t total_size = getLong_one_bloque_serializado(bloque_serializado);
 	char *serializedPackage = malloc(sizeof(char)*total_size);
 
@@ -3192,20 +3192,20 @@ t_bloques_enviados* deserializar_bloques_enviados(char* serialized, uint32_t* id
 	return bloquesEnviados;
 }
 
-t_bloque_serializado* deserializar_bloques_serializados(char* serialized, uint32_t items_cantidad){
+t_bloque* deserializar_bloques_serializados(char* serialized, uint32_t items_cantidad){
 	int offset = 0;
 
 	//item_transformacion* item_transformacion = NULL;
-	t_bloque_serializado* bloquesSerializado = malloc(sizeof(t_bloque_serializado)*items_cantidad);
+	t_bloque* bloquesSerializado = malloc(sizeof(t_bloque)*items_cantidad);
+								//= malloc(sizeof(t_bloque)*items_cantidad);
 	int i;
 	for (i = 0; i < items_cantidad; i++) {
 		uint32_t size_item;
 		deserializarDato(&(size_item),serialized,sizeof(uint32_t),&offset);
 		char* serialized_item = malloc(sizeof(char)*size_item);
 		deserializarDato(serialized_item,serialized,size_item,&offset);
-		t_bloque_serializado* aux = deserializar_bloque_serializado(serialized_item);
+		t_bloque* aux = deserializar_bloque_serializado(serialized_item);
 		bloquesSerializado[i] = *(aux);
-		free(aux);
 		free(serialized_item);
 	}
 	return bloquesSerializado;

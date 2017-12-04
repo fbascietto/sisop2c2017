@@ -17,16 +17,21 @@ int jobsID = 0;
 void crearJob(t_list* bloques, t_list* listaNodos, char* tipoAlgoritmo, int idMaster){
 	int valorBase = dispBase;
 	t_list* nuevaPrePlanificacion = prePlanificacion(bloques, valorBase, listaNodos, tipoAlgoritmo);
-	t_job* nuevoJob = malloc (sizeof(t_job));
+	t_job* nuevoJob = malloc(sizeof(t_job));
 
 	nuevoJob->idMaster = idMaster;
 	nuevoJob->idJob = jobsID;
 	nuevoJob->planificacion = nuevaPrePlanificacion;
+	nuevoJob->estadosReduccionesLocales = list_create();
+	nuevoJob->estadosTransformaciones = list_create();
+	nuevoJob->reduccionGlobal = NULL;
 	generarEstados(nuevaPrePlanificacion, nuevoJob);
 
 	jobsID++;
 
 	jobGlobal = nuevoJob;
+
+	list_add(jobsActivos, jobGlobal);
 
 }
 
@@ -42,11 +47,12 @@ void crearJob(t_list* bloques, t_list* listaNodos, char* tipoAlgoritmo, int idMa
 void generarEstados(t_list* unaPreplanificacion, t_job* job){
 	int i;
 	int tamanioPreplanificacion = list_size(unaPreplanificacion);
+	t_planificacion* unNodoPlanificado;
 
 	job->estadosReduccionesLocales = crearEstadosReduccionesLocales(unaPreplanificacion);
 
 	for(i=0; i<tamanioPreplanificacion; i++){
-		t_planificacion* unNodoPlanificado = list_get(unaPreplanificacion, i);
+		unNodoPlanificado = list_get(unaPreplanificacion, i);
 		if(unNodoPlanificado->reduccionGlobal == 0){
 			list_add(job->estadosTransformaciones, crearEstadoTransformacion(unNodoPlanificado));
 		} else{
@@ -99,9 +105,10 @@ t_list* crearEstadosReduccionesLocales(t_list* unaPreplanificacion){
 	int tamanioPreplanificacion = list_size(unaPreplanificacion);
 
 
-	idNodosTransformacion = list_map(unaPreplanificacion, obtenerIdNodoPlanificado);
+	t_list* nodos = obtenerNodosUtilizados(unaPreplanificacion);
+	idNodosTransformacion = list_map(nodos, obtenerIdNodoPlanificado);
 
-	int cantidadNodos = list_size(idNodosTransformacion);
+	int cantidadNodos = list_size(nodos);
 
 	for(i=0; i<cantidadNodos; i++){
 		list_add(rutasTemporales, generarRutaTemporal());
@@ -118,6 +125,31 @@ t_list* crearEstadosReduccionesLocales(t_list* unaPreplanificacion){
 	}
 
 	return estadosReduccionesLocales;
+}
+
+t_list* obtenerNodosUtilizados(t_list* unaPreplanificacion){
+	int i, j;
+	int tamanioPreplanificacion = list_size(unaPreplanificacion);
+		t_list* nodosSinRepetir = list_create();
+		t_planificacion* nodoPlanificado;
+		t_planificacion* otroNodoPlanificado;
+
+		for (i=0; i<tamanioPreplanificacion; i++){
+			nodoPlanificado = list_get(unaPreplanificacion, i);
+			for(j=i+1; j<tamanioPreplanificacion; j++){
+			otroNodoPlanificado = list_get(unaPreplanificacion, j);
+				if(strcmp(nodoPlanificado->nodo->idNodo, otroNodoPlanificado->nodo->idNodo) == 0){
+					break;
+				}
+
+			}
+			if(strcmp(nodoPlanificado->nodo->idNodo, otroNodoPlanificado->nodo->idNodo) != 0){
+				list_add(nodosSinRepetir, nodoPlanificado);
+			}
+		}
+		list_add(nodosSinRepetir, nodoPlanificado);
+
+		return nodosSinRepetir;
 }
 
 
@@ -146,7 +178,7 @@ int obtenerIdJob(int idMaster, t_list* jobs){
 			return unJob->idJob;
 		}
 	}
-	return NULL;
+	return -1;
 }
 
 char* proximaEtapa(int etapa){
@@ -218,62 +250,62 @@ bool chequearReduccionLocalNodo(char* idWorker, int bloque, t_job* job){
 	return true;
 }
 
-/**
- *
- *	Si el nombre es incorrecto, devolver -1,
- *	caso contrario devolver 0 para transformacion
- *	si todos los nodos fueron transformados devuelve 1
- *	devolver 2 para reduccion local
- *	devolver 3 para reduccion global
- */
-int cambiarEtapaOK(char* idWorker, char* etapa, int bloque, t_job* job){
-	int i;
-	int tamanioEstados;
-	t_estado* unEstado;
-
-	if(strcmp(etapa, "transformacion") == 0){
-		tamanioEstados= list_size(job->estadosTransformaciones);
-		for (i=0; i<tamanioEstados; i++){
-			unEstado = list_get(job->estadosTransformaciones, i);
-			if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idWorker) == 0 &&
-					unEstado->nodoPlanificado->bloque->numeroBloque == bloque){
-				strncpy(unEstado->estado, "finalizado", LENGTH_FINALIZADO);
-				if(chequearReduccionLocalNodo(idWorker, bloque, job)){
-					enProcesoSiguienteEtapa(idWorker, etapa, job);
-					return 1;
-				}else{
-					return 0;
-				}
-			}
-		}
-
-	} else if(strcmp(etapa, "reduccion local") == 0){
-		tamanioEstados= list_size(job->estadosReduccionesLocales);
-		for (i=0; i<tamanioEstados; i++){
-			unEstado = list_get(job->estadosReduccionesLocales, i);
-			if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idWorker) == 0){
-				strncpy(unEstado->estado, "finalizado", LENGTH_FINALIZADO);
-				enProcesoSiguienteEtapa(idWorker, etapa, job);
-				return 1;
-			}
-		}
-	} else if(strcmp(etapa, "reduccion global") == 0){
-		strncpy(job->reduccionGlobal->estado, "finalizado", LENGTH_FINALIZADO);
-		return 2;
-	}
-
-	return -1;
-}
-
-//todo
-void respuestaWorker(char* respuesta, int bloque, char* etapa, int idWorker, int idJob){
-	t_job* job = obtenerJob(idJob, jobsActivos);
-	if (strcmp(respuesta, "finalizado") == 0){
-		cambiarEtapaOK(idWorker, etapa, bloque, job);
-	}else {
-		//falloWorker(idWorker, etapa, bloque, job);
-	}
-}
+///**
+// *
+// *	Si el nombre es incorrecto, devolver -1,
+// *	caso contrario devolver 0 para transformacion
+// *	si todos los nodos fueron transformados devuelve 1
+// *	devolver 2 para reduccion local
+// *	devolver 3 para reduccion global
+// */
+//int cambiarEtapaOK(char* idWorker, char* etapa, int bloque, t_job* job){
+//	int i;
+//	int tamanioEstados;
+//	t_estado* unEstado;
+//
+//	if(strcmp(etapa, "transformacion") == 0){
+//		tamanioEstados= list_size(job->estadosTransformaciones);
+//		for (i=0; i<tamanioEstados; i++){
+//			unEstado = list_get(job->estadosTransformaciones, i);
+//			if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idWorker) == 0 &&
+//					unEstado->nodoPlanificado->bloque->numero_bloque == bloque){
+//				strncpy(unEstado->estado, "finalizado", LENGTH_FINALIZADO);
+//				if(chequearReduccionLocalNodo(idWorker, bloque, job)){
+//					enProcesoSiguienteEtapa(idWorker, etapa, job);
+//					return 1;
+//				}else{
+//					return 0;
+//				}
+//			}
+//		}
+//
+//	} else if(strcmp(etapa, "reduccion local") == 0){
+//		tamanioEstados= list_size(job->estadosReduccionesLocales);
+//		for (i=0; i<tamanioEstados; i++){
+//			unEstado = list_get(job->estadosReduccionesLocales, i);
+//			if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idWorker) == 0){
+//				strncpy(unEstado->estado, "finalizado", LENGTH_FINALIZADO);
+//				enProcesoSiguienteEtapa(idWorker, etapa, job);
+//				return 1;
+//			}
+//		}
+//	} else if(strcmp(etapa, "reduccion global") == 0){
+//		strncpy(job->reduccionGlobal->estado, "finalizado", LENGTH_FINALIZADO);
+//		return 2;
+//	}
+//
+//	return -1;
+//}
+//
+////todo
+//void respuestaWorker(char* respuesta, int bloque, char* etapa, int idWorker, int idJob){
+//	t_job* job = obtenerJob(idJob, jobsActivos);
+//	if (strcmp(respuesta, "finalizado") == 0){
+//		cambiarEtapaOK(idWorker, etapa, bloque, job);
+//	}else {
+//		//falloWorker(idWorker, etapa, bloque, job);
+//	}
+//}
 
 t_list* obtenerBloques(t_job* job){
 	int i;
@@ -325,7 +357,6 @@ t_list* reducirBloques(t_list* bloques){
 t_list* obtenerNodosParticipantes(t_list* bloques){
 
 	t_list* nodosDeLosBloques;
-	t_bloque* unBloque;
 
 	nodosDeLosBloques = obtenerEInicializarNodosDeBloques(bloques);
 	setearNodos(nodosDeLosBloques);
@@ -346,8 +377,9 @@ t_list* obtenerEInicializarNodosDeBloques(t_list* bloques){
 	for(i=0; i<cantidadBloques; i++){
 		unBloque = list_get(bloques, i);
 		if(!estaElNodo((unBloque->idNodo), listaNodos)){
-			nuevoNodo = inicializarNodo(unBloque);
-			list_add(listaNodos, nuevoNodo);
+			list_add(listaNodos, inicializarNodo(unBloque));
+		}else{
+			agregarBloque(unBloque, listaNodos);
 		}
 	}
 
@@ -358,6 +390,8 @@ t_nodo* inicializarNodo(t_bloque* bloque){
 	t_nodo* nodo = malloc(sizeof(t_nodo));
 	nodo->bloquesAsignados = list_create();
 	strncpy(nodo->idNodo, bloque->idNodo, NOMBRE_NODO);
+	strncpy(nodo->ipWorker, bloque->ip, LENGTH_IP);
+	nodo->puerto = bloque->puerto;
 	nodo->cargaDeTrabajo = 0;
 	nodo->cargaDeTrabajoActual = 0;
 	nodo->cargaDeTrabajoHistorica = 0;
@@ -381,13 +415,27 @@ bool estaElNodo(char* id, t_list* nodos){
 	return false;
 }
 
+void agregarBloque(t_bloque* unBloque, t_list* listaNodos){
+	int i;
+		int cantidadNodos = list_size(listaNodos);
+
+		t_nodo* unNodo;
+
+		for(i=0; i<cantidadNodos; i++){
+			unNodo = list_get(listaNodos, i);
+			if(strcmp(unNodo->idNodo, unBloque->idNodo) == 0){
+				list_add(unNodo->bloquesAsignados, unBloque);
+			}
+		}
+}
+
 void setearNodos(t_list* nodos){
 
 	int i;
 	int cantidadNodos = list_size(nodos);
 
-	t_nodo* unNodo = malloc(sizeof(t_nodo));
-	t_nodo* nodoConectado = malloc(sizeof(t_nodo));
+	t_nodo* unNodo;
+	t_nodo* nodoConectado;
 
 	for(i=0; i<cantidadNodos; i++){
 		unNodo = list_get(nodos, i);
@@ -427,24 +475,21 @@ void actualizar(t_nodo* nodo, t_nodo* nodoConectado){
 	nodo->cargaDeTrabajoActual = nodoConectado->cargaDeTrabajoActual;
 	nodo->cargaDeTrabajoHistorica = nodoConectado->cargaDeTrabajoHistorica;
 	nodo->disponibilidad = nodoConectado->disponibilidad;
-	strncpy(nodo->idNodo, nodoConectado->idNodo, NOMBRE_NODO);
-	strncpy(nodo->ipWorker, nodoConectado->ipWorker, LENGTH_IP);
-	nodo->puerto = nodoConectado->puerto;
 }
 
 
 
-void actualizarValores(t_planificacion* unaPlanificacion, t_list* nodos, int cantidad){
+void actualizarValores(t_estado* unaPlanificacion, t_list* nodos, int cantidad){
 	int i;
 	int cantidadNodos = list_size(nodos);
 	t_nodo* unNodo;
 
 	for(i=0; i<cantidadNodos; i++){
 		unNodo = list_get(nodos, i);
-		if(strcmp(unaPlanificacion->nodo->idNodo, unNodo->idNodo)==0){
+		if(strcmp(unaPlanificacion->nodoPlanificado->nodo->idNodo, unNodo->idNodo)==0){
 			unNodo->cargaDeTrabajo -= cantidad;
 
-			if(unaPlanificacion->reduccionGlobal == 0){
+			if(unaPlanificacion->nodoPlanificado->reduccionGlobal == 0){
 				unNodo->disponibilidad ++;
 			}
 		}
@@ -487,7 +532,7 @@ int obtenerPosicionJob(int idJob, t_list* jobs){
 		}
 	}
 
-	return NULL;
+	return -1;
 }
 
 /*
