@@ -151,31 +151,10 @@ item_transformacion* crearItemTransformacion(char nodo[NOMBRE_NODO],char* ipWork
 	item->bytes_ocupados = bytes_ocupados;
 	strcpy(item->nodo_id, nodo);
 	strcpy(item->ip_worker,ipWorker);
-//todo cambiar a puerto   vvvvvvvvvvvvvvvvvvvvvvv
-	item->puerto_worker = puertoHardCodeado(nodo);
+	item->puerto_worker = puerto_worker;
 	return item;
 }
 
-int puertoHardCodeado(char nodo[NOMBRE_NODO]){
-	if(strcmp("NODO1", nodo) == 0){
-
-		return 6000;}
-	else if(strcmp("NODO2", nodo) == 0){
-
-		return 6001;}
-		else if(strcmp("NODO3", nodo) == 0){
-
-		return 6002;}
-		else if (strcmp("NODO4", nodo) == 0){
-
-		return 6003;}
-		else{
-		printf("le pifiaste pelotudo, aca dice %s\n"
-				"pone NODO1, NODO2, NODO3 o NODO4"
-				, nodo);
-		return 0;
-	}
-}
 
 void testSerializarSolicitudTrasnformacion(){
 
