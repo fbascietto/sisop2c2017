@@ -17,7 +17,7 @@ void enviarTransformacionWorker(void *args){
 	item_transformacion *itemTransformacion = (item_transformacion*) args;
 
 	solicitud_programa_transformacion* solicitud = malloc(sizeof(solicitud_programa_transformacion));
-	strcpy(&(solicitud->programa_transformacion),ruta_programa_transformador);
+	strcpy(&(solicitud->programa_transformacion),basename(ruta_programa_transformador));
 	char* filebuffer = fileToChar(ruta_programa_transformador);
 	//printf("file = %s\n", filebuffer );
 	solicitud->programa = filebuffer;
