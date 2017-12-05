@@ -1104,12 +1104,15 @@ void *escucharConsola(){
 				log_trace(logFS,"Consola recibe ""cat""");
 				//printf("Seleccionaste concatenar\n");
 				parametros = string_split(linea, " ");
-				if(parametros[1] == NULL){
-				printf("Faltan argumentos: cat [path] \n");
-				}else {
+				if(parametros[1] != NULL && parametros[2] != NULL){
+				int bloque = atoi(parametros[2]);
+				catBloqueArchivoDeFs(parametros[1], bloque,carpetas);
+				}else if(parametros[1] != NULL){
 				catArchivoDeFs(parametros[1], carpetas);
+				}else {
+				printf("Faltan argumentos: cat [path] \n");
 				}
-		}
+			}
 		else
 				if(!strncmp(linea, "mkdir", 5)) {
 					log_trace(logFS,"Consola recibe ""mkdir""");
@@ -1183,7 +1186,7 @@ void *escucharConsola(){
 			//printf("Seleccionaste obtener md5\n");
 			char ** parametros = string_split(linea, " ");
 
-			if(parametros[1] == NULL || parametros[2] == NULL ){
+			if(parametros[1] == NULL){
 				printf("Faltan argumentos. Para mas info use help.\n");}
 			else {
 			obtenerMD5Archivo(parametros[1], carpetas);
@@ -1662,6 +1665,10 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 			destruir_bitmap(t_fs_bitmap2);
 
 			//enviarInt(socketnodo,ENVIAR_ARCHIVO_TEXTO);
+			/*int largo= 0;
+			char * aMandar = string_new();
+			string_append(&aMandar,hastaNuevaLinea);
+			largo += strlen(hastaNuevaLinea);*/
 			int largo= 0;
 			char * aMandar = string_new();
 			string_append(&aMandar,hastaNuevaLinea);
@@ -1672,6 +1679,7 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 
 				if(largo>=1024*1024 || feof(origen)){
 					int largoAMandar = strlen(aMandar);
+					int prueba = largo - strlen(hastaNuevaLinea);
 					escribirBloque(socketnodo, bloque, aMandar, largoAMandar);
 					escribirBloque(socketnodo2, bloqueCopia, aMandar, largoAMandar);
 
@@ -1691,14 +1699,13 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 
 		}
 		else{
-
 			printf("Nodo %s desconectado", nodo->nombre_nodo);
 		}
 
 		iteration++;
 	}
 
-	free(hastaNuevaLinea);
+	// if(aMandar) free(aMandar);
 	fclose(origen);
 	fclose(metadata);
 
@@ -2137,13 +2144,15 @@ int catArchivoDeFs(char* archivoABuscar, t_list* folderList){
 		t_nodo * nodo = getNodoPorNombre(parametros1[0],nodos);
 		unsigned char * buff;
 		buff = malloc((size_t)(bloque->tamanio_bloque));
-		if(leerBloque(nodo,atoi(parametros1[1]),bloque->tamanio_bloque,buff)<=0){
+		int blcknum = atoi(parametros1[1]);
+		if(leerBloque(nodo,blcknum,bloque->tamanio_bloque,buff)<=0){
 			char ** parametros2 = string_get_string_as_array(bloque->Copia1);
 			t_nodo * nodo = getNodoPorNombre(parametros2[0],nodos);
 			string_iterate_lines(parametros1,free);
 			free(parametros1);
-			if(leerBloque(nodo,atoi(parametros2[1]),bloque->tamanio_bloque,buff)<=0){
-				string_iterate_lines(parametros2,free);
+			blcknum = atoi(parametros2[1]);
+			if(leerBloque(nodo,blcknum,bloque->tamanio_bloque,buff)<=0){
+				//string_iterate_lines(parametros2,free);
 				free(parametros2);
 				printf("No se puede recuperar bloque %d, Nodos inaccesibles:\n%s%sFS", bloque->bloque, bloque->Copia0, bloque->Copia1);
 				printf(ANSI_COLOR_BOLD ANSI_COLOR_RED " no estable" ANSI_COLOR_RESET ".\n");
@@ -2177,6 +2186,81 @@ int catArchivoDeFs(char* archivoABuscar, t_list* folderList){
 
 	return 1;
 }
+
+
+int catBloqueArchivoDeFs(char* archivoABuscar, int bloque, t_list* folderList){
+
+	if(!estaEstable()){
+		return 0;
+	}
+	void destruyoBloques(void* parametro) {
+		t_bloque_nodo* dir = (t_bloque_nodo*) parametro;
+		free(dir->Copia0);
+		free(dir->Copia1);
+		free(dir);
+	}
+
+	int carpeta = identificaDirectorio(archivoABuscar, folderList);
+	if(carpeta == -2){
+		printf("Error al traer el archivo.\n");
+		return 0;
+	}
+
+	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
+
+	t_list * lista_bloques = obtener_lista_metadata_para_imprimir(ruta_metadata);
+
+	if(lista_bloques==NULL){
+
+		free(ruta_metadata);
+		return -1;
+	}
+
+	int i = 0;
+
+	t_bloque_nodo* bloqueBuscado = list_get(lista_bloques,bloque);
+
+	char ** parametros1 = string_get_string_as_array(bloqueBuscado->Copia0);
+		t_nodo * nodo = getNodoPorNombre(parametros1[0],nodos);
+		unsigned char * buff;
+		buff = malloc((size_t)(bloqueBuscado->tamanio_bloque));
+		int blckNum = atoi(parametros1[1]);
+		if(leerBloque(nodo,blckNum,bloqueBuscado->tamanio_bloque,buff)<=0){
+			char ** parametros2 = string_get_string_as_array(bloqueBuscado->Copia1);
+			t_nodo * nodo = getNodoPorNombre(parametros2[0],nodos);
+			string_iterate_lines(parametros1,free);
+			free(parametros1);
+			blckNum = atoi(parametros2[1]);
+			if(leerBloque(nodo,blckNum,bloqueBuscado->tamanio_bloque,buff)<=0){
+				string_iterate_lines(parametros2,free);
+				free(parametros2);
+				printf("No se puede recuperar bloque %d, Nodos inaccesibles:\n%s%sFS", bloqueBuscado->bloque, bloqueBuscado->Copia0, bloqueBuscado->Copia1);
+				printf(ANSI_COLOR_BOLD ANSI_COLOR_RED " no estable" ANSI_COLOR_RESET ".\n");
+				list_destroy_and_destroy_elements(lista_bloques,destruyoBloques);
+
+
+				free(ruta_metadata);
+
+				estable = 0;
+				return -1;
+			}
+			string_iterate_lines(parametros2,free);
+			free(parametros2);
+		}else{
+			string_iterate_lines(parametros1,free);
+			free(parametros1);
+		}
+		// fprintf(destino,"%s",buff);
+		//fwrite(buff,sizeof(unsigned char),(size_t)(bloque->tamanio_bloque),destino);
+	printf(buff,"%s");
+	printf("\n");
+	free(buff);
+	list_destroy_and_destroy_elements(lista_bloques,destruyoBloques);
+	free(ruta_metadata);
+
+	return 1;
+}
+
 
 t_list * obtener_lista_metadata(char * ruta_metadata){
 

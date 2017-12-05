@@ -113,6 +113,7 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList, int md5flag);
 void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_list* folderList);
 int catArchivoDeFs(char* archivoABuscar, t_list* folderList);
+int catBloqueArchivoDeFs(char* archivoABuscar, int bloque, t_list* folderList);
 void formatFs();
 
 void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList);
