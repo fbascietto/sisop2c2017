@@ -433,6 +433,8 @@ char* fileToChar(char* filename){
 
 	close(fd);
 
+	buffer[strlen(buffer)+1] = '\0';
+
 	return buffer;
 }
 

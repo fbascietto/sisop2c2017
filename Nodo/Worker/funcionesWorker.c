@@ -158,6 +158,11 @@ void *esperarConexionesMasterYWorker(void *args) {
 
 		if (nuevoSocket != -1) {
 
+//			Package* package = createPackage();
+//			recieve_and_deserialize(package, nuevoSocket);
+//			solicitud_programa_transformacion* solicitud = deserializarSolicitudProgramaTransformacion(package->message);
+//			printf("%s", solicitud->archivo_temporal);
+
 			pid = fork();
 			if(pid == 0){
 				//proceso hijo continua la solicitud
@@ -210,10 +215,24 @@ void recibirSolicitudMaster(int nuevoSocket){
 		log_trace(worker_log, "Solicitud de transformacion recibida");
 		log_trace(worker_log, "Comienzo de transformacion");
 		solicitudTDeserializada = deserializarSolicitudProgramaTransformacion(package->message);
-		exit_code = transformacion(solicitudTDeserializada, rutaNodo);
+		char* contenido_programa = malloc(solicitudTDeserializada->length_programa + 1);
+		strcpy(contenido_programa, solicitudTDeserializada->programa);
+		solicitud_programa_transformacion solicitudT;
+		strcpy(solicitudT.archivo_temporal, solicitudTDeserializada->archivo_temporal);
+		strcpy(solicitudT.programa_transformacion, solicitudTDeserializada->programa_transformacion);
+		solicitudT.programa = contenido_programa;
+		solicitudT.bloque = solicitudTDeserializada->bloque;
+		solicitudT.bytes_ocupados = solicitudTDeserializada->bytes_ocupados;
+		solicitudT.length_programa = solicitudTDeserializada->length_programa;
+//		t_log_level slevel = LOG_LEVEL_INFO;
+//		t_log* struct_log = log_create("structlog.txt", "WORKER", 0, slevel);
+//		char* log = string_from_format("\nruta temporal: %s\nnombre script: %s\ncontenido programa: %s\nnro bloque: %d\nbytes ocupados: %d\nlongitud programa: %d", solicitudT.archivo_temporal, solicitudT.programa_transformacion, solicitudT.programa, solicitudT.bloque, solicitudT.bytes_ocupados, solicitudT.length_programa);
+//		log_info(struct_log, log);
+		exit_code = transformacion(solicitudT, rutaNodo);
 		responderSolicitudT(nuevoSocket, exit_code);
 		log_destroy(worker_log);
 		free(solicitudTDeserializada);
+		free(contenido_programa);
 		exit(0);
 		break;
 

@@ -31,7 +31,7 @@ typedef struct{
 } t_elemento;
 
 //T
-int transformacion(solicitud_programa_transformacion*, char*);
+int transformacion(solicitud_programa_transformacion, char*);
 void responderSolicitudT(int, int);
 
 //RL

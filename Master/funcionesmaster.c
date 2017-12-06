@@ -6,9 +6,9 @@
 
 double timeval_diff(struct timeval *a, struct timeval *b)
 {
-  return
-    (double)(a->tv_sec + (double)a->tv_usec/1000000) -
-    (double)(b->tv_sec + (double)b->tv_usec/1000000);
+	return
+			(double)(a->tv_sec + (double)a->tv_usec/1000000) -
+			(double)(b->tv_sec + (double)b->tv_usec/1000000);
 }
 
 void enviarTransformacionWorker(void *args){
@@ -29,9 +29,6 @@ void enviarTransformacionWorker(void *args){
 	char* serializado = serializarSolicitudProgramaTransformacion(solicitud);
 	int len = getLong_SolicitudProgramaTransformacion(solicitud);
 
-	//solicitud_programa_transformacion* deserializado = deserializarSolicitudProgramaTransformacion(serializado);
-	//printf("programa = %s\n", deserializado->programa );
-
 	int socketConn = conectarseA(itemTransformacion->ip_worker, itemTransformacion->puerto_worker);
 	enviarInt(socketConn,PROCESO_MASTER);
 	enviarMensajeSocketConLongitud(socketConn, ACCION_TRANSFORMACION, serializado, len);
@@ -39,29 +36,29 @@ void enviarTransformacionWorker(void *args){
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, socketConn);
 	switch(package->msgCode){
-		case TRANSFORMACION_OK:
-			//log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Yama");
-			enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_OK,solicitud->bloque,itemTransformacion->nodo_id);
-			break;
-		case TRANSFORMACION_ERROR_CREACION:
-			fallosEnTotal++;
-			//log_error(worker_error_log, "Se envia a Master el error de creacion del programa de transformacion");
-			enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
-			break;
-		case TRANSFORMACION_ERROR_ESCRITURA:
-			fallosEnTotal++;
-			//log_error(worker_error_log, "Se envia a Master el error de escritura del contenido del programa de transformacion");
-			enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
-			break;
-		case FSTAT_ERROR:
-			fallosEnTotal++;
-			enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
-			break;
-		case TRANSFORMACION_ERROR_PERMISOS:
-			fallosEnTotal++;
-			//log_error(worker_error_log, "Se envia a Master el error al dar permisos de ejecucion al programa de transformacion");
-			enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
-			break;
+	case TRANSFORMACION_OK:
+		//log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Yama");
+		enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_OK,solicitud->bloque,itemTransformacion->nodo_id);
+		break;
+	case TRANSFORMACION_ERROR_CREACION:
+		fallosEnTotal++;
+		//log_error(worker_error_log, "Se envia a Master el error de creacion del programa de transformacion");
+		enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
+		break;
+	case TRANSFORMACION_ERROR_ESCRITURA:
+		fallosEnTotal++;
+		//log_error(worker_error_log, "Se envia a Master el error de escritura del contenido del programa de transformacion");
+		enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
+		break;
+	case FSTAT_ERROR:
+		fallosEnTotal++;
+		enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
+		break;
+	case TRANSFORMACION_ERROR_PERMISOS:
+		fallosEnTotal++;
+		//log_error(worker_error_log, "Se envia a Master el error al dar permisos de ejecucion al programa de transformacion");
+		enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
+		break;
 	}
 	gettimeofday(&end, NULL);
 	double secs = timeval_diff(&end, &init);
@@ -121,25 +118,25 @@ void enviarReduccionLocalWorker(void *args){
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, socketConn);
 	switch(package->msgCode){
-		case REDUCCION_LOCAL_OK:
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_OK,itemRedLocal->nodo_id);
-			break;
-		case REDUCCION_LOCAL_ERROR_CREACION:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
-			break;
-		case REDUCCION_LOCAL_ERROR_ESCRITURA:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
-			break;
-		case REDUCCION_LOCAL_ERROR_SYSTEM:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
-			break;
-		case REDUCCION_LOCAL_ERROR_PERMISOS:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
-			break;
+	case REDUCCION_LOCAL_OK:
+		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_OK,itemRedLocal->nodo_id);
+		break;
+	case REDUCCION_LOCAL_ERROR_CREACION:
+		fallosEnTotal++;
+		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
+		break;
+	case REDUCCION_LOCAL_ERROR_ESCRITURA:
+		fallosEnTotal++;
+		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
+		break;
+	case REDUCCION_LOCAL_ERROR_SYSTEM:
+		fallosEnTotal++;
+		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
+		break;
+	case REDUCCION_LOCAL_ERROR_PERMISOS:
+		fallosEnTotal++;
+		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
+		break;
 	}
 	gettimeofday(&end, NULL);
 	double secs = timeval_diff(&end, &init);
@@ -175,29 +172,29 @@ void enviarReduccionGlobalWorker(void *args){
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, socketConn);
 	switch(package->msgCode){
-		case REDUCCION_GLOBAL_OK:
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_OK,solicitudRedGlobal->encargado_worker->nodo_id);
-			break;
-		case REDUCCION_GLOBAL_ERROR_CREACION:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
-			break;
-		case REDUCCION_GLOBAL_ERROR_ESCRITURA:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
-			break;
-		case REDUCCION_GLOBAL_ERROR_APAREO:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
-			break;
-		case REDUCCION_GLOBAL_ERROR_SYSTEM:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
-			break;
-		case REDUCCION_GLOBAL_ERROR_PERMISOS:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
-			break;
+	case REDUCCION_GLOBAL_OK:
+		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_OK,solicitudRedGlobal->encargado_worker->nodo_id);
+		break;
+	case REDUCCION_GLOBAL_ERROR_CREACION:
+		fallosEnTotal++;
+		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
+		break;
+	case REDUCCION_GLOBAL_ERROR_ESCRITURA:
+		fallosEnTotal++;
+		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
+		break;
+	case REDUCCION_GLOBAL_ERROR_APAREO:
+		fallosEnTotal++;
+		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
+		break;
+	case REDUCCION_GLOBAL_ERROR_SYSTEM:
+		fallosEnTotal++;
+		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
+		break;
+	case REDUCCION_GLOBAL_ERROR_PERMISOS:
+		fallosEnTotal++;
+		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
+		break;
 	}
 
 	gettimeofday(&end, NULL);
@@ -215,10 +212,12 @@ void procesarSolicitudTransformacion(int socket, int message_long, char* message
 		cantidadMayorTransformacion = solicitudTransfDeserializada->item_cantidad;
 	}
 	for (var = 0; var < solicitudTransfDeserializada->item_cantidad; ++var) {
-		item_transformacion* itemTransformacion = malloc(sizeof(item_transformacion));
-		itemTransformacion = &(solicitudTransfDeserializada->items_transformacion[var]);
+		//		item_transformacion* itemTransformacion = malloc(sizeof(item_transformacion));
+		//		itemTransformacion = &(solicitudTransfDeserializada->items_transformacion[var]);
 		pthread_t threadSolicitudTransformacionWorker;
-		int er1 = pthread_create(&threadSolicitudTransformacionWorker, NULL,enviarTransformacionWorker,(void*) itemTransformacion);
+		int er1 =
+				pthread_create(&threadSolicitudTransformacionWorker, NULL,enviarTransformacionWorker, &(solicitudTransfDeserializada->items_transformacion[var]));
+		//		int er1 = pthread_create(&threadSolicitudTransformacionWorker, NULL,enviarTransformacionWorker,(void*) itemTransformacion);
 		//enviarTransformacionWorker((void*) itemTransformacion);
 		//pthread_join(threadSolicitudTransformacionWorker, NULL);
 	}
@@ -231,10 +230,11 @@ void procesarSolicitudReduccionLocal(int socket, int message_long, char* message
 		cantidadMayorReduccionLocal = solicitudReducLocalDeserializado->item_cantidad;
 	}
 	for (var = 0; var < solicitudReducLocalDeserializado->item_cantidad; ++var) {
-		item_reduccion_local* itemRedLocal = malloc(sizeof(item_reduccion_local));
-		itemRedLocal = &(solicitudReducLocalDeserializado->items_reduccion_local[var]);
+//		item_reduccion_local* itemRedLocal = malloc(sizeof(item_reduccion_local));
+//		itemRedLocal = &(solicitudReducLocalDeserializado->items_reduccion_local[var]);
 		pthread_t threadSolicitudRedLocalWorker;
-		int er1 = pthread_create(&threadSolicitudRedLocalWorker, NULL,enviarReduccionLocalWorker,(void*) itemRedLocal);
+		int er1 =
+				pthread_create(&threadSolicitudRedLocalWorker, NULL,enviarReduccionLocalWorker,&(solicitudReducLocalDeserializado->items_reduccion_local[var]));
 		//enviarReduccionLocalWorker((void*) itemRedLocal);
 		//pthread_join(threadSolicitudTransformacionWorker, NULL);
 	}

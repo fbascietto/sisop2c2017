@@ -13,7 +13,7 @@
 #include "../../bibliotecas/sockets.h"
 #include "../../bibliotecas/protocolo.h"
 
-int transformacion(solicitud_programa_transformacion* solicitudDeserializada, char* rutaNodo){
+int transformacion(solicitud_programa_transformacion solicitudDeserializada, char* rutaNodo){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
@@ -28,7 +28,7 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada, ch
 	int retorno;
 
 	//persisto el programa transformador
-	retorno = persistirPrograma(solicitudDeserializada->programa_transformacion, solicitudDeserializada->programa);
+	retorno = persistirPrograma(solicitudDeserializada.programa_transformacion, solicitudDeserializada.programa);
 	if(retorno == -1 || retorno == -2 || retorno == -10){
 		log_destroy(worker_log);
 		log_destroy(worker_error_log);
@@ -58,13 +58,13 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada, ch
 	}
 
 	unsigned char* map =
-			(unsigned char*) mmap(NULL, filestat.st_size, PROT_READ, MAP_SHARED, fd, sizeof(unsigned char)*solicitudDeserializada->bloque*TAMANIO_BLOQUE);
+			(unsigned char*) mmap(NULL, filestat.st_size, PROT_READ, MAP_SHARED, fd, sizeof(unsigned char)*solicitudDeserializada.bloque*TAMANIO_BLOQUE);
 
 	//buffer donde pongo datos que leo del bloque del data.bin
-	char* buffer = malloc(solicitudDeserializada->bytes_ocupados);
+	char* buffer = malloc(solicitudDeserializada.bytes_ocupados);
 	int i;
 
-	for(i = 0; i<solicitudDeserializada->bytes_ocupados; i++){
+	for(i = 0; i<solicitudDeserializada.bytes_ocupados; i++){
 
 		buffer[i] = map[i];
 
@@ -78,7 +78,7 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada, ch
 
 	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
 	char* s = string_from_format("printf \"%s\" | .\"/scripts/%s\" | sort > \"%s\"", buffer,
-			solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
+			solicitudDeserializada.programa_transformacion, solicitudDeserializada.archivo_temporal);
 	free(buffer);
 	retorno = system(s);
 	if(retorno == -1){
