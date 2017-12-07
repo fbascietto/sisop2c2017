@@ -29,12 +29,6 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 	//retorno de la funcion que persiste el programa de reduccion
 	int retorno;
 
-	//persisto el programa reductor
-	retorno = persistirPrograma(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa);
-	if(retorno != 0){
-		return retorno;
-	}
-
 	t_list* lista_de_RG = list_create();
 
 	//preparacion para aparear

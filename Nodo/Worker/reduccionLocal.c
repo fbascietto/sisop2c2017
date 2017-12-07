@@ -20,13 +20,6 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 	//retorno de la funcion que persiste el programa de reduccion
 	int retorno;
 
-	//persisto el programa reductor
-	retorno = persistirPrograma(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa);
-	if(retorno == -1 || retorno == -2 || retorno == -10){
-		log_destroy(worker_error_log);
-		return retorno;
-	}
-
 	int i;
 	char* buffer = string_new();
 	string_append(&buffer, "cat");

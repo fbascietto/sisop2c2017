@@ -13,7 +13,7 @@
 #include "../../bibliotecas/sockets.h"
 #include "../../bibliotecas/protocolo.h"
 
-int transformacion(solicitud_programa_transformacion solicitudDeserializada, char* rutaNodo){
+int transformacion(solicitud_programa_transformacion* solicitudDeserializada, char* rutaNodo){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
@@ -26,14 +26,6 @@ int transformacion(solicitud_programa_transformacion solicitudDeserializada, cha
 
 	//retorno de la funcion que persiste el programa de transformacion
 	int retorno;
-
-	//persisto el programa transformador
-	retorno = persistirPrograma(solicitudDeserializada.programa_transformacion, solicitudDeserializada.programa);
-	if(retorno == -1 || retorno == -2 || retorno == -10){
-		log_destroy(worker_log);
-		log_destroy(worker_error_log);
-		return retorno;
-	}
 
 	//abro el data.bin
 	f1 = fopen (rutaNodo, "rb");
@@ -58,13 +50,13 @@ int transformacion(solicitud_programa_transformacion solicitudDeserializada, cha
 	}
 
 	unsigned char* map =
-			(unsigned char*) mmap(NULL, filestat.st_size, PROT_READ, MAP_SHARED, fd, sizeof(unsigned char)*solicitudDeserializada.bloque*TAMANIO_BLOQUE);
+			(unsigned char*) mmap(NULL, filestat.st_size, PROT_READ, MAP_SHARED, fd, sizeof(unsigned char)*solicitudDeserializada->bloque*TAMANIO_BLOQUE);
 
 	//buffer donde pongo datos que leo del bloque del data.bin
-	char* buffer = malloc(solicitudDeserializada.bytes_ocupados);
+	char* buffer = malloc(solicitudDeserializada->bytes_ocupados);
 	int i;
 
-	for(i = 0; i<solicitudDeserializada.bytes_ocupados; i++){
+	for(i = 0; i<solicitudDeserializada->bytes_ocupados; i++){
 
 		buffer[i] = map[i];
 
@@ -76,20 +68,34 @@ int transformacion(solicitud_programa_transformacion solicitudDeserializada, cha
 
 	fclose(f1);
 
-	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
-	char* s = string_from_format("printf \"%s\" | .\"/scripts/%s\" | sort > \"%s\"", buffer,
-			solicitudDeserializada.programa_transformacion, solicitudDeserializada.archivo_temporal);
+	//temporal para guardar contenido porque el buffer es muy grande para el system
+	char* new = string_new();
+
+	string_append(&new, basename(solicitudDeserializada->archivo_temporal));
+
+	FILE* f_aux = fopen(new, "w");
+
+	fwrite(buffer, 1, strlen(buffer), f_aux);
+
+	fclose(f_aux);
+
 	free(buffer);
+
+	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
+	char* s = string_from_format("cat \"%s\" | .\"/scripts/%s\" | sort > \"%s\"", new,
+			solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
 	retorno = system(s);
 	if(retorno == -1){
 		log_error(worker_error_log, "No se pudo realizar la transformacion");
 		log_destroy(worker_log);
 		log_destroy(worker_error_log);
+		free(new);
 		free(s);
 		return -10;
 	}
 
 	free(s);
+	free(new);
 
 	log_trace(worker_log, "Transformacion de bloque finalizada");
 	log_destroy(worker_log);
