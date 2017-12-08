@@ -35,6 +35,9 @@ void enviarTransformacionWorker(void *args){
 
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, socketConn);
+
+	printf("Socket %d. Numero de mensaje: %d\n", socketConn, package->msgCode);
+
 	switch(package->msgCode){
 	case TRANSFORMACION_OK:
 		//log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Yama");

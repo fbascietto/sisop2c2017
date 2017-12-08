@@ -3062,6 +3062,7 @@ void procesarSolicitudYama(void* args){
 		nroBloque = atoi(parametros1[1]);
 
 		printf("numero bloque A: %d\n", nroBloque);
+		printf("puerto del worker(?): %d", nodo1->puerto);
 
 		t_bloque* bloqueAAgregar1 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo1->ip, nodo1->puerto, nodo1->nombre_nodo, bloque->bloque);
 		agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar1);
@@ -3073,6 +3074,7 @@ void procesarSolicitudYama(void* args){
 		nroBloque = atoi(parametros2[1]);
 
 		printf("numero bloque B: %d\n", nroBloque);
+		printf("puerto del worker(?): %d", nodo1->puerto);
 
 		t_bloque* bloqueAAgregar2 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo2->ip, nodo2->puerto, nodo2->nombre_nodo, bloque->bloque);
 		agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar2);

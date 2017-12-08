@@ -34,7 +34,7 @@ void testSerializarSolicitudTrasnformacion();
 void testSerializarItemTransformacion();
 
 /*SERIALIZACION DE SOLICUTUD REDUCCION LOCAL*/
-char* serializarSolicitudReduccionLocal(solicitud_reduccion_local* solicitudReduccionLocal);
+char* serializarSolicitudReduccionLocal(item_reduccion_local* solicitudReduccionLocal);
 char* serializar_items_reduccion_local(item_reduccion_local** items_reduccion_local, uint32_t item_cantidad);
 char* serializar_item_reduccion_local(item_reduccion_local* item_reduccion_local);
 

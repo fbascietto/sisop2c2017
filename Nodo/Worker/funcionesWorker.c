@@ -158,14 +158,10 @@ void *esperarConexionesMasterYWorker(void *args) {
 
 		if (nuevoSocket != -1) {
 
-			//			Package* package = createPackage();
-			//			recieve_and_deserialize(package, nuevoSocket);
-			//			solicitud_programa_transformacion* solicitud = deserializarSolicitudProgramaTransformacion(package->message);
-			//			printf("%s", solicitud->archivo_temporal);
-
 			pid = fork();
 			if(pid == 0){
 				//proceso hijo continua la solicitud
+				printf("Numero socket: %d\n", nuevoSocket);
 				recibirInt(nuevoSocket,&cliente);
 				switch(cliente){
 

@@ -113,6 +113,8 @@ void responderSolicitudT(int socket, int exit_code){
 	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
+	printf("Numero socket: %d. Exit code: %d\n", socket, exit_code);
+
 	switch(exit_code){
 
 	case 0:

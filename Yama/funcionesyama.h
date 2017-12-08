@@ -107,7 +107,7 @@ void recargarConfiguracion(int signal);
 void hacerPedidoDeTransformacionYRL();
 
 solicitud_transformacion* obtenerSolicitudTrasnformacion(t_job* job);
-solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job);
+item_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job, char idNodo[NOMBRE_NODO]);
 solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job);
 solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_job* job);
 

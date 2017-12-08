@@ -301,7 +301,7 @@ solicitud_transformacion* obtenerSolicitudTrasnformacion(t_job* job){
 	//return obtenerSolicitudTrasnformacionMock(message);
 }
 
-item_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job, char idNodo[NOMBRE_NODO]){ // t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasTransformacionTemporales, char* rutaReduccion){
+item_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job, char idNodo[NOMBRE_NODO]){
 
 	int i;
 	int j;
