@@ -301,38 +301,42 @@ solicitud_transformacion* obtenerSolicitudTrasnformacion(t_job* job){
 	//return obtenerSolicitudTrasnformacionMock(message);
 }
 
-solicitud_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job){ // t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasTransformacionTemporales, char* rutaReduccion){
+item_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job, char idNodo[NOMBRE_NODO]){ // t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasTransformacionTemporales, char* rutaReduccion){
 
 	int i;
 	int j;
 	int k;
 	t_estado* unEstado;
-	t_estado* estadoAux;
 	archivo_temp* listaRutasTransformacion;
 	int tamanioTransformacion = list_size(job->estadosTransformaciones);
 	int tamanioReduccionLocal = list_size(job->estadosReduccionesLocales);
 
-	solicitud_reduccion_local* solicitud = malloc(sizeof(solicitud_reduccion_local));
 	item_reduccion_local* item = malloc(sizeof(item_reduccion_local));
+
+	k=0;
+	for(j=0; j < tamanioTransformacion; j++){
+		unEstado = list_get(job->estadosTransformaciones, j);
+		if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idNodo) == 0){
+		listaRutasTransformacion = realloc(listaRutasTransformacion, sizeof(archivo_temp) * (k+1));
+		strncpy(listaRutasTransformacion[k].archivo_temp, unEstado->archivoTemporal, LENGTH_RUTA_ARCHIVO_TEMP);
+		k++;
+		}
+	}
 
 	for(i=0; i<tamanioReduccionLocal ;i++){
 		unEstado = list_get(job->estadosReduccionesLocales, i);
-		k=0;
-		for(j=0; j < tamanioTransformacion; j++){
-			estadoAux = list_get(job->estadosTransformaciones, j);
-			listaRutasTransformacion = realloc(listaRutasTransformacion, sizeof(archivo_temp) * (k+1));
-			strncpy(listaRutasTransformacion[k].archivo_temp, estadoAux->archivoTemporal, LENGTH_RUTA_ARCHIVO_TEMP);
-			k++;
+		if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idNodo) == 0){
+			break;
 		}
-		item = crearItemReduccionLocal(unEstado->nodoPlanificado->nodo->idNodo,
-				unEstado->nodoPlanificado->nodo->ipWorker,
-				unEstado->nodoPlanificado->nodo->puerto,
-				unEstado->archivoTemporal);
-		item->archivos_temporales_transformacion = listaRutasTransformacion;
-		agregarItemReduccionLocal(solicitud, item);
-
 	}
-	return solicitud;
+
+	item = crearItemReduccionLocal(unEstado->nodoPlanificado->nodo->idNodo,
+			unEstado->nodoPlanificado->nodo->ipWorker,
+			unEstado->nodoPlanificado->nodo->puerto,
+			unEstado->archivoTemporal);
+	item->archivos_temporales_transformacion = listaRutasTransformacion;
+	item->cantidad_archivos_temp = k;
+	return item;
 	//return obtenerSolicitudReduccionLocalMock(message);
 }
 
@@ -417,9 +421,9 @@ void procesarResultadoTransformacion(int nuevoSocket, Package* package, uint32_t
 			/* (v) */
 
 			t_job* job = obtenerJob(idJob, jobsActivos);
-			solicitud_reduccion_local* solicitudTransformacion = obtenerSolicitudReduccionLocal(job);
-			char* solicitudSerializado = serializarSolicitudReduccionLocal(solicitudTransformacion);
-			uint32_t longitud = getLong_SolicitudReduccionLocal(solicitudTransformacion);
+			item_reduccion_local* itemReduccion = obtenerSolicitudReduccionLocal(job, idNodo);
+			char* solicitudSerializado = serializar_item_reduccion_local(itemReduccion);
+			uint32_t longitud = getLong_one_item_reduccion_local(itemReduccion);
 			int enviados = enviarMensajeSocketConLongitud(nuevoSocket,ACCION_PROCESAR_REDUCCION_LOCAL,solicitudSerializado,longitud);
 
 		}

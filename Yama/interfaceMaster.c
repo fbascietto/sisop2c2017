@@ -227,23 +227,21 @@ void testSerializarItemTransformacion(){
 	printf("puerto_worker = %d\n", itemDeserializado->puerto_worker );
 }
 
-char* serializarSolicitudReduccionLocal(solicitud_reduccion_local* solicitudReduccionLocal){
+char* serializarSolicitudReduccionLocal(item_reduccion_local* solicitudReduccionLocal){
 
-	uint32_t total_size = getLong_SolicitudReduccionLocal(solicitudReduccionLocal);
+	uint32_t size_item = getLong_one_item_reduccion_local(solicitudReduccionLocal);
 
-	char *serializedPackage = malloc(total_size);
+	char *serializedPackage = malloc(size_item);
+	char* serialized_items = serializar_item_reduccion_local(solicitudReduccionLocal);
+
 
 	int offset = 0;
-	int size_to_send;
 
-	serializarDato(serializedPackage,&(solicitudReduccionLocal->item_cantidad),sizeof(uint32_t),&offset);
 
-	//serializar items
-	uint32_t size_items = getLong_items_reduccion_local(solicitudReduccionLocal->items_reduccion_local,solicitudReduccionLocal->item_cantidad);
-	serializarDato(serializedPackage,&(size_items),sizeof(uint32_t),&offset);
+	serializarDato(serializedPackage,&(size_item),sizeof(uint32_t),&offset);
+	serializarDato(serializedPackage,serialized_items,sizeof(char)*size_item,&offset);
 
-	char* serialized_items = serializar_items_reduccion_local(&(solicitudReduccionLocal->items_reduccion_local),solicitudReduccionLocal->item_cantidad);
-	serializarDato(serializedPackage,serialized_items,sizeof(char)*size_items,&offset);
+	//todo chequear
 	free(serialized_items);
 
 	return serializedPackage;

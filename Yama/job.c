@@ -582,7 +582,7 @@ t_job* terminarJob(int idJob){
 
 	restaurarValoresJob(job);
 
-	printf("job finalizado exitosamente\n");
+	printf("job %d finalizado exitosamente\n", idJob);
 	return job;
 }
 
