@@ -97,7 +97,7 @@ void enviarReduccionLocalWorker(void *args){
 	item_reduccion_local *itemRedLocal = (item_reduccion_local*) args;
 
 	solicitud_programa_reduccion_local* solicitud = malloc(sizeof(solicitud_programa_reduccion_local));
-	strcpy(&(solicitud->programa_reduccion),ruta_programa_reductor);
+	strcpy(&(solicitud->programa_reduccion),basename(ruta_programa_reductor));
 	char* filebuffer = fileToChar(ruta_programa_reductor);
 	solicitud->programa = filebuffer;
 	strcpy(&(solicitud->archivo_temporal_resultante),itemRedLocal->archivo_temporal_reduccion_local);
@@ -151,7 +151,7 @@ void enviarReduccionGlobalWorker(void *args){
 	solicitud_reduccion_global *solicitudRedGlobal = (solicitud_reduccion_global*) args;
 
 	solicitud_programa_reduccion_global* solicitud = malloc(sizeof(solicitud_programa_reduccion_global));
-	strcpy(&(solicitud->programa_reduccion),ruta_programa_reductor);
+	strcpy(&(solicitud->programa_reduccion),basename(ruta_programa_reductor));
 	char* filebuffer = fileToChar(ruta_programa_reductor);
 	solicitud->programa = filebuffer;
 	strcpy(&(solicitud->archivo_temporal_resultante),solicitudRedGlobal->archivo_temporal_reduccion_global);

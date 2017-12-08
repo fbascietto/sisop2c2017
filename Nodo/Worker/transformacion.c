@@ -71,6 +71,7 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada, ch
 	//temporal para guardar contenido porque el buffer es muy grande para el system
 	char* new = string_new();
 
+	string_append(&new, "Bloque-temp");
 	string_append(&new, basename(solicitudDeserializada->archivo_temporal));
 
 	FILE* f_aux = fopen(new, "w");

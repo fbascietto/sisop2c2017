@@ -15,8 +15,9 @@
 int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada){
 
 	ruta_archivo_apareo = string_new();
-	string_append(ruta_archivo_apareo, solicitudDeserializada->archivo_temporal_resultante);
-	string_append(ruta_archivo_apareo, "-Apareo");
+	string_append(&ruta_archivo_apareo, "Apareo-");
+	string_append(&ruta_archivo_apareo, solicitudDeserializada->archivo_temporal_resultante);
+
 
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
@@ -51,6 +52,7 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 		log_error(worker_error_log, "No se pudo realizar la reduccion global");
 		log_destroy(worker_error_log);
 		free(comando);
+		free(ruta_archivo_apareo);
 		list_destroy_and_destroy_elements(lista_de_RG, free);
 		return -4;
 	}
@@ -70,12 +72,15 @@ void prepararParaApareo(t_list* elementos_para_RG, t_worker* worker, int posicio
 	t_elemento* unElemento = malloc(sizeof(t_elemento));
 
 	unElemento->socket = conectarseA(worker->ip_worker, worker->puerto_worker);
+
 	solicitud_leer_y_enviar_archivo_temp* solicitud = malloc(sizeof(solicitud_leer_y_enviar_archivo_temp));
 	strcpy(solicitud->ruta_archivo_red_local_temp, worker->archivo_temporal_reduccion_local);
 	char* serialized = serializar_solicitud_leer_y_enviar_archivo_temp(solicitud);
 	enviarInt(unElemento->socket, PROCESO_WORKER);
 	enviarMensajeSocket(unElemento->socket, COMENZAR_REDUCCION_GLOBAL, serialized);
+
 	free(solicitud);
+	free(serialized);
 
 	unElemento->ultima_palabra = "";
 	unElemento->worker = worker;
