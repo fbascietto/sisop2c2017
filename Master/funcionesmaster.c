@@ -224,20 +224,11 @@ void procesarSolicitudTransformacion(int socket, int message_long, char* message
 }
 
 void procesarSolicitudReduccionLocal(int socket, int message_long, char* message){
-	solicitud_reduccion_local* solicitudReducLocalDeserializado = deserializar_solicitud_reduccion_local(message);
+	//solicitud_reduccion_local* solicitudReducLocalDeserializado = deserializar_solicitud_reduccion_local(message);
+	item_reduccion_local* itemReducLocalDeserializado = deserializar_item_reduccion_local(message);
 	int var;
-	if(solicitudReducLocalDeserializado->item_cantidad > cantidadMayorReduccionLocal){
-		cantidadMayorReduccionLocal = solicitudReducLocalDeserializado->item_cantidad;
-	}
-	for (var = 0; var < solicitudReducLocalDeserializado->item_cantidad; ++var) {
-//		item_reduccion_local* itemRedLocal = malloc(sizeof(item_reduccion_local));
-//		itemRedLocal = &(solicitudReducLocalDeserializado->items_reduccion_local[var]);
-		pthread_t threadSolicitudRedLocalWorker;
-		int er1 =
-				pthread_create(&threadSolicitudRedLocalWorker, NULL,enviarReduccionLocalWorker,&(solicitudReducLocalDeserializado->items_reduccion_local[var]));
-		//enviarReduccionLocalWorker((void*) itemRedLocal);
-		//pthread_join(threadSolicitudTransformacionWorker, NULL);
-	}
+	pthread_t threadSolicitudRedLocalWorker;
+	int er1 = pthread_create(&threadSolicitudRedLocalWorker, NULL,enviarReduccionLocalWorker,itemReducLocalDeserializado);
 }
 
 void procesarSolicitudReduccionGlobal(int socket, int message_long, char* message){
