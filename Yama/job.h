@@ -31,9 +31,10 @@ void respuestaWorker(char* respuesta, int bloque, char* etapa, int idWorker, int
 
 void agregarBloque(t_bloque* unBloque, t_list* listaNodos);
 
-
+int cantidadTransformaciones(char* idNodo, t_list* estados);
 t_list* obtenerEInicializarNodosDeBloques(t_list* bloques);
 t_nodo* inicializarNodo(t_bloque* bloque);
+bool estaElEstado(char* idNodo, t_list* estados);
 bool estaElNodo(char* id, t_list* nodos);
 void setearNodos(t_list* nodos);
 bool estaConectado(t_nodo* unNodo);

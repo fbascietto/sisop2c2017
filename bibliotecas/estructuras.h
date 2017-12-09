@@ -16,7 +16,7 @@
 #define LENGTH_NOMBRE_PROGRAMA 50
 #define LENGTH_IP 20
 #define LENGTH_ESTADO 30
-#define LENGTH_ETAPA 20
+#define LENGTH_ETAPA 30
 
 /* Formatos YAMA */
 #define NOMBRE_NODO 10

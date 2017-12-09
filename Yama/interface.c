@@ -139,7 +139,7 @@ char* serializar_archivos_temporales(archivo_temp** archivos_temporales, uint32_
 		uint32_t size_archivo_temporal = getLong_one_archivos_temporal(&aux_archivos_temporales[i]);
 		serializarDato(serializedPackage,&(size_archivo_temporal),sizeof(uint32_t),&offset);
 		serializarDato(serializedPackage,serialized_archivo_temporal,sizeof(char)*size_archivo_temporal,&offset);
-		free(serialized_archivo_temporal);
+//		free(serialized_archivo_temporal);
 	}
 	return serializedPackage;
 }

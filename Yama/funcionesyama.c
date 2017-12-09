@@ -313,13 +313,12 @@ item_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job, char idNodo[NOM
 
 	item_reduccion_local* item = malloc(sizeof(item_reduccion_local));
 
-	k=0;
+	k = cantidadTransformaciones(idNodo, job->estadosTransformaciones);
+	listaRutasTransformacion = malloc(sizeof(archivo_temp) * k);
 	for(j=0; j < tamanioTransformacion; j++){
 		unEstado = list_get(job->estadosTransformaciones, j);
 		if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idNodo) == 0){
-		listaRutasTransformacion = realloc(listaRutasTransformacion, sizeof(archivo_temp) * (k+1));
-		strncpy(listaRutasTransformacion[k].archivo_temp, unEstado->archivoTemporal, LENGTH_RUTA_ARCHIVO_TEMP);
-		k++;
+			strncpy(listaRutasTransformacion[k-1].archivo_temp, unEstado->archivoTemporal, LENGTH_RUTA_ARCHIVO_TEMP);
 		}
 	}
 
@@ -338,6 +337,19 @@ item_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job, char idNodo[NOM
 	item->cantidad_archivos_temp = k;
 	return item;
 	//return obtenerSolicitudReduccionLocalMock(message);
+}
+
+int cantidadTransformaciones(char* idNodo, t_list* estados){
+	int j, k = 0;
+	int tamanioTransformacion = list_size(estados);
+	t_estado* unEstado;
+	for(j=0; j < tamanioTransformacion; j++){
+		unEstado = list_get(estados, j);
+		if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idNodo) == 0){
+			k++;
+		}
+	}
+	return k;
 }
 
 solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job){ //t_list* planificacion, int puerto_worker, char* ip_worker, t_list* rutasRedLocalTemporales, char* rutaReduccionGlobal){
@@ -410,6 +422,12 @@ void procesarResultadoTransformacion(int nuevoSocket, Package* package, uint32_t
 
 	/* (iii) */
 	actualizarEstado(idNodo, numero_bloque, RESULTADO_TRANSFORMACION, idJob, resultado);
+
+	printf("recibi el codigo: %d de la transformacion del bloque %d del nodo %s del job %d",
+			resultado,
+			numero_bloque,
+			idNodo,
+			idJob);
 
 	/* (ii) */
 	if(resultado == TRANSFORMACION_OK){
@@ -627,7 +645,7 @@ void adaptarBloques(t_bloques_enviados* bloquesRecibidos, t_list* bloques){
  * y si se pone de actualizar el estado de almacenado final a ok
  * modificar el estado de reduccion global a "job finalizado
  */
-void actualizarEstado(char* idNodo, int numero_bloque, int etapa, int idJob, int resultado){
+void actualizarEstado(char idNodo[NOMBRE_NODO], int numero_bloque, int etapa, int idJob, int resultado){
 	t_job* job;
 	t_estado* estado;
 
@@ -635,20 +653,20 @@ void actualizarEstado(char* idNodo, int numero_bloque, int etapa, int idJob, int
 
 	switch(etapa){
 	case RESULTADO_TRANSFORMACION:
-		//todo estado = obtenerEstadoTransformacion(job->estadosTransformaciones, idNodo, numero_bloque);
+		estado = obtenerEstadoTransformacion(job->estadosTransformaciones, idNodo, numero_bloque);
 		if(resultado == TRANSFORMACION_OK){
 			strcpy(estado->estado, "finalizado");
 		}else{
-			//todo actualizarEstadoError(job, idNodo, resultado);
+			strcpy(estado->estado, "error");
 		}
 		break;
 
 	case RESULTADO_REDUCCION_LOCAL:
-		//todo estado = obtenerEstadoRedLoc(job->estadosReduccionesLocales, idNodo);
+		estado = obtenerEstadoRedLoc(job->estadosReduccionesLocales, idNodo);
 		if(resultado == REDUCCION_LOCAL_OK){
 			strcpy(estado->estado, "finalizado");
 		}else{
-			//todo actualizarEstadoError(job, idNodo, resultado);
+			strcpy(estado->estado, "error");
 		}
 		break;
 

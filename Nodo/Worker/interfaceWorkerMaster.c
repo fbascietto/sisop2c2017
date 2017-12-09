@@ -106,7 +106,7 @@ solicitud_programa_reduccion_local* deserializarSolicitudProgramaReduccionLocal(
 	char* serialized_items = malloc(sizeof(char)*size_items);
 	deserializarDato(serialized_items,serialized,size_items,&offset);
 	solicitud->archivos_temporales = deserializar_archivos_temporales(serialized_items,solicitud->cantidad_archivos_temp);
-	free(serialized_items);
+	//free(serialized_items);
 
 	deserializarDato(&(solicitud->length_programa),serialized,sizeof(uint32_t),&offset);
 	solicitud->programa = strdup(serialized+offset);

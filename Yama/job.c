@@ -78,8 +78,8 @@ t_estado* crearEstadoReduccionLocal(t_planificacion* unNodoPlanificado, char* ru
 	unEstado->nodoPlanificado = unNodoPlanificado;
 	strncpy(unEstado->archivoTemporal, rutaReduccionLocal, LENGTH_RUTA_ARCHIVO_TEMP);
 	strncpy(unEstado->estado, "esperando transformacion", LENGTH_ETAPA);
-
 	return unEstado;
+
 }
 
 t_estado* crearEstadoReduccionGlobal(t_planificacion* unNodoPlanificado){
@@ -97,18 +97,19 @@ t_list* crearEstadosReduccionesLocales(t_list* unaPreplanificacion){
 
 	t_estado* nuevoEstado;
 
-	t_list* idNodosTransformacion;
+	t_list* idNodosTransformacion = list_create();
 	t_list* rutasTemporales = list_create();
 	t_list* estadosReduccionesLocales = list_create();
+	t_estado* unEstado;
 
-	int i, j;
+	int i, j = 0;
 	int tamanioPreplanificacion = list_size(unaPreplanificacion);
 
 
 	t_list* nodos = obtenerNodosUtilizados(unaPreplanificacion);
 	idNodosTransformacion = list_map(nodos, obtenerIdNodoPlanificado);
 
-	int cantidadNodos = list_size(nodos);
+	int cantidadNodos = list_size(idNodosTransformacion);
 
 	for(i=0; i<cantidadNodos; i++){
 		list_add(rutasTemporales, generarRutaTemporal());
@@ -116,11 +117,16 @@ t_list* crearEstadosReduccionesLocales(t_list* unaPreplanificacion){
 
 	for(i=0; i<tamanioPreplanificacion; i++){
 		unNodoPlanificado = list_get(unaPreplanificacion, i);
-		for(j=0; j<cantidadNodos; j++){
+		/*for(j=0; j<cantidadNodos; j++){
 			if(strcmp(unNodoPlanificado->nodo->idNodo, list_get(idNodosTransformacion, j)) == 0){
 				nuevoEstado = crearEstadoReduccionLocal(unNodoPlanificado, list_get(rutasTemporales, j));
 				list_add(estadosReduccionesLocales, nuevoEstado);
 			}
+		}*/
+		if(!estaElEstado(unNodoPlanificado->nodo->idNodo, estadosReduccionesLocales)){
+			unEstado = crearEstadoReduccionLocal(unNodoPlanificado, list_get(rutasTemporales,j));
+			list_add(estadosReduccionesLocales, unEstado);
+			j++;
 		}
 	}
 
@@ -130,26 +136,26 @@ t_list* crearEstadosReduccionesLocales(t_list* unaPreplanificacion){
 t_list* obtenerNodosUtilizados(t_list* unaPreplanificacion){
 	int i, j;
 	int tamanioPreplanificacion = list_size(unaPreplanificacion);
-		t_list* nodosSinRepetir = list_create();
-		t_planificacion* nodoPlanificado;
-		t_planificacion* otroNodoPlanificado;
+	t_list* nodosSinRepetir = list_create();
+	t_planificacion* nodoPlanificado;
+	t_planificacion* otroNodoPlanificado;
 
-		for (i=0; i<tamanioPreplanificacion; i++){
-			nodoPlanificado = list_get(unaPreplanificacion, i);
-			for(j=i+1; j<tamanioPreplanificacion; j++){
+	for (i=0; i<tamanioPreplanificacion; i++){
+		nodoPlanificado = list_get(unaPreplanificacion, i);
+		for(j=i+1; j<tamanioPreplanificacion; j++){
 			otroNodoPlanificado = list_get(unaPreplanificacion, j);
-				if(strcmp(nodoPlanificado->nodo->idNodo, otroNodoPlanificado->nodo->idNodo) == 0){
-					break;
-				}
+			if(strcmp(nodoPlanificado->nodo->idNodo, otroNodoPlanificado->nodo->idNodo) == 0){
+				break;
+			}
 
-			}
-			if(strcmp(nodoPlanificado->nodo->idNodo, otroNodoPlanificado->nodo->idNodo) != 0){
-				list_add(nodosSinRepetir, nodoPlanificado);
-			}
 		}
-		list_add(nodosSinRepetir, nodoPlanificado);
+		if(strcmp(nodoPlanificado->nodo->idNodo, otroNodoPlanificado->nodo->idNodo) != 0){
+			list_add(nodosSinRepetir, nodoPlanificado);
+		}
+	}
+	list_add(nodosSinRepetir, nodoPlanificado);
 
-		return nodosSinRepetir;
+	return nodosSinRepetir;
 }
 
 
@@ -179,6 +185,34 @@ int obtenerIdJob(int idMaster, t_list* jobs){
 		}
 	}
 	return -1;
+}
+
+t_estado* obtenerEstadoTransformacion(t_list* estados, char idNodo[NOMBRE_NODO], int numero_bloque){
+	int i;
+	int tamanioEstados = list_size(estados);
+	t_estado* unEstado;
+	for(i=0; i<tamanioEstados; i++){
+		unEstado = list_get(estados, i);
+		if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idNodo) == 0){
+			if(unEstado->nodoPlanificado->bloque->numero_bloque == numero_bloque){
+				return unEstado;
+			}
+		}
+	}
+	return NULL;
+}
+
+t_estado* obtenerEstadoRedLoc(t_list* estados,char* idNodo){
+	int i;
+	int tamanioEstados = list_size(estados);
+	t_estado* unEstado;
+	for(i=0; i<tamanioEstados; i++){
+		unEstado = list_get(estados, i);
+		if((unEstado->nodoPlanificado->nodo->idNodo, idNodo) == 0){
+			return unEstado;
+		}
+	}
+	return NULL;
 }
 
 char* proximaEtapa(int etapa){
@@ -400,6 +434,21 @@ t_nodo* inicializarNodo(t_bloque* bloque){
 	return nodo;
 }
 
+bool estaElEstado(char* idNodo, t_list* estados){
+	int i;
+		int cantidadNodos = list_size(estados);
+
+		t_estado* unEstado;
+
+		for(i=0; i<cantidadNodos; i++){
+			unEstado = list_get(estados, i);
+			if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idNodo) == 0){
+				return true;
+			}
+		}
+		return false;
+	}
+
 bool estaElNodo(char* id, t_list* nodos){
 	int i;
 	int cantidadNodos = list_size(nodos);
@@ -417,16 +466,16 @@ bool estaElNodo(char* id, t_list* nodos){
 
 void agregarBloque(t_bloque* unBloque, t_list* listaNodos){
 	int i;
-		int cantidadNodos = list_size(listaNodos);
+	int cantidadNodos = list_size(listaNodos);
 
-		t_nodo* unNodo;
+	t_nodo* unNodo;
 
-		for(i=0; i<cantidadNodos; i++){
-			unNodo = list_get(listaNodos, i);
-			if(strcmp(unNodo->idNodo, unBloque->idNodo) == 0){
-				list_add(unNodo->bloquesAsignados, unBloque);
-			}
+	for(i=0; i<cantidadNodos; i++){
+		unNodo = list_get(listaNodos, i);
+		if(strcmp(unNodo->idNodo, unBloque->idNodo) == 0){
+			list_add(unNodo->bloquesAsignados, unBloque);
 		}
+	}
 }
 
 void setearNodos(t_list* nodos){

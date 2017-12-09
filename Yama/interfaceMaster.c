@@ -275,15 +275,15 @@ char* serializar_item_reduccion_local(item_reduccion_local* item_reduccion_local
 	serializarDato(serializedPackage,&(item_reduccion_local->ip_worker),sizeof(char[20]),&offset);
 	serializarDato(serializedPackage,&(item_reduccion_local->puerto_worker),sizeof(uint32_t),&offset);
 	serializarDato(serializedPackage,&(item_reduccion_local->archivo_temporal_reduccion_local),sizeof(char[50]),&offset);
-
 	serializarDato(serializedPackage,&(item_reduccion_local->cantidad_archivos_temp),sizeof(uint32_t),&offset);
+
 
 	uint32_t size_items = getLong_archivos_temporales(item_reduccion_local->archivos_temporales_transformacion,item_reduccion_local->cantidad_archivos_temp);
 	serializarDato(serializedPackage,&(size_items),sizeof(uint32_t),&offset);
 
 	char* serialized_items = serializar_archivos_temporales(&(item_reduccion_local->archivos_temporales_transformacion),item_reduccion_local->cantidad_archivos_temp);
 	serializarDato(serializedPackage,serialized_items,sizeof(char)*size_items,&offset);
-	free(serialized_items);
+//	free(serialized_items);
 
 	return serializedPackage;
 }

@@ -316,31 +316,41 @@ void responderSolicitudRG(int socket, int exit_code){
 	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
+	printf("Numero socket: %d. Exit code: %d\n", socket, exit_code);
+
+	int enviados;
+
 	switch(exit_code){
 
 	case 0:
 		log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de reduccion global a Master");
-		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_OK, NULL, 0);
+		enviados = enviarInt(socket, REDUCCION_GLOBAL_OK);
+		printf("Bytes enviados a Master: %d\n", enviados);
 		break;
 	case -1:
 		log_error(worker_error_log, "Se envia a Master el error de creacion del programa de reduccion");
-		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_ERROR_CREACION, NULL, 0);
+		enviados = enviarInt(socket, REDUCCION_GLOBAL_ERROR_CREACION);
+		printf("Bytes enviados a Master: %d\n", enviados);
 		break;
 	case -2:
 		log_error(worker_error_log, "Se envia a Master el error de escritura del contenido del programa de reduccion");
-		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_ERROR_ESCRITURA, NULL, 0);
+		enviados = enviarInt(socket, REDUCCION_GLOBAL_ERROR_ESCRITURA);
+		printf("Bytes enviados a Master: %d\n", enviados);
 		break;
 	case -3:
 		log_error(worker_error_log, "Se envia a Master el error en el apareo");
-		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_ERROR_APAREO, NULL, 0);
+		enviados = enviarInt(socket, REDUCCION_GLOBAL_ERROR_APAREO);
+		printf("Bytes enviados a Master: %d\n", enviados);
 		break;
 	case -4:
 		log_error(worker_error_log, "Se envia a Master el error en la llamada system para terminar la reduccion global");
-		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_ERROR_SYSTEM, NULL, 0);
+		enviados = enviarInt(socket, REDUCCION_GLOBAL_ERROR_SYSTEM);
+		printf("Bytes enviados a Master: %d\n", enviados);
 		break;
 	case -10:
 		log_error(worker_error_log, "Se envia a Master el error al dar permisos de ejecucion al programa de reduccion");
-		enviarMensajeSocketConLongitud(socket, REDUCCION_GLOBAL_ERROR_PERMISOS, NULL, 0);
+		enviados = enviarInt(socket, REDUCCION_GLOBAL_ERROR_PERMISOS);
+		printf("Bytes enviados a Master: %d\n", enviados);
 		break;
 
 	}
