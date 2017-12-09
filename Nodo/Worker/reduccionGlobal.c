@@ -109,9 +109,6 @@ int leerYEnviarArchivoTemp(char* ruta_arch_temp, int socket){
 	int longitud_archivo_temporal;
 	int retorno;
 
-	//estructura que se envia al worker encargado
-	solicitud_recibir_palabra* respuesta;
-
 	f1 = fopen(ruta_arch_temp, "r");
 	if(f1 == NULL){
 		log_error(worker_error_log, "No se pudo abrir el archivo temporal de reduccion local para recorrerlo");
@@ -137,17 +134,23 @@ int leerYEnviarArchivoTemp(char* ruta_arch_temp, int socket){
 
 	buffer = malloc(longitud_archivo_temporal);
 
+	//estructura que se envia al worker encargado
+	solicitud_recibir_palabra* respuesta = malloc(sizeof(solicitud_recibir_palabra));
+
 	while(!feof(f1)){
 
 		//leo de a un registro (una linea porque ya viene ordenado el archivo) para guardar en buffer y enviar
 		fgets(buffer, longitud_archivo_temporal, f1);
 
 		log_trace(worker_log, "Se envia al worker encargado un registro para la reduccion global");
-		respuesta = realloc(respuesta, sizeof(solicitud_recibir_palabra));
 		respuesta->fin_de_archivo = false;
 		respuesta->palabra = buffer;
+
+		//todo
+		//ver el tema del \0
+
 		serialized = serializarSolicitudRecibirPalabra(respuesta);
-		enviarMensajeSocket(socket, ACCION_RECIBIR_PALABRA, serialized);
+		enviarMensajeSocketConLongitud(socket, ACCION_RECIBIR_PALABRA, serialized, strlen(serialized));
 
 		recibirSolicitudWorker(socket);
 

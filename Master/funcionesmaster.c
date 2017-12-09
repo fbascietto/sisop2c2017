@@ -184,12 +184,12 @@ void enviarReduccionGlobalWorker(void *args){
 	solicitud->workers = solicitudRedGlobal->workers;
 
 	char* serializado = serializarSolicitudProgramaReduccionGlobal(solicitud);
-	int len = getLong_SolicitudProgramaReduccionLocal(solicitud);
+	int len = getLong_SolicitudProgramaReduccionGlobal(solicitud);
 
 	//solicitud_programa_reduccion_global* deserializado = deserializarSolicitudProgramaReduccionGlobal(serializado);
 	//printf("programa = %s\n", deserializado->programa );
 
-	int socketConn = conectarseA(solicitudRedGlobal->encargado_worker->ip_worker, solicitudRedGlobal->encargado_worker->ip_worker);
+	int socketConn = conectarseA(solicitudRedGlobal->encargado_worker->ip_worker, solicitudRedGlobal->encargado_worker->puerto_worker);
 	enviarInt(socketConn,PROCESO_MASTER);
 	enviarMensajeSocketConLongitud(socketConn, ACCION_REDUCCION_GLOBAL, serializado, len);
 
@@ -273,13 +273,15 @@ void procesarSolicitudReduccionLocal(int socket, int message_long, char* message
 	printf("----------------\n");
 
 	pthread_t threadSolicitudRedLocalWorker;
-	int er1 = pthread_create(&threadSolicitudRedLocalWorker, NULL,enviarReduccionLocalWorker,(void*) itemReducLocalDeserializado);
+	//int er1 = pthread_create(&threadSolicitudRedLocalWorker, NULL,enviarReduccionLocalWorker,(void*) itemReducLocalDeserializado);
+	enviarReduccionLocalWorker((void*) itemReducLocalDeserializado);
 }
 
 void procesarSolicitudReduccionGlobal(int socket, int message_long, char* message){
 	solicitud_reduccion_global* solicitudReducLocalDeserializado = deserializar_solicitud_reduccion_global(message);
 	pthread_t threadSolicitudRedGlobalWorker;
-	int er1 = pthread_create(&threadSolicitudRedGlobalWorker, NULL,enviarReduccionGlobalWorker,(void*) solicitudReducLocalDeserializado);
+	enviarReduccionGlobalWorker((void*) solicitudReducLocalDeserializado);
+	//int er1 = pthread_create(&threadSolicitudRedGlobalWorker, NULL,enviarReduccionGlobalWorker,(void*) solicitudReducLocalDeserializado);
 	//enviarReduccionGlobalWorker((void*) solicitudReducLocalDeserializado);
 	//pthread_join(threadSolicitudRedGlobalWorker, NULL);
 

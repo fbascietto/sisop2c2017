@@ -110,7 +110,7 @@ t_worker* deserializar_t_workers(char* serialized, uint32_t items_cantidad){
 		t_worker* aux = deserializar_t_worker(serialized_item);
 		workers[i] = *(aux);
 		free(aux);
-		free(serialized_item);
+		//free(serialized_item);
 	}
 	return workers;
 }

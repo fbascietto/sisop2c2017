@@ -604,7 +604,7 @@ t_worker* crearItemWorker(char nodo[NOMBRE_NODO],char* ipWorker,uint32_t puerto_
 }
 
 void agregarItemWorker(solicitud_reduccion_global* solicitudReduccionGlobal, t_worker* item){
-	solicitudReduccionGlobal->workers = realloc(solicitudReduccionGlobal->workers,sizeof(t_worker)*(solicitudReduccionGlobal->item_cantidad+1));
+	//solicitudReduccionGlobal->workers = realloc(solicitudReduccionGlobal->workers,sizeof(t_worker)*(solicitudReduccionGlobal->item_cantidad+1));
 	strcpy(solicitudReduccionGlobal->workers[solicitudReduccionGlobal->item_cantidad].archivo_temporal_reduccion_local,item->archivo_temporal_reduccion_local);
 	strcpy(solicitudReduccionGlobal->workers[solicitudReduccionGlobal->item_cantidad].nodo_id, item->nodo_id);
 	strcpy(solicitudReduccionGlobal->workers[solicitudReduccionGlobal->item_cantidad].ip_worker,item->ip_worker);

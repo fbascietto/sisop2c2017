@@ -24,7 +24,6 @@ void crearJob(t_list* bloques, t_list* listaNodos, char* tipoAlgoritmo, int idMa
 	nuevoJob->planificacion = nuevaPrePlanificacion;
 	nuevoJob->estadosReduccionesLocales = list_create();
 	nuevoJob->estadosTransformaciones = list_create();
-	nuevoJob->reduccionGlobal = NULL;
 	generarEstados(nuevaPrePlanificacion, nuevoJob);
 
 	jobsID++;
@@ -49,7 +48,6 @@ void generarEstados(t_list* unaPreplanificacion, t_job* job){
 	int tamanioPreplanificacion = list_size(unaPreplanificacion);
 	t_planificacion* unNodoPlanificado;
 
-	job->estadosReduccionesLocales = crearEstadosReduccionesLocales(unaPreplanificacion);
 
 	for(i=0; i<tamanioPreplanificacion; i++){
 		unNodoPlanificado = list_get(unaPreplanificacion, i);
@@ -60,6 +58,7 @@ void generarEstados(t_list* unaPreplanificacion, t_job* job){
 			//job->almacenadoFinal = crearEstadoAlmacenadoFinal(unNodoPlanificado);
 		}
 	}
+	job->estadosReduccionesLocales = crearEstadosReduccionesLocales(unaPreplanificacion);
 
 }
 
@@ -208,7 +207,7 @@ t_estado* obtenerEstadoRedLoc(t_list* estados,char* idNodo){
 	t_estado* unEstado;
 	for(i=0; i<tamanioEstados; i++){
 		unEstado = list_get(estados, i);
-		if((unEstado->nodoPlanificado->nodo->idNodo, idNodo) == 0){
+		if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idNodo) == 0){
 			return unEstado;
 		}
 	}
