@@ -305,7 +305,7 @@ item_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job, char idNodo[NOM
 
 	int i;
 	int j;
-	int k;
+	int cantTransformaciones;
 	t_estado* unEstado;
 	archivo_temp* listaRutasTransformacion;
 	int tamanioTransformacion = list_size(job->estadosTransformaciones);
@@ -313,12 +313,14 @@ item_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job, char idNodo[NOM
 
 	item_reduccion_local* item = malloc(sizeof(item_reduccion_local));
 
-	k = cantidadTransformaciones(idNodo, job->estadosTransformaciones);
-	listaRutasTransformacion = malloc(sizeof(archivo_temp) * k);
+	cantTransformaciones = cantidadTransformaciones(idNodo, job->estadosTransformaciones);
+	listaRutasTransformacion = malloc(sizeof(archivo_temp) * cantTransformaciones);
+	int indice = 0;
 	for(j=0; j < tamanioTransformacion; j++){
 		unEstado = list_get(job->estadosTransformaciones, j);
-		if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idNodo) == 0){
-			strncpy(listaRutasTransformacion[k-1].archivo_temp, unEstado->archivoTemporal, LENGTH_RUTA_ARCHIVO_TEMP);
+		if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idNodo) == 0 && indice<cantTransformaciones){
+			strncpy(listaRutasTransformacion[indice].archivo_temp, unEstado->archivoTemporal, LENGTH_RUTA_ARCHIVO_TEMP);
+			indice++;
 		}
 	}
 
@@ -334,7 +336,7 @@ item_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job, char idNodo[NOM
 			unEstado->nodoPlanificado->nodo->puerto,
 			unEstado->archivoTemporal);
 	item->archivos_temporales_transformacion = listaRutasTransformacion;
-	item->cantidad_archivos_temp = k;
+	item->cantidad_archivos_temp = cantTransformaciones;
 	return item;
 	//return obtenerSolicitudReduccionLocalMock(message);
 }
@@ -440,6 +442,21 @@ void procesarResultadoTransformacion(int nuevoSocket, Package* package, uint32_t
 
 			t_job* job = obtenerJob(idJob, jobsActivos);
 			item_reduccion_local* itemReduccion = obtenerSolicitudReduccionLocal(job, idNodo);
+			printf("----------------\n");
+			printf("La ruta del archivo resultante de reduccion local es: %s\n", itemReduccion->archivo_temporal_reduccion_local);
+			int aux;
+			for(aux=0; aux<itemReduccion->cantidad_archivos_temp; aux++){
+				printf(
+						"La ruta del archivo temporal %d de transformacion es: %s\n",
+						aux,
+						itemReduccion->archivos_temporales_transformacion[aux].archivo_temp
+				);
+			}
+			printf("La cantidad de archivos temporales de transformacion a reducir son: %d\n", itemReduccion->cantidad_archivos_temp);
+			printf("El nombre del nodo es: %s\n", itemReduccion->nodo_id);
+			printf("La ip del worker es: %s\n", itemReduccion->ip_worker);
+			printf("El puerto del worker es: %d\n", itemReduccion->puerto_worker);
+			printf("----------------\n");
 			char* solicitudSerializado = serializar_item_reduccion_local(itemReduccion);
 			uint32_t longitud = getLong_one_item_reduccion_local(itemReduccion);
 			int enviados = enviarMensajeSocketConLongitud(nuevoSocket,ACCION_PROCESAR_REDUCCION_LOCAL,solicitudSerializado,longitud);

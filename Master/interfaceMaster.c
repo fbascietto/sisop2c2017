@@ -369,9 +369,9 @@ item_reduccion_local* deserializar_item_reduccion_local(char* serialized){
 	int offset = 0;
 
 	deserializarDato(&(itemReduccionLocal->nodo_id),serialized,sizeof(char[NOMBRE_NODO]),&offset);
-	deserializarDato(&(itemReduccionLocal->ip_worker),serialized,sizeof(char[20]),&offset);
+	deserializarDato(&(itemReduccionLocal->ip_worker),serialized,sizeof(char[LENGTH_IP]),&offset);
 	deserializarDato(&(itemReduccionLocal->puerto_worker),serialized,sizeof(uint32_t),&offset);
-	deserializarDato(&(itemReduccionLocal->archivo_temporal_reduccion_local),serialized,sizeof(char[50]),&offset);
+	deserializarDato(&(itemReduccionLocal->archivo_temporal_reduccion_local),serialized,sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
 	deserializarDato(&(itemReduccionLocal->cantidad_archivos_temp),serialized,sizeof(uint32_t),&offset);
 
 	uint32_t size_items;
@@ -380,7 +380,7 @@ item_reduccion_local* deserializar_item_reduccion_local(char* serialized){
 	char* serialized_items = malloc(sizeof(char)*size_items);
 	deserializarDato(serialized_items,serialized,size_items,&offset);
 	itemReduccionLocal->archivos_temporales_transformacion = deserializar_archivos_temporales(serialized_items,itemReduccionLocal->cantidad_archivos_temp);
-	free(serialized_items);
+//	free(serialized_items);
 
 	return itemReduccionLocal;
 }

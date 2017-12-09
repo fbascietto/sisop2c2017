@@ -84,7 +84,7 @@ char* serializarSolicitudProgramaReduccionLocal(solicitud_programa_reduccion_loc
 
 	char* serialized_items = serializar_archivos_temporales(&(solicitud->archivos_temporales),solicitud->cantidad_archivos_temp);
 	serializarDato(serializedPackage,serialized_items,sizeof(char)*size_items,&offset);
-	free(serialized_items);
+	//free(serialized_items);
 
 	serializarDato(serializedPackage,&(solicitud->length_programa),sizeof(uint32_t),&offset);
 	size_to_send = strlen(solicitud->programa);

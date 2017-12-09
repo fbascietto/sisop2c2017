@@ -89,10 +89,10 @@ t_worker* deserializar_t_worker(char* serialized){
 	t_worker* item = malloc(sizeof(t_worker));
 	int offset = 0;
 
-	deserializarDato(&(item->nodo_id), serialized, sizeof(char[NOMBRE_NODO]), &offset);
-	deserializarDato(&(item->ip_worker),serialized,sizeof(char[LENGTH_IP]),&offset);
+	deserializarDato(item->nodo_id, serialized, sizeof(char[NOMBRE_NODO]), &offset);
+	deserializarDato(item->ip_worker,serialized,sizeof(char[LENGTH_IP]),&offset);
 	deserializarDato(&(item->puerto_worker),serialized,sizeof(uint32_t),&offset);
-	deserializarDato(&(item->archivo_temporal_reduccion_local),serialized,sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
+	deserializarDato(item->archivo_temporal_reduccion_local,serialized,sizeof(char[LENGTH_RUTA_ARCHIVO_TEMP]),&offset);
 
 	return item;
 }
@@ -139,7 +139,7 @@ char* serializar_archivos_temporales(archivo_temp** archivos_temporales, uint32_
 		uint32_t size_archivo_temporal = getLong_one_archivos_temporal(&aux_archivos_temporales[i]);
 		serializarDato(serializedPackage,&(size_archivo_temporal),sizeof(uint32_t),&offset);
 		serializarDato(serializedPackage,serialized_archivo_temporal,sizeof(char)*size_archivo_temporal,&offset);
-		free(serialized_archivo_temporal);
+		//free(serialized_archivo_temporal);
 	}
 	return serializedPackage;
 }
@@ -165,8 +165,8 @@ archivo_temp* deserializar_archivos_temporales(char* serialized, uint32_t items_
 		deserializarDato(serialized_item,serialized,size_item,&offset);
 		archivo_temp* aux = deserializar_archivo_temp(serialized_item);
 		archivos_temporales[i] = *(aux);
-		free(aux);
-		free(serialized_item);
+//		free(aux);
+//		free(serialized_item);
 	}
 	return archivos_temporales;
 }

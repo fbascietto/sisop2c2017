@@ -165,8 +165,8 @@ archivo_temp* deserializar_archivos_temporales(char* serialized, uint32_t items_
 		deserializarDato(serialized_item,serialized,size_item,&offset);
 		archivo_temp* aux = deserializar_archivo_temp(serialized_item);
 		archivos_temporales[i] = *(aux);
-		free(aux);
-		free(serialized_item);
+		//free(aux);
+		//free(serialized_item);
 	}
 	return archivos_temporales;
 }

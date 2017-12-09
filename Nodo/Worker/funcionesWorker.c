@@ -225,6 +225,22 @@ void recibirSolicitudMaster(int nuevoSocket){
 		log_trace(worker_log, "Solicitud de reduccion local recibida");
 		log_trace(worker_log, "Comienzo de reduccion local");
 		solicitudRLDeserializada = deserializarSolicitudProgramaReduccionLocal(package->message);
+
+
+		printf("----------------\n");
+		printf("La ruta del archivo resultante de reduccion local es: %s\n", solicitudRLDeserializada->archivo_temporal_resultante);
+		int aux;
+		for(aux=0; aux<solicitudRLDeserializada->cantidad_archivos_temp; aux++){
+			printf("La ruta del archivo temporal %d de transformacion es: %s\n", aux, solicitudRLDeserializada->archivos_temporales[aux].archivo_temp);
+		}
+		printf("La cantidad de archivos temporales de transformacion a reducir son: %d\n", solicitudRLDeserializada->cantidad_archivos_temp);
+		printf("La longitud del script de reduccion es: %d\n", solicitudRLDeserializada->length_programa);
+		printf("La longitud del contenido del script que llega es: %d\n", strlen(solicitudRLDeserializada->programa));
+		printf("El nombre del script de reduccion es: %s\n", solicitudRLDeserializada->programa_reduccion);
+		printf("El contenido del script de reduccion es:\n\n%s\n", solicitudRLDeserializada->programa);
+		printf("----------------\n");
+
+
 		exit_code = persistirPrograma(solicitudRLDeserializada->programa_reduccion, solicitudRLDeserializada->programa);
 		if(exit_code == 0){
 			exit_code = reduccionLocal(solicitudRLDeserializada);
