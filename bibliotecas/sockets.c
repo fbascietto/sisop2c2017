@@ -82,7 +82,22 @@ int enviarMensaje(int socketDestino, char* mensaje) {
 	return len;
 }
 
-
+int esperarConexionesSocket(fd_set *master, int socketEscucha) {
+ 	//dado un set y un socket de escucha, verifica mediante select, si hay alguna conexion nueva para aceptar
+ 	int nuevoSocket = -1;
+ 	fd_set readSet;
+ 	FD_ZERO(&readSet);
+ 	readSet = *(master);
+ 	if (select(socketEscucha + 1, &readSet, NULL, NULL, NULL) == -1) {
+ 		perror("select");
+ 		exit(4);
+ 	}
+ 	if (FD_ISSET(socketEscucha, &readSet)) {
+ 		// handle new connections
+ 		nuevoSocket = aceptarConexion(socketEscucha);
+ 	}
+ 	return nuevoSocket;
+ }
 
 
 char *recibirMensaje(int socketDestino) {
