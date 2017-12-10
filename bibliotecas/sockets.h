@@ -14,7 +14,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <signal.h>
 
+
+int valorSocket;
 
 typedef struct {
 	char * mensajeRecibido;
@@ -39,7 +44,7 @@ void selectWrite(int descriptor, fd_set* bag, struct timeval* timeout);
 void selectException(int descriptor, fd_set* bag, struct timeval* timeout);
 int recibirHandShake (int unSocket);
 int envioArchivo(int peer_socket, char* archivo);
-int esperarConexionesSocket(fd_set *master, int socketEscucha);
+//int esperarConexionesSocket(fd_set *master, int socketEscucha);
 void *recibirArchivo(int client_socket);
 
 char* fileToChar(char* fileName);

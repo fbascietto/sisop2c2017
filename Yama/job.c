@@ -16,6 +16,7 @@ int jobsID = 0;
  */
 void crearJob(t_list* bloques, t_list* listaNodos, char* tipoAlgoritmo, int idMaster){
 	int valorBase = dispBase;
+	usleep(retardoPlanificacion);
 	t_list* nuevaPrePlanificacion = prePlanificacion(bloques, valorBase, listaNodos, tipoAlgoritmo);
 	t_job* nuevoJob = malloc(sizeof(t_job));
 

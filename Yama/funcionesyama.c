@@ -6,7 +6,8 @@
 #include "../bibliotecas/protocolo.h"
 #include "../bibliotecas/estructuras.h"
 #include "interfaceMaster.h"
-
+#include "../bibliotecas/sockets.h"
+#include <errno.h>
 
 
 void recibirMensajeMaster(void *args){
@@ -135,7 +136,91 @@ void recibirMensajeFS(void *args){
 	//todo hacer free
 }
 
-void *esperarConexionMasterYFS(void *args) {
+void recargarConfiguracion(int signal){
+	printf("SIGUSR1: cargando nuevamente configuracion\n");
+	cargarValoresPlanificacion();
+	//	printf("%d\n", valorSocket);
+	//	if(valorSocket < 0){
+	//
+//	close(esperarConexion->socketEscucha);
+	printf("codigo del error %d\n", errno);
+	printf("el error deberia ser %d\n", EINTR);
+}
+
+int esperarConexionesSocketYama(fd_set *master, int socketEscucha) {
+	//dado un set y un socket de escucha, verifica mediante select, si hay alguna conexion nueva para aceptar
+	int nuevoSocket = -1;
+	fd_set* readSet = malloc(sizeof(fd_set));
+	FD_ZERO(readSet);
+	*readSet = *(master);
+	struct sigaction sa;
+	sa.sa_handler = recargarConfiguracion;
+	if (sigaction(SIGUSR1,&sa,0) < 0) // Setup signal
+		perror("sigaction failed");
+
+	int retorno;
+	probando_annotation:
+	retorno = select(socketEscucha + 1, readSet, NULL, NULL, NULL);
+	if (retorno == -1) {
+		if(errno == EINTR){
+			fd_set* readSet = malloc(sizeof(fd_set));
+			FD_ZERO(readSet);
+//			int socket = escuchar(5100);
+//			socketEscucha = socket;
+			//
+			//			if (sigfillset(&sa.sa_mask) < 0)
+			//				perror("sigfillset failed");
+			//			sa.sa_flags=0;
+			printf("Signal SIGUSR1 recibido, el socket se reabrio, se vuelve a escuchar el puerto\n");
+			goto probando_annotation;
+		}
+		perror("select");
+		exit(4);
+	}
+	if (FD_ISSET(socketEscucha, readSet)) {
+		// handle new connections
+		nuevoSocket = aceptarConexion(socketEscucha);
+	}
+	return nuevoSocket;
+}
+
+
+void esperarMensajeMaster(t_esperar_conexion* argumentos) {
+	while (1) {
+
+		//TODO: Recibir instrucciones master y crear thread por cada una
+		int nuevoSocket = -1;
+		nuevoSocket = esperarConexionesSocketYama(&argumentos->fdSocketEscucha,
+				argumentos->socketEscucha);
+
+		if (nuevoSocket != -1) {
+
+			//log_trace(logSockets,"Nuevo Socket!");
+			printf("Nueva Conexion Recibida - Socket N°: %d\n", nuevoSocket);
+			int cliente;
+			recibirInt(nuevoSocket, &cliente);
+
+			/* define el thread */
+			pthread_t threadSolicitudes;
+			t_esperar_mensaje *tEsperarMensaje = malloc(
+					sizeof(t_esperar_mensaje));
+			tEsperarMensaje->socketCliente = nuevoSocket;
+			int er1;
+
+			switch (cliente) {
+			//TODO: iniciar un hilo para manejar cliente
+			case PROCESO_MASTER:
+				er1 = pthread_create(&threadSolicitudes, NULL,
+						recibirMensajeMaster, (void*) tEsperarMensaje);
+				pthread_join(threadSolicitudes, NULL);
+				break;
+			}
+		}
+		sleep(1);
+	}
+}
+
+void esperarConexionMasterYFS(void *args) {
 
 	// ---------------ME QUEDO ESPERANDO UNA CONEXION NUEVA--------------
 
@@ -150,41 +235,15 @@ void *esperarConexionMasterYFS(void *args) {
 
 		}*/
 
+
+
 	t_esperar_conexion *argumentos = (t_esperar_conexion*) args;
 
 	printf("Esperando conexiones en Yama...\n");
 
 
-	while(1){
 
-		//TODO: Recibir instrucciones master y crear thread por cada una
-		int nuevoSocket = -1;
-
-		nuevoSocket = esperarConexionesSocket(&argumentos->fdSocketEscucha,argumentos->socketEscucha);
-
-		if (nuevoSocket != -1) {
-
-			//log_trace(logSockets,"Nuevo Socket!");
-			printf("Nueva Conexion Recibida - Socket N°: %d\n",	nuevoSocket);
-			int cliente;
-			recibirInt(nuevoSocket,&cliente);
-
-			/* define el thread */
-			pthread_t threadSolicitudes;
-			t_esperar_mensaje *tEsperarMensaje = malloc(sizeof(t_esperar_mensaje));
-			tEsperarMensaje->socketCliente = nuevoSocket;
-			int er1;
-
-			switch(cliente){
-			//TODO: iniciar un hilo para manejar cliente
-			case PROCESO_MASTER:
-				er1 = pthread_create(&threadSolicitudes, NULL,recibirMensajeMaster,(void*) tEsperarMensaje);
-				pthread_join(threadSolicitudes, NULL);
-				break;
-			}
-		}
-		sleep(1);
-	}
+	esperarMensajeMaster(argumentos);
 }
 
 
@@ -727,10 +786,6 @@ void cargarValoresPlanificacion(){
 
 }
 
-void recargarConfiguracion(int signal){
 
-	printf("SIGUSR1 recibido correctamente\n");
-	printf("SIGUSR1 cargando nuevamente configuracion\n");
-	cargarValoresPlanificacion();
 
-}
+
