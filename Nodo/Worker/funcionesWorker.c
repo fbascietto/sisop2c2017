@@ -294,8 +294,9 @@ solicitud_recibir_palabra* recibirSolicitudWorker(int nuevoSocket){
 	solicitud_leer_y_enviar_archivo_temp* solicitudLYEATDeserializada;
 
 	Package* package = createPackage();
+	printf("Esperando recibir palabra en socket: %d\n", nuevoSocket);
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
-
+	printf("Se recibio message code: %d en recibirSolicitudWorker\n",package->msgCode);
 	int exit_code;
 
 	switch(package->msgCode){
@@ -306,8 +307,8 @@ solicitud_recibir_palabra* recibirSolicitudWorker(int nuevoSocket){
 		break;
 	case ACCION_RECIBIR_PALABRA:
 		palabra = deserializarSolicitudRecibirPalabra(package->message);
-		break;
-	case CONTINUAR_ENVIO:
+		printf("Se deserializo la palabra: %s\n", palabra->palabra);
+		printf("Se deserializo el fin de archivo: %d\n", palabra->fin_de_archivo);
 		break;
 
 	}

@@ -82,6 +82,24 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada, ch
 
 	free(buffer);
 
+	char* ruta_script = string_new();
+	string_append_with_format(&ruta_script, "scripts/%s", solicitudDeserializada->programa_transformacion);
+
+	struct stat FileAttrib;
+	stat(ruta_script, &FileAttrib);
+
+	while(1){
+
+		if(FileAttrib.st_mode & S_IXUSR){
+			break;
+		}
+
+		sleep(1);
+
+	}
+
+	free(ruta_script);
+
 	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
 	char* s = string_from_format("cat \"%s\" | .\"/scripts/%s\" | sort > \"%s\"", new,
 			solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);

@@ -17,6 +17,7 @@
 #define LENGTH_IP 20
 #define LENGTH_ESTADO 30
 #define LENGTH_ETAPA 30
+#define LENGTH_PALABRA 200
 
 /* Formatos YAMA */
 #define NOMBRE_NODO 10
@@ -153,7 +154,7 @@ typedef struct {
 } solicitud_leer_y_enviar_archivo_temp;
 
 typedef struct {
-	char* palabra;
+	char palabra[LENGTH_PALABRA];
 	bool fin_de_archivo;
 
 } solicitud_recibir_palabra;
