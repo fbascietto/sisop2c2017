@@ -273,13 +273,13 @@ void procesarSolicitudReduccionLocal(int socket, int message_long, char* message
 	printf("----------------\n");
 
 	pthread_t threadSolicitudRedLocalWorker;
-	//int er1 = pthread_create(&threadSolicitudRedLocalWorker, NULL,enviarReduccionLocalWorker,(void*) itemReducLocalDeserializado);
+//	int er1 = pthread_create(&threadSolicitudRedLocalWorker, NULL,enviarReduccionLocalWorker,(void*) itemReducLocalDeserializado);
 	enviarReduccionLocalWorker((void*) itemReducLocalDeserializado);
 }
 
 void procesarSolicitudReduccionGlobal(int socket, int message_long, char* message){
 	solicitud_reduccion_global* solicitudReducLocalDeserializado = deserializar_solicitud_reduccion_global(message);
-	pthread_t threadSolicitudRedGlobalWorker;
+//	pthread_t threadSolicitudRedGlobalWorker;
 	enviarReduccionGlobalWorker((void*) solicitudReducLocalDeserializado);
 	//int er1 = pthread_create(&threadSolicitudRedGlobalWorker, NULL,enviarReduccionGlobalWorker,(void*) solicitudReducLocalDeserializado);
 	//enviarReduccionGlobalWorker((void*) solicitudReducLocalDeserializado);

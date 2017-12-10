@@ -24,6 +24,9 @@ void main() {
 	jobsActivos=list_create();
 	jobsFinalizados=list_create();
 
+	//cargo config.txt
+	inicializarConfigYama();
+
 	socketFS = 0;
 	int socketEscucha;
 	fd_set fdSocketsEscucha;
@@ -33,7 +36,6 @@ void main() {
 
 	printf("pid de yama %d \nusarlo para enviar seniales\n", getpid());
 
-	struct sigaction sa;
 
 
 	esperarConexion = malloc(sizeof(t_esperar_conexion));
@@ -41,15 +43,6 @@ void main() {
 	esperarConexion->fdSocketEscucha = fdSocketsEscucha;
 	esperarConexion->socketEscucha = socketEscucha;
 
-
-
-
-	/*
-	hacerPedidoDeTransformacionYRL();
-	printf("finaliza pedido transformacion y reduccion\n");
-	 */
-	//cargo config.txt
-	inicializarConfigYama();
 
 
 	socketFS = conectarseA(fsIP, fsPort);

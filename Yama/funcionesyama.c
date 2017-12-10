@@ -327,6 +327,7 @@ solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job){ //t_lis
 
 	int i;
 	t_estado* unEstado;
+	t_estado* estadoGlobal;
 	t_worker* item;
 	int tamanioReduccionLocal = list_size(job->estadosReduccionesLocales);
 
@@ -341,12 +342,13 @@ solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job){ //t_lis
 				unEstado->archivoTemporal);
 		agregarItemWorker(solicitud, item);
 	}
-	unEstado = job->reduccionGlobal;
-	item = crearItemWorker(unEstado->nodoPlanificado->nodo->idNodo,
-			unEstado->nodoPlanificado->nodo->ipWorker,
-			unEstado->nodoPlanificado->nodo->puerto,
-			unEstado->archivoTemporal);
+	estadoGlobal = job->reduccionGlobal;
+	item = crearItemWorker(estadoGlobal->nodoPlanificado->nodo->idNodo,
+			estadoGlobal->nodoPlanificado->nodo->ipWorker,
+			estadoGlobal->nodoPlanificado->nodo->puerto,
+			estadoGlobal->archivoTemporal);
 	solicitud->encargado_worker = item;
+	strcpy(solicitud->archivo_temporal_reduccion_global, estadoGlobal->archivoTemporal);
 	return solicitud;
 }
 
@@ -506,7 +508,7 @@ void procesarResultadoReduccionLocal(int nuevoSocket, Package* package, uint32_t
 			solicitud_reduccion_global* solicitudReduccionGlobal = obtenerSolicitudReduccionGlobal(job);
 			char* solicitudSerializado = serializarSolicitudReduccionGlobal(solicitudReduccionGlobal);
 
-			printf("ruta final reduccion global %d", solicitudReduccionGlobal->archivo_temporal_reduccion_global);
+			printf("ruta final reduccion global %s\n", solicitudReduccionGlobal->archivo_temporal_reduccion_global);
 
 			uint32_t longitud = getLong_SolicitudReduccionGlobal(solicitudReduccionGlobal);
 			int enviados = enviarMensajeSocketConLongitud(nuevoSocket,ACCION_PROCESAR_REDUCCION_GLOBAL,solicitudSerializado,longitud);
@@ -752,6 +754,7 @@ void inicializarConfigYama(){
 		fsPort = config_get_int_value(infoConfig,"PUERTO_FILESYSTEM");
 		printf("Puerto del filesystem: %d\n", fsPort);
 	}
+
 	cargarValoresPlanificacion();
 
 	log_trace(yama_log, "Carga exitosa del archivo de configuracion");
@@ -775,8 +778,15 @@ void cargarValoresPlanificacion(){
 	}
 	if(config_has_property(infoConfig,"ALGORITMO_BALANCEO")){
 		algoritmoBalanceo = config_get_string_value(infoConfig,"ALGORITMO_BALANCEO");
+		algoritmoBalanceo[strlen(algoritmoBalanceo)+1]='\0';
 		printf("Algoritmo de balanceo seleccionado: %s\n", algoritmoBalanceo);
 	}
+
+	if(strcmp(algoritmoBalanceo, "CLOCK") != 0 && strcmp(algoritmoBalanceo, "W-CLOCK") != 0){
+		perror("algoritmo de balanceo incorrecto. Escribir CLOCK o W-CLOCK\n");
+		exit(1);
+	}
+
 	if(config_has_property(infoConfig,"DISP_BASE")){
 		dispBase = config_get_int_value(infoConfig,"DISP_BASE");
 		printf("Disponibilidad Base: %d\n", dispBase);

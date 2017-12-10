@@ -86,11 +86,11 @@ void prepararParaApareo(t_list* elementos_para_RG, t_worker* worker, int posicio
 	free(solicitud);
 	free(serialized);
 
-	unElemento->ultima_palabra = "";
 	unElemento->worker = worker;
 	unElemento->pedir = true;
 	unElemento->fin = false;
 	unElemento->posicion = posicion;
+	unElemento->ultima_palabra = malloc(LENGTH_PALABRA);
 
 	list_add(elementos_para_RG, unElemento);
 
@@ -275,8 +275,10 @@ void procesarElemento(void* unElemento){
 
 		solicitud_recibir_palabra* respuesta = recibirPalabra(elemento->socket);
 		elemento->fin = respuesta->fin_de_archivo;
-		elemento->ultima_palabra = respuesta->palabra;
+		strcpy(elemento->ultima_palabra, respuesta->palabra);
 		elemento->pedir = false;
+
+		free(respuesta);
 
 	}
 
@@ -317,14 +319,22 @@ int aparear(t_list* lista){
 			return -3;
 		}
 
-		if(strcmp(palabraCandidata, "")!=0){
-			free(palabraCandidata);
-		}
+//		if(strcmp(palabraCandidata, "")!=0){
+//			free(palabraCandidata);
+//		}
 
 	}
 
+	list_iterate(lista, liberarUltimaPalabra);
+
 	return 0;
 
+}
+
+void liberarUltimaPalabra(void* arg){
+	t_elemento* unElemento = (t_elemento*) arg;
+
+	free(unElemento->ultima_palabra);
 }
 
 void responderSolicitudRG(int socket, int exit_code){
