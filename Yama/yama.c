@@ -28,16 +28,21 @@ void main() {
 	int socketEscucha;
 	fd_set fdSocketsEscucha;
 	FD_ZERO(&fdSocketsEscucha);
-
-	printf("pid de yama %d \nusarlo para enviar seniales\n", getpid());
-	if (signal(SIGUSR1, recargarConfiguracion) == SIG_ERR)
-		printf("\nerror agarrando la senial SIGUSR1\n");
-
 	socketEscucha= escuchar(5100);
 	FD_SET(socketEscucha, &fdSocketsEscucha);
 
+	printf("pid de yama %d \nusarlo para enviar seniales\n", getpid());
 
-	t_esperar_conexion *esperarConexion;
+	struct sigaction sa;
+
+
+	esperarConexion = malloc(sizeof(t_esperar_conexion));
+
+	esperarConexion->fdSocketEscucha = fdSocketsEscucha;
+	esperarConexion->socketEscucha = socketEscucha;
+
+
+
 
 	/*
 	hacerPedidoDeTransformacionYRL();
@@ -55,16 +60,9 @@ void main() {
 
 	enviarInt(socketFS,PROCESO_YAMA);
 
-
-	esperarConexion = malloc(sizeof(t_esperar_conexion));
-
-	esperarConexion->fdSocketEscucha = fdSocketsEscucha;
-	esperarConexion->socketEscucha = socketEscucha;
-
-	while(1){
 		//Espero conexión de procesos master
-		esperarConexionMasterYFS((void*) esperarConexion);
-	}
+
+	esperarConexionMasterYFS((void*) esperarConexion);
 
 }
 

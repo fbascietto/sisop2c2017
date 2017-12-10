@@ -28,6 +28,7 @@ typedef struct {
 
 t_config* infoConfig;
 
+
 int dispBase;
 char* fsIP;
 int fsPort;
@@ -62,6 +63,7 @@ typedef struct {
 	fd_set fdSocketEscucha;
 } t_esperar_conexion;
 
+t_esperar_conexion *esperarConexion;
 
 
 typedef struct{
@@ -100,7 +102,7 @@ typedef struct{
 
 t_job* jobGlobal;
 
-void *esperarConexionMasterYFS(void *args);
+void esperarConexionMasterYFS(void *args);
 void inicializarConfigYama();
 void cargarValoresPlanificacion();
 void recargarConfiguracion(int signal);

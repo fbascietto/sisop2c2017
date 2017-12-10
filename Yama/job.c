@@ -16,6 +16,7 @@ int jobsID = 0;
  */
 void crearJob(t_list* bloques, t_list* listaNodos, char* tipoAlgoritmo, int idMaster){
 	int valorBase = dispBase;
+	usleep(retardoPlanificacion);
 	t_list* nuevaPrePlanificacion = prePlanificacion(bloques, valorBase, listaNodos, tipoAlgoritmo);
 	t_job* nuevoJob = malloc(sizeof(t_job));
 
@@ -208,7 +209,7 @@ t_estado* obtenerEstadoRedLoc(t_list* estados,char* idNodo){
 	t_estado* unEstado;
 	for(i=0; i<tamanioEstados; i++){
 		unEstado = list_get(estados, i);
-		if((unEstado->nodoPlanificado->nodo->idNodo, idNodo) == 0){
+		if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idNodo) == 0){
 			return unEstado;
 		}
 	}
