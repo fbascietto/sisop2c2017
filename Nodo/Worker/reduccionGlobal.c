@@ -16,8 +16,9 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 
 	ruta_archivo_apareo = string_new();
 	string_append(&ruta_archivo_apareo, "Apareo-");
-	string_append(&ruta_archivo_apareo, solicitudDeserializada->archivo_temporal_resultante);
+	string_append(&ruta_archivo_apareo, basename(solicitudDeserializada->archivo_temporal_resultante));
 
+	printf("La ruta del archivo de apareo despues de generarse es: %s\n", ruta_archivo_apareo);
 
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
@@ -100,17 +101,15 @@ int leerYEnviarArchivoTemp(char* ruta_arch_temp, int socket){
 	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
+	int enviados;
+
 	//fichero para recorrer el archivo de reduccion local
 	FILE* f1;
 
 	//buffer donde pongo cada registro (linea) que voy a enviar
 	char* buffer;
 	//entero donde almaceno longitud del archivo para reservar memoria en el malloc
-	int longitud_archivo_temporal;
 	int retorno;
-
-	//estructura que se envia al worker encargado
-	solicitud_recibir_palabra* respuesta;
 
 	f1 = fopen(ruta_arch_temp, "r");
 	if(f1 == NULL){
@@ -120,36 +119,34 @@ int leerYEnviarArchivoTemp(char* ruta_arch_temp, int socket){
 		return -3;
 	}
 
-	//me posiciono al final del archivo
-	retorno = fseek(f1, 0, SEEK_END);
-	if(retorno!=0){
-		log_error(worker_error_log, "No se pudo posicional al final del archivo temporal");
-		log_destroy(worker_log);
-		log_destroy(worker_error_log);
-		return -4;
-	}
-	//determino longitud del archivo
-	longitud_archivo_temporal = ftell(f1);
-	//me posiciono al principio del archivo para poder leer
-	rewind(f1);
-
 	char* serialized; //char* donde se pone la estructura serializada para enviar
 
-	buffer = malloc(longitud_archivo_temporal);
+	buffer = malloc(LENGTH_PALABRA);
+
+	//estructura que se envia al worker encargado
+	solicitud_recibir_palabra* respuesta = malloc(sizeof(solicitud_recibir_palabra));
 
 	while(!feof(f1)){
 
 		//leo de a un registro (una linea porque ya viene ordenado el archivo) para guardar en buffer y enviar
-		fgets(buffer, longitud_archivo_temporal, f1);
+		fgets(buffer, LENGTH_PALABRA, f1);
 
 		log_trace(worker_log, "Se envia al worker encargado un registro para la reduccion global");
-		respuesta = realloc(respuesta, sizeof(solicitud_recibir_palabra));
 		respuesta->fin_de_archivo = false;
-		respuesta->palabra = buffer;
-		serialized = serializarSolicitudRecibirPalabra(respuesta);
-		enviarMensajeSocket(socket, ACCION_RECIBIR_PALABRA, serialized);
+		strcpy(respuesta->palabra, buffer);
 
-		recibirSolicitudWorker(socket);
+		printf("palabra a enviar en el socket: %d es: %s\n", socket, respuesta->palabra);
+		printf("fin de archivo: %d\n", respuesta->fin_de_archivo);
+
+		serialized = serializarSolicitudRecibirPalabra(respuesta);
+		enviados = enviarMensajeSocketConLongitud(socket, ACCION_RECIBIR_PALABRA, serialized, strlen(serialized));
+		printf("Se envian a worker encargado %d bytes\n", enviados);
+
+		int recibido;
+		recibirInt(socket, &recibido);
+		if(recibido != CONTINUAR_ENVIO){
+			printf("Codigo de mensaje invalido en reduccion global: %d. Socket: %d\n", recibido, socket);
+		}
 
 
 	}
@@ -158,7 +155,7 @@ int leerYEnviarArchivoTemp(char* ruta_arch_temp, int socket){
 
 	solicitud_recibir_palabra* respuesta_fin = malloc(sizeof(solicitud_recibir_palabra));
 	respuesta_fin->fin_de_archivo = true;
-	respuesta_fin->palabra = "";
+	strcpy(respuesta_fin->palabra, "");
 	char* serialized_fin = serializarSolicitudRecibirPalabra(respuesta_fin);
 	enviarMensajeSocket(socket, ACCION_RECIBIR_PALABRA, serialized_fin);
 
@@ -180,9 +177,11 @@ int leerYEnviarArchivoTemp(char* ruta_arch_temp, int socket){
 solicitud_recibir_palabra* recibirPalabra(int socket){
 
 	solicitud_recibir_palabra* palabra;
-
 	palabra = recibirSolicitudWorker(socket);
-	enviarMensajeSocketConLongitud(socket, CONTINUAR_ENVIO, NULL, 0);
+	enviarInt(socket, CONTINUAR_ENVIO);
+
+	printf("palabra recibida en el socket: %d es: %s\n", socket, palabra->palabra);
+	printf("fin de archivo: %d\n", palabra->fin_de_archivo);
 
 	return palabra;
 
@@ -196,6 +195,8 @@ int escribirEnArchivo(char* palabra_a_escribir){
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
 	FILE* f1;
+
+	printf("La ruta del archivo de apareo a la hora de escribir es: %s\n", ruta_archivo_apareo);
 
 	f1 = fopen(ruta_archivo_apareo, "r+");
 	if(f1 == NULL){
@@ -241,18 +242,19 @@ bool termino(void* unElemento){
 
 bool algunoNoTermino(t_list* lista){
 
-	bool resultado = false;
 	t_elemento* elemento;
 	int i;
 
 	for(i=0; i < list_size(lista); i++){
 
 		elemento = list_get(lista, i);
-		resultado = resultado || !termino(elemento);
+		if(!termino(elemento)){
+			return true;
+		}
 
 	}
 
-	return resultado;
+	return false;
 
 }
 
@@ -260,6 +262,7 @@ void procesarElemento(void* unElemento){
 
 	t_elemento* elemento = (t_elemento*) unElemento;
 
+	//verifica si hay que pedir palabra
 	if(!elemento->fin && elemento->pedir){
 
 		solicitud_recibir_palabra* respuesta = recibirPalabra(elemento->socket);
@@ -269,9 +272,11 @@ void procesarElemento(void* unElemento){
 
 	}
 
+	//compara con la palabra candidata
 	if(!elemento->fin && esMenor(elemento->ultima_palabra, palabraCandidata)){
 		palabraCandidata = elemento->ultima_palabra;
 		posicionCandidata = elemento->posicion;
+		printf("La palabra candidata es: %s\n", palabraCandidata);
 
 	}
 

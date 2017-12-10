@@ -50,7 +50,7 @@ char* serializar_workers(t_worker** workers, uint32_t item_cantidad){
 		uint32_t size_worker = getLong_one_t_worker(&aux_workers[i]);
 		serializarDato(serializedPackage,&(size_worker),sizeof(uint32_t),&offset);//size_item_transformacion
 		serializarDato(serializedPackage,serialized_worker,sizeof(char)*size_worker,&offset);//item_transformacion
-		free(serialized_worker);
+		//free(serialized_worker);
 	}
 	return serializedPackage;
 }

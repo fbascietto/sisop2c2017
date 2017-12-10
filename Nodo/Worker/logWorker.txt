@@ -323,3 +323,148 @@
 [TRACE] 15:15:12:539 WORKER/(4309:4309): Lectura de archivo de configuracion
 [TRACE] 15:15:12:539 WORKER/(4309:4309): Creacion socket para conexion con Master
 [TRACE] 15:15:12:539 WORKER/(4309:4309): Esperando conexiones de Master
+[INFO] 20:58:45:804 WORKER/(7763:7763): El directorio scripts ya existe
+[TRACE] 20:58:46:465 WORKER/(7763:7763): Se crea el directorio bloques
+[TRACE] 20:58:46:905 WORKER/(7763:7763): Lectura de archivo de configuracion
+[TRACE] 20:58:48:820 WORKER/(7763:7763): Creacion socket para conexion con Master
+[TRACE] 20:58:48:820 WORKER/(7763:7763): Esperando conexiones de Master
+[INFO] 21:01:06:307 WORKER/(8073:8073): El directorio scripts ya existe
+[INFO] 21:01:06:307 WORKER/(8073:8073): El directorio bloques ya existe
+[TRACE] 21:01:06:307 WORKER/(8073:8073): Lectura de archivo de configuracion
+[TRACE] 21:01:06:307 WORKER/(8073:8073): Creacion socket para conexion con Master
+[TRACE] 21:01:06:307 WORKER/(8073:8073): Esperando conexiones de Master
+[INFO] 21:02:38:849 WORKER/(8318:8318): El directorio scripts ya existe
+[INFO] 21:02:38:849 WORKER/(8318:8318): El directorio bloques ya existe
+[TRACE] 21:02:38:849 WORKER/(8318:8318): Lectura de archivo de configuracion
+[TRACE] 21:02:38:851 WORKER/(8318:8318): Creacion socket para conexion con Master
+[TRACE] 21:02:38:851 WORKER/(8318:8318): Esperando conexiones de Master
+[TRACE] 00:08:08:720 WORKER/(5916:5916): Se crea el directorio scripts
+[TRACE] 00:08:08:731 WORKER/(5916:5916): Se crea el directorio bloques
+[TRACE] 00:08:08:731 WORKER/(5916:5916): Lectura de archivo de configuracion
+[TRACE] 00:08:08:731 WORKER/(5916:5916): Creacion socket para conexion con Master
+[TRACE] 00:08:08:731 WORKER/(5916:5916): Esperando conexiones de Master
+[TRACE] 00:08:20:472 WORKER/(5916:5972): Nueva conexion de Master recibida!
+[TRACE] 00:08:20:473 WORKER/(5916:5971): Nueva conexion de Master recibida!
+[TRACE] 00:08:20:474 WORKER/(5971:5971): Solicitud de transformacion recibida
+[TRACE] 00:08:20:474 WORKER/(5972:5972): Solicitud de transformacion recibida
+[TRACE] 00:08:20:474 WORKER/(5916:5970): Nueva conexion de Master recibida!
+[TRACE] 00:08:20:474 WORKER/(5972:5972): Comienzo de transformacion
+[TRACE] 00:08:20:477 WORKER/(5972:5972): Programa transformador.py persistido
+[TRACE] 00:08:20:477 WORKER/(5970:5970): Solicitud de transformacion recibida
+[TRACE] 00:08:20:477 WORKER/(5916:5987): Nueva conexion de Master recibida!
+[TRACE] 00:08:20:477 WORKER/(5916:5988): Nueva conexion de Master recibida!
+[TRACE] 00:08:20:477 WORKER/(5916:5986): Nueva conexion de Master recibida!
+[TRACE] 00:08:20:478 WORKER/(5971:5971): Comienzo de transformacion
+[TRACE] 00:08:20:480 WORKER/(5971:5971): Archivo data.bin abierto
+[TRACE] 00:08:20:480 WORKER/(5916:5985): Nueva conexion de Master recibida!
+[TRACE] 00:08:20:480 WORKER/(5986:5986): Solicitud de transformacion recibida
+[TRACE] 00:08:20:480 WORKER/(5988:5988): Solicitud de transformacion recibida
+[TRACE] 00:08:20:481 WORKER/(5970:5970): Comienzo de transformacion
+[TRACE] 00:08:20:481 WORKER/(5987:5987): Solicitud de transformacion recibida
+[TRACE] 00:08:20:481 WORKER/(5970:5970): Archivo data.bin abierto
+[TRACE] 00:08:20:482 WORKER/(5988:5988): Comienzo de transformacion
+[TRACE] 00:08:20:482 WORKER/(5986:5986): Comienzo de transformacion
+[TRACE] 00:08:20:482 WORKER/(5985:5985): Solicitud de transformacion recibida
+[TRACE] 00:08:20:482 WORKER/(5987:5987): Comienzo de transformacion
+[TRACE] 00:08:20:482 WORKER/(5986:5986): Archivo data.bin abierto
+[TRACE] 00:08:20:483 WORKER/(5987:5987): Archivo data.bin abierto
+[TRACE] 00:08:20:483 WORKER/(5988:5988): Archivo data.bin abierto
+[TRACE] 00:08:20:483 WORKER/(5985:5985): Comienzo de transformacion
+[TRACE] 00:08:20:487 WORKER/(5985:5985): Archivo data.bin abierto
+[TRACE] 00:08:20:601 WORKER/(5971:5971): Bloque leido
+[TRACE] 00:08:20:738 WORKER/(5970:5970): Bloque leido
+[TRACE] 00:08:20:798 WORKER/(5985:5985): Bloque leido
+[TRACE] 00:08:20:884 WORKER/(5986:5986): Bloque leido
+[TRACE] 00:08:21:109 WORKER/(5988:5988): Bloque leido
+[TRACE] 00:08:21:134 WORKER/(5972:5972): Permisos de ejecucion dados a transformador.py
+[TRACE] 00:08:21:134 WORKER/(5972:5972): Archivo data.bin abierto
+[TRACE] 00:08:21:146 WORKER/(5987:5987): Bloque leido
+[TRACE] 00:08:21:218 WORKER/(5988:5988): Transformacion de bloque finalizada
+[TRACE] 00:08:21:218 WORKER/(5988:5988): Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Master
+[TRACE] 00:08:21:218 WORKER/(5985:5985): Transformacion de bloque finalizada
+[TRACE] 00:08:21:218 WORKER/(5985:5985): Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Master
+[TRACE] 00:08:21:218 WORKER/(5971:5971): Transformacion de bloque finalizada
+[TRACE] 00:08:21:219 WORKER/(5971:5971): Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Master
+[TRACE] 00:08:21:219 WORKER/(5986:5986): Transformacion de bloque finalizada
+[TRACE] 00:08:21:219 WORKER/(5986:5986): Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Master
+[TRACE] 00:08:21:219 WORKER/(5970:5970): Transformacion de bloque finalizada
+[TRACE] 00:08:21:219 WORKER/(5970:5970): Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Master
+[TRACE] 00:08:21:258 WORKER/(5972:5972): Bloque leido
+[TRACE] 00:08:23:75 WORKER/(5972:5972): Transformacion de bloque finalizada
+[TRACE] 00:08:23:75 WORKER/(5972:5972): Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Master
+[TRACE] 00:08:23:88 WORKER/(5987:5987): Transformacion de bloque finalizada
+[TRACE] 00:08:23:88 WORKER/(5987:5987): Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Master
+[TRACE] 00:08:27:954 WORKER/(5916:6132): Nueva conexion de Master recibida!
+[TRACE] 00:08:27:955 WORKER/(6132:6132): Solicitud de reduccion local recibida
+[TRACE] 00:08:27:955 WORKER/(6132:6132): Comienzo de reduccion local
+[TRACE] 00:08:27:955 WORKER/(6132:6132): Programa reductor.py persistido
+[TRACE] 00:08:27:958 WORKER/(6132:6132): Permisos de ejecucion dados a reductor.py
+[TRACE] 00:08:28:344 WORKER/(6132:6132): Se envia confirmacion de finalizacion de etapa de reduccion local a Master
+[TRACE] 00:08:57:989 WORKER/(5916:6154): Nueva conexion de Master recibida!
+[TRACE] 00:08:57:989 WORKER/(6154:6154): Solicitud de reduccion global recibida
+[TRACE] 00:08:57:989 WORKER/(6154:6154): Comienzo de reduccion global
+[TRACE] 00:08:57:995 WORKER/(5916:6157): Nueva conexion de un Worker recibida!
+[TRACE] 00:08:57:996 WORKER/(6157:6157): Se envia al worker encargado un registro para la reduccion global
+[INFO] 00:56:25:460 WORKER/(6776:6776): El directorio scripts ya existe
+[INFO] 00:56:25:462 WORKER/(6776:6776): El directorio bloques ya existe
+[TRACE] 00:56:25:462 WORKER/(6776:6776): Lectura de archivo de configuracion
+[TRACE] 00:56:25:462 WORKER/(6776:6776): Creacion socket para conexion con Master
+[TRACE] 00:56:25:462 WORKER/(6776:6776): Esperando conexiones de Master
+[TRACE] 00:56:33:928 WORKER/(6776:6831): Nueva conexion de Master recibida!
+[TRACE] 00:56:33:941 WORKER/(6776:6830): Nueva conexion de Master recibida!
+[TRACE] 00:56:33:941 WORKER/(6830:6830): Solicitud de transformacion recibida
+[TRACE] 00:56:33:941 WORKER/(6830:6830): Comienzo de transformacion
+[TRACE] 00:56:33:941 WORKER/(6776:6833): Nueva conexion de Master recibida!
+[TRACE] 00:56:33:941 WORKER/(6776:6832): Nueva conexion de Master recibida!
+[TRACE] 00:56:33:941 WORKER/(6831:6831): Solicitud de transformacion recibida
+[TRACE] 00:56:33:941 WORKER/(6831:6831): Comienzo de transformacion
+[TRACE] 00:56:33:941 WORKER/(6831:6831): Archivo data.bin abierto
+[TRACE] 00:56:33:942 WORKER/(6776:6841): Nueva conexion de Master recibida!
+[TRACE] 00:56:33:949 WORKER/(6830:6830): Archivo data.bin abierto
+[TRACE] 00:56:33:949 WORKER/(6776:6839): Nueva conexion de Master recibida!
+[TRACE] 00:56:33:950 WORKER/(6833:6833): Solicitud de transformacion recibida
+[TRACE] 00:56:33:950 WORKER/(6776:6840): Nueva conexion de Master recibida!
+[TRACE] 00:56:33:953 WORKER/(6831:6831): Bloque leido
+[TRACE] 00:56:33:962 WORKER/(6830:6830): Bloque leido
+[TRACE] 00:56:33:994 WORKER/(6839:6839): Solicitud de transformacion recibida
+[TRACE] 00:56:33:994 WORKER/(6833:6833): Comienzo de transformacion
+[TRACE] 00:56:33:994 WORKER/(6841:6841): Solicitud de transformacion recibida
+[TRACE] 00:56:33:994 WORKER/(6832:6832): Solicitud de transformacion recibida
+[TRACE] 00:56:33:994 WORKER/(6839:6839): Comienzo de transformacion
+[TRACE] 00:56:33:994 WORKER/(6839:6839): Archivo data.bin abierto
+[TRACE] 00:56:33:998 WORKER/(6839:6839): Bloque leido
+[TRACE] 00:56:34:14 WORKER/(6840:6840): Solicitud de transformacion recibida
+[TRACE] 00:56:34:14 WORKER/(6840:6840): Comienzo de transformacion
+[TRACE] 00:56:34:14 WORKER/(6840:6840): Archivo data.bin abierto
+[TRACE] 00:56:34:17 WORKER/(6840:6840): Bloque leido
+[TRACE] 00:56:34:22 WORKER/(6832:6832): Comienzo de transformacion
+[TRACE] 00:56:34:22 WORKER/(6833:6833): Archivo data.bin abierto
+[TRACE] 00:56:34:22 WORKER/(6841:6841): Comienzo de transformacion
+[TRACE] 00:56:34:22 WORKER/(6841:6841): Archivo data.bin abierto
+[TRACE] 00:56:34:25 WORKER/(6841:6841): Bloque leido
+[TRACE] 00:56:34:50 WORKER/(6832:6832): Archivo data.bin abierto
+[TRACE] 00:56:34:53 WORKER/(6833:6833): Bloque leido
+[TRACE] 00:56:34:74 WORKER/(6832:6832): Bloque leido
+[TRACE] 00:56:41:60 WORKER/(6831:6831): Transformacion de bloque finalizada
+[TRACE] 00:56:41:60 WORKER/(6831:6831): Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Master
+[TRACE] 00:56:41:80 WORKER/(6840:6840): Transformacion de bloque finalizada
+[TRACE] 00:56:41:80 WORKER/(6840:6840): Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Master
+[TRACE] 00:56:41:101 WORKER/(6833:6833): Transformacion de bloque finalizada
+[TRACE] 00:56:41:101 WORKER/(6833:6833): Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Master
+[TRACE] 00:56:41:120 WORKER/(6832:6832): Transformacion de bloque finalizada
+[TRACE] 00:56:41:121 WORKER/(6832:6832): Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Master
+[TRACE] 00:56:41:150 WORKER/(6830:6830): Transformacion de bloque finalizada
+[TRACE] 00:56:41:150 WORKER/(6830:6830): Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Master
+[TRACE] 00:56:41:184 WORKER/(6839:6839): Transformacion de bloque finalizada
+[TRACE] 00:56:41:185 WORKER/(6839:6839): Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Master
+[TRACE] 00:56:41:191 WORKER/(6841:6841): Transformacion de bloque finalizada
+[TRACE] 00:56:41:191 WORKER/(6841:6841): Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Master
+[TRACE] 00:56:51:884 WORKER/(6776:6996): Nueva conexion de Master recibida!
+[TRACE] 00:56:51:885 WORKER/(6996:6996): Solicitud de reduccion local recibida
+[TRACE] 00:56:51:885 WORKER/(6996:6996): Comienzo de reduccion local
+[TRACE] 00:56:53:390 WORKER/(6996:6996): Se envia confirmacion de finalizacion de etapa de reduccion local a Master
+[TRACE] 00:57:15:930 WORKER/(6776:7011): Nueva conexion de Master recibida!
+[TRACE] 00:57:15:931 WORKER/(7011:7011): Solicitud de reduccion global recibida
+[TRACE] 00:57:15:931 WORKER/(7011:7011): Comienzo de reduccion global
+[TRACE] 00:57:15:935 WORKER/(6776:7014): Nueva conexion de un Worker recibida!
+[TRACE] 00:57:15:935 WORKER/(7014:7014): Se envia al worker encargado un registro para la reduccion global

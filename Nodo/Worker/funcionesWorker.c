@@ -42,7 +42,7 @@ void iniciarWorker(){
 
 }
 
-int persistirPrograma(char* nombre, char* contenido){
+int persistirPrograma(char* nombre, char* contenido, int longitud){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
@@ -54,7 +54,6 @@ int persistirPrograma(char* nombre, char* contenido){
 	int retorno;
 	FILE* f1;
 	//longitud del contenido del programa
-	int longitud_contenido = strlen(contenido);
 	//inicializo en -1 para que no pueda ser igual a la longitud excepto que complete correctamente el fwrite
 	int escritos = -1;
 
@@ -77,9 +76,11 @@ int persistirPrograma(char* nombre, char* contenido){
 			return -1;
 		}
 
+		//contenido[longitud + 1] = '\0';
+
 		//le escribo el contenido con lo recibido por socket
-		escritos = fwrite(contenido, 1, longitud_contenido, f1);
-		if(escritos != longitud_contenido){
+		escritos = fwrite(contenido, 1, longitud, f1);
+		if(escritos != longitud){
 			string_append_with_format(&mensaje_de_error_log, "No se pudo escribir el contenido de %s", nombre);
 			log_error(worker_error_log, mensaje_de_error_log);
 			free(ruta);
@@ -211,7 +212,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 		log_trace(worker_log, "Solicitud de transformacion recibida");
 		log_trace(worker_log, "Comienzo de transformacion");
 		solicitudTDeserializada = deserializarSolicitudProgramaTransformacion(package->message);
-		exit_code = persistirPrograma(solicitudTDeserializada->programa_transformacion, solicitudTDeserializada->programa);
+		exit_code = persistirPrograma(solicitudTDeserializada->programa_transformacion, solicitudTDeserializada->programa, solicitudTDeserializada->length_programa);
 		if(exit_code == 0){
 			exit_code = transformacion(solicitudTDeserializada, rutaNodo);
 		}
@@ -241,7 +242,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 		printf("----------------\n");
 
 
-		exit_code = persistirPrograma(solicitudRLDeserializada->programa_reduccion, solicitudRLDeserializada->programa);
+		exit_code = persistirPrograma(solicitudRLDeserializada->programa_reduccion, solicitudRLDeserializada->programa, solicitudRLDeserializada->length_programa);
 		if(exit_code == 0){
 			exit_code = reduccionLocal(solicitudRLDeserializada);
 		}
@@ -256,7 +257,7 @@ void recibirSolicitudMaster(int nuevoSocket){
 		log_trace(worker_log, "Comienzo de reduccion global");
 		solicitudRGDeserializada = deserializarSolicitudProgramaReduccionGlobal(package->message);
 		strcpy(ruta_archivo_temp_final, solicitudRGDeserializada->archivo_temporal_resultante);
-		exit_code = persistirPrograma(solicitudRGDeserializada->programa_reduccion, solicitudRGDeserializada->programa);
+		exit_code = persistirPrograma(solicitudRGDeserializada->programa_reduccion, solicitudRGDeserializada->programa, solicitudRGDeserializada->length_programa);
 		if(exit_code == 0){
 			exit_code = reduccionGlobal(solicitudRGDeserializada);
 		}
@@ -293,8 +294,9 @@ solicitud_recibir_palabra* recibirSolicitudWorker(int nuevoSocket){
 	solicitud_leer_y_enviar_archivo_temp* solicitudLYEATDeserializada;
 
 	Package* package = createPackage();
+	printf("Esperando recibir palabra en socket: %d\n", nuevoSocket);
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
-
+	printf("Se recibio message code: %d en recibirSolicitudWorker\n",package->msgCode);
 	int exit_code;
 
 	switch(package->msgCode){
@@ -305,8 +307,8 @@ solicitud_recibir_palabra* recibirSolicitudWorker(int nuevoSocket){
 		break;
 	case ACCION_RECIBIR_PALABRA:
 		palabra = deserializarSolicitudRecibirPalabra(package->message);
-		break;
-	case CONTINUAR_ENVIO:
+		printf("Se deserializo la palabra: %s\n", palabra->palabra);
+		printf("Se deserializo el fin de archivo: %d\n", palabra->fin_de_archivo);
 		break;
 
 	}

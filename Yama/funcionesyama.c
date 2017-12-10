@@ -417,10 +417,11 @@ solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job){ //t_lis
 
 	int i;
 	t_estado* unEstado;
+	t_worker* item;
 	int tamanioReduccionLocal = list_size(job->estadosReduccionesLocales);
 
 	solicitud_reduccion_global* solicitud = malloc(sizeof(solicitud_reduccion_global));
-	t_worker* item = malloc(sizeof(t_worker));
+	solicitud->workers = malloc(sizeof(t_worker)*tamanioReduccionLocal);
 
 	for(i=0; i<tamanioReduccionLocal ;i++){
 		unEstado = list_get(job->estadosReduccionesLocales, i);
@@ -434,8 +435,7 @@ solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job){ //t_lis
 	item = crearItemWorker(unEstado->nodoPlanificado->nodo->idNodo,
 			unEstado->nodoPlanificado->nodo->ipWorker,
 			unEstado->nodoPlanificado->nodo->puerto,
-			NULL);
-	strcpy(solicitud->archivo_temporal_reduccion_global, item->archivo_temporal_reduccion_local);
+			unEstado->archivoTemporal);
 	solicitud->encargado_worker = item;
 	return solicitud;
 }
@@ -591,8 +591,11 @@ void procesarResultadoReduccionLocal(int nuevoSocket, Package* package, uint32_t
 	if(resultado == REDUCCION_LOCAL_OK){
 		if(finalizaronReduccionesLocalesNodos(job)){
 
+			printf("terminaron las reducciones locales");
+
 			solicitud_reduccion_global* solicitudReduccionGlobal = obtenerSolicitudReduccionGlobal(job);
 			char* solicitudSerializado = serializarSolicitudReduccionGlobal(solicitudReduccionGlobal);
+
 			uint32_t longitud = getLong_SolicitudReduccionGlobal(solicitudReduccionGlobal);
 			int enviados = enviarMensajeSocketConLongitud(nuevoSocket,ACCION_PROCESAR_REDUCCION_GLOBAL,solicitudSerializado,longitud);
 

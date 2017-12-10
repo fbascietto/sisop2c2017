@@ -146,7 +146,7 @@ char* serializarSolicitudProgramaReduccionGlobal(solicitud_programa_reduccion_gl
 
 	char* serialized_items = serializar_workers(&(solicitud->workers),solicitud->cantidad_workers);
 	serializarDato(serializedPackage,serialized_items,sizeof(char)*size_items,&offset);
-	free(serialized_items);
+	//free(serialized_items);
 
 	serializarDato(serializedPackage,&(solicitud->length_programa),sizeof(uint32_t),&offset);
 	size_to_send = strlen(solicitud->programa) + 1;
