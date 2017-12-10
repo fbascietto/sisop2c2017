@@ -670,9 +670,10 @@ void testSerializarWorker(){
 
 uint32_t getLong_SolicitudAlmacenadoFinal(solicitud_almacenado_final* solicitudAlmacenadoFinal){
 	uint32_t longitud = 0;
-	longitud += sizeof(uint32_t)*2; //nodo_id, puerto_worker
-	longitud += sizeof(char[20]); //ip_worker,
-	longitud += sizeof(char[50]);//archivo_temporal_reduccion_global
+	longitud += sizeof(uint32_t); //puerto_worker
+	longitud += LENGTH_IP; //ip_worker,
+	longitud += LENGTH_RUTA_ARCHIVO_TEMP;//archivo_temporal_reduccion_global
+	longitud += NOMBRE_NODO; //nodo_id
 	return longitud;
 }
 
@@ -682,10 +683,10 @@ char* serializarSolicitudAlmacenadoFinal(solicitud_almacenado_final* solicitudAl
 
 	int offset = 0;
 
-	serializarDato(serializedPackage,&(solicitudAlmacenadoFinal->nodo_id),sizeof(uint32_t),&offset);
-	serializarDato(serializedPackage,&(solicitudAlmacenadoFinal->ip_worker),sizeof(char[20]),&offset);
+	serializarDato(serializedPackage,&(solicitudAlmacenadoFinal->nodo_id),NOMBRE_NODO,&offset);
+	serializarDato(serializedPackage,&(solicitudAlmacenadoFinal->ip_worker),LENGTH_IP,&offset);
 	serializarDato(serializedPackage,&(solicitudAlmacenadoFinal->puerto_worker),sizeof(uint32_t),&offset);
-	serializarDato(serializedPackage,&(solicitudAlmacenadoFinal->archivo_temporal_reduccion_global),sizeof(char[50]),&offset);
+	serializarDato(serializedPackage,&(solicitudAlmacenadoFinal->archivo_temporal_reduccion_global),LENGTH_RUTA_ARCHIVO_TEMP,&offset);
 
 	return serializedPackage;
 }
@@ -702,22 +703,22 @@ solicitud_almacenado_final* deserializar_solicitud_almacenado_final(char* serial
 	return solicitudAlmacenadoFinal;
 }
 
-void testSerializarSolicitudAlmacenadoFinal(){
-	solicitud_almacenado_final *solicitud = malloc(sizeof(solicitud_almacenado_final));
-	strcpy(solicitud->archivo_temporal_reduccion_global, "/tmp/Master1-final");
-	solicitud->nodo_id = 2;
-	solicitud->puerto_worker = 1234;
-	strcpy(solicitud->ip_worker,"192.168.1.11");
-	solicitud->nodo_id = 5555;
-
-	char* solicitudSerializado = serializarSolicitudAlmacenadoFinal(solicitud);
-
-	solicitud_almacenado_final *solicitudDeserializado = deserializar_solicitud_almacenado_final(solicitudSerializado);
-	printf("archivo_temporal = %s\n", solicitudDeserializado->archivo_temporal_reduccion_global );
-	printf("nodo_id = %d\n", solicitudDeserializado->nodo_id );
-	printf("ip_worker = %s\n", solicitudDeserializado->ip_worker );
-	printf("puerto_worker = %d\n", solicitudDeserializado->puerto_worker );
-}
+//void testSerializarSolicitudAlmacenadoFinal(){
+//	solicitud_almacenado_final *solicitud = malloc(sizeof(solicitud_almacenado_final));
+//	strcpy(solicitud->archivo_temporal_reduccion_global, "/tmp/Master1-final");
+//	solicitud->nodo_id = 2;
+//	solicitud->puerto_worker = 1234;
+//	strcpy(solicitud->ip_worker,"192.168.1.11");
+//	solicitud->nodo_id = 5555;
+//
+//	char* solicitudSerializado = serializarSolicitudAlmacenadoFinal(solicitud);
+//
+//	solicitud_almacenado_final *solicitudDeserializado = deserializar_solicitud_almacenado_final(solicitudSerializado);
+//	printf("archivo_temporal = %s\n", solicitudDeserializado->archivo_temporal_reduccion_global );
+//	printf("nodo_id = %d\n", solicitudDeserializado->nodo_id );
+//	printf("ip_worker = %s\n", solicitudDeserializado->ip_worker );
+//	printf("puerto_worker = %d\n", solicitudDeserializado->puerto_worker );
+//}
 
 
 #endif /* INTERFAZMASTER_C_ */

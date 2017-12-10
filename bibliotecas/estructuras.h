@@ -88,7 +88,7 @@ typedef struct solicitud_reduccion_global {
 //ALMACENAMIENTO FINAL
 
 typedef struct solicitud_almacenado_final {
-	uint32_t nodo_id;		//nodo
+	char nodo_id[NOMBRE_NODO];		//nodo
 	char ip_worker[LENGTH_IP];
 	uint32_t puerto_worker;
 	char archivo_temporal_reduccion_global[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal reduccion global

@@ -188,96 +188,6 @@ void *esperarConexionMasterYFS(void *args) {
 }
 
 
-solicitud_transformacion* obtenerSolicitudTrasnformacionMock(char* message){
-	item_transformacion* item1 = crearItemTransformacion("nodo 1","127.0.0.1",8080,2222,12345,"/temp1/archivo1.txt");
-	item_transformacion* item2 = crearItemTransformacion("nodo 2","127.23.0.1",0101,523,5777666,"/temsssssp1211/otro.txt");
-	item_transformacion* item3 = crearItemTransformacion("nodo 3","187.0.56.1",9090,62,643,"/temp655/tercero.txt");
-
-	solicitud_transformacion* solicitudTransformacion = malloc(sizeof(solicitud_transformacion));
-
-	solicitudTransformacion->item_cantidad = 0;
-
-	agregarItemTransformacion(solicitudTransformacion,item1);
-	free(item1);
-	agregarItemTransformacion(solicitudTransformacion,item2);
-	free(item2);
-	agregarItemTransformacion(solicitudTransformacion,item3);
-	free(item3);
-	return solicitudTransformacion;
-}
-
-solicitud_reduccion_local* obtenerSolicitudReduccionLocalMock(char* message){
-	archivo_temp *arch_temp11 = crearArchivoTemporal("/tmp/Master1-temp11");
-	archivo_temp *arch_temp12 = crearArchivoTemporal("/tmp/Master1-temp12");
-	item_reduccion_local* item1 = crearItemReduccionLocal("nodo 1","127.0.0.1",8080,"/tmp/Master1-temp38");
-	agregarArchivoTemporalTransf(item1, arch_temp11);
-	free(arch_temp11);
-	agregarArchivoTemporalTransf(item1, arch_temp12);
-	free(arch_temp12);
-
-	item_reduccion_local* item2 = crearItemReduccionLocal("nodo 2","127.23.0.1",0101,"/tmp/Master1-Worker1");
-	archivo_temp *arch_temp21 = crearArchivoTemporal("/tmp/Master1-temp21");
-	archivo_temp *arch_temp22 = crearArchivoTemporal("/tmp/Master1-temp22");
-	agregarArchivoTemporalTransf(item2, arch_temp21);
-	free(arch_temp21);
-	agregarArchivoTemporalTransf(item2, arch_temp22);
-	free(arch_temp22);
-
-	item_reduccion_local* item3 = crearItemReduccionLocal("nodo 3","187.0.56.1",9090,"/tmp/Master1-Worker2");
-	archivo_temp *arch_temp31 = crearArchivoTemporal("/tmp/Master1-temp31");
-	archivo_temp *arch_temp32 = crearArchivoTemporal("/tmp/Master1-temp32");
-	agregarArchivoTemporalTransf(item3, arch_temp31);
-	free(arch_temp31);
-	agregarArchivoTemporalTransf(item3, arch_temp32);
-	free(arch_temp32);
-
-	solicitud_reduccion_local* solicitudReduccionLocal = malloc(sizeof(solicitud_reduccion_local));
-
-	solicitudReduccionLocal->item_cantidad = 0;
-
-	agregarItemReduccionLocal(solicitudReduccionLocal,item1);
-	free(item1);
-	agregarItemReduccionLocal(solicitudReduccionLocal,item2);
-	free(item2);
-	agregarItemReduccionLocal(solicitudReduccionLocal,item3);
-	free(item3);
-	return solicitudReduccionLocal;
-}
-
-solicitud_reduccion_global* obtenerSolicitudReduccionGlobalMock(char* message){
-	t_worker* item1 = crearItemWorker("nodo 1","127.0.0.1",8080,"/tmp/Master1-temp38");
-	t_worker* item2 = crearItemWorker("nodo 2","127.23.0.1",0101,"/tmp/Master1-temp39");
-	t_worker* item3 = crearItemWorker("nodo 3","187.0.56.1",9090,"/tmp/Master1-temp44");
-
-	t_worker* itemEncargado = crearItemWorker("nodo 1","187.0.56.1",9090,"/tmp/ruta_encargado");
-
-	solicitud_reduccion_global* solicitudReduccionGlobal = malloc(sizeof(solicitud_reduccion_global));
-
-	solicitudReduccionGlobal->item_cantidad = 0;
-
-	agregarItemWorker(solicitudReduccionGlobal,item1);
-	free(item1);
-	agregarItemWorker(solicitudReduccionGlobal,item2);
-	free(item2);
-	agregarItemWorker(solicitudReduccionGlobal,item3);
-	free(item3);
-
-	solicitudReduccionGlobal->encargado_worker = itemEncargado;
-	strcpy(solicitudReduccionGlobal->archivo_temporal_reduccion_global, "/tmp/archivoResultante");
-
-	return solicitudReduccionGlobal;
-}
-
-solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinalMock(char* message){
-	solicitud_almacenado_final *solicitud = malloc(sizeof(solicitud_almacenado_final));
-	strcpy(solicitud->archivo_temporal_reduccion_global, "/tmp/Master1-final");
-	solicitud->nodo_id = 2;
-	solicitud->puerto_worker = 5555;
-	strcpy(solicitud->ip_worker,"192.168.1.11");
-	return solicitud;
-}
-
-
 /*
  * TO DO
  * no son la version final
@@ -532,10 +442,12 @@ void procesarResultadoReduccionLocal(int nuevoSocket, Package* package, uint32_t
 	if(resultado == REDUCCION_LOCAL_OK){
 		if(finalizaronReduccionesLocalesNodos(job)){
 
-			printf("terminaron las reducciones locales");
+			printf("terminaron las reducciones locales\n");
 
 			solicitud_reduccion_global* solicitudReduccionGlobal = obtenerSolicitudReduccionGlobal(job);
 			char* solicitudSerializado = serializarSolicitudReduccionGlobal(solicitudReduccionGlobal);
+
+			printf("ruta final reduccion global %d", solicitudReduccionGlobal->archivo_temporal_reduccion_global);
 
 			uint32_t longitud = getLong_SolicitudReduccionGlobal(solicitudReduccionGlobal);
 			int enviados = enviarMensajeSocketConLongitud(nuevoSocket,ACCION_PROCESAR_REDUCCION_GLOBAL,solicitudSerializado,longitud);

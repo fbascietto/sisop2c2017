@@ -198,27 +198,27 @@ void enviarReduccionGlobalWorker(void *args){
 
 	switch(msgcode){
 	case REDUCCION_GLOBAL_OK:
-		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_OK,solicitudRedGlobal->encargado_worker->nodo_id);
+		enviarResultadoReduccionGlobalYama(socketYama,REDUCCION_GLOBAL_OK,solicitudRedGlobal->encargado_worker->nodo_id);
 		break;
 	case REDUCCION_GLOBAL_ERROR_CREACION:
 		fallosEnTotal++;
-		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
+		enviarResultadoReduccionGlobalYama(socketYama,REDUCCION_GLOBAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
 		break;
 	case REDUCCION_GLOBAL_ERROR_ESCRITURA:
 		fallosEnTotal++;
-		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
+		enviarResultadoReduccionGlobalYama(socketYama,REDUCCION_GLOBAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
 		break;
 	case REDUCCION_GLOBAL_ERROR_APAREO:
 		fallosEnTotal++;
-		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
+		enviarResultadoReduccionGlobalYama(socketYama,REDUCCION_GLOBAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
 		break;
 	case REDUCCION_GLOBAL_ERROR_SYSTEM:
 		fallosEnTotal++;
-		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
+		enviarResultadoReduccionGlobalYama(socketYama,REDUCCION_GLOBAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
 		break;
 	case REDUCCION_GLOBAL_ERROR_PERMISOS:
 		fallosEnTotal++;
-		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
+		enviarResultadoReduccionGlobalYama(socketYama,REDUCCION_GLOBAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
 		break;
 	}
 
@@ -301,7 +301,7 @@ void enviarSolicitudFinalWorker(void *args){
 	int len = getLong_SolicitudRealizarAlmacenadoFinal(solicitud);
 
 	int socketConn= conectarseA(solicitudFinal->ip_worker, solicitudFinal->puerto_worker);
-
+	enviarInt(socketConn,PROCESO_MASTER);
 	enviarMensajeSocketConLongitud(socketConn, ACCION_ALMACENAMIENTO_FINAL, serializado, len);
 }
 

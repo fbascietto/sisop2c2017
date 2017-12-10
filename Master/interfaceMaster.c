@@ -679,9 +679,10 @@ void testSerializarWorker(){
 
 uint32_t getLong_SolicitudAlmacenadoFinal(solicitud_almacenado_final* solicitudAlmacenadoFinal){
 	uint32_t longitud = 0;
-	longitud += sizeof(uint32_t)*2; //nodo_id, puerto_worker
-	longitud += sizeof(char[20]); //ip_worker,
-	longitud += sizeof(char[50]);//archivo_temporal_reduccion_global
+	longitud += sizeof(uint32_t); //nodo_id, puerto_worker
+	longitud += NOMBRE_NODO;
+	longitud += LENGTH_IP; //ip_worker,
+	longitud += LENGTH_RUTA_ARCHIVO_TEMP;//archivo_temporal_reduccion_global
 	return longitud;
 }
 
@@ -703,15 +704,15 @@ solicitud_almacenado_final* deserializar_solicitud_almacenado_final(char* serial
 	solicitud_almacenado_final* solicitudAlmacenadoFinal = malloc(sizeof(solicitud_almacenado_final));
 	int offset = 0;
 
-	deserializarDato(&(solicitudAlmacenadoFinal->nodo_id),serialized,sizeof(uint32_t),&offset);
-	deserializarDato(&(solicitudAlmacenadoFinal->ip_worker),serialized,sizeof(char[20]),&offset);
+	deserializarDato(&(solicitudAlmacenadoFinal->nodo_id),serialized,NOMBRE_NODO,&offset);
+	deserializarDato(&(solicitudAlmacenadoFinal->ip_worker),serialized,LENGTH_IP,&offset);
 	deserializarDato(&(solicitudAlmacenadoFinal->puerto_worker),serialized,sizeof(uint32_t),&offset);
-	deserializarDato(&(solicitudAlmacenadoFinal->archivo_temporal_reduccion_global),serialized,sizeof(char[50]),&offset);
+	deserializarDato(&(solicitudAlmacenadoFinal->archivo_temporal_reduccion_global),serialized,LENGTH_RUTA_ARCHIVO_TEMP,&offset);
 
 	return solicitudAlmacenadoFinal;
 }
 
-void testSerializarSolicitudAlmacenadoFinal(){
+/*void testSerializarSolicitudAlmacenadoFinal(){
 	solicitud_almacenado_final *solicitud = malloc(sizeof(solicitud_almacenado_final));
 	strcpy(solicitud->archivo_temporal_reduccion_global, "/tmp/Master1-final");
 	solicitud->nodo_id = 2;
@@ -726,7 +727,7 @@ void testSerializarSolicitudAlmacenadoFinal(){
 	printf("nodo_id = %d\n", solicitudDeserializado->nodo_id );
 	printf("ip_worker = %s\n", solicitudDeserializado->ip_worker );
 	printf("puerto_worker = %d\n", solicitudDeserializado->puerto_worker );
-}
+}*/
 
 
 #endif /* INTERFAZMASTER_C_ */

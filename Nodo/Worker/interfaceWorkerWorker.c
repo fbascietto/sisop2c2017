@@ -79,6 +79,8 @@ solicitud_recibir_palabra* deserializarSolicitudRecibirPalabra(char* serialized)
 	deserializarDato(&(solicitud->fin_de_archivo), serialized, sizeof(bool), &offset);
 	deserializarDato(&(solicitud->palabra), serialized, LENGTH_PALABRA, &offset);
 
+	free(serialized);
+
 	return solicitud;
 }
 
