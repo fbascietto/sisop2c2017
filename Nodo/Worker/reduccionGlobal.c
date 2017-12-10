@@ -168,7 +168,6 @@ int leerYEnviarArchivoTemp(char* ruta_arch_temp, int socket){
 	char* serialized_fin = serializarSolicitudRecibirPalabra(respuesta_fin);
 	enviarMensajeSocket(socket, ACCION_RECIBIR_PALABRA, serialized_fin);
 
-	free(serialized);
 	free(serialized_fin);
 	free(buffer);
 	free(respuesta);
