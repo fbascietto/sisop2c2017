@@ -190,6 +190,8 @@ void creoListaNodosDesdeNodosBin(){
 
 		list_add(nodos, nodo);
 	}
+	/*si levanté nodos.bin bien, lo considero que el fs tiene formato ok*/
+	formatted = 1;
 
 	string_iterate_lines(parametros,free);
 	free(parametros);
@@ -671,8 +673,13 @@ void *esperarConexiones(void *args) {
 				break;
 			case PROCESO_YAMA:
 				//respondo solicitud de bloques de archivo
+				if(estable){
+				enviarInt(nuevoSocket,FSYS_ESTABLE);
 				pthread_create(&threadSolicitudYama, NULL, procesarSolicitudYama, tEsperarMensaje);
 				pthread_join(threadSolicitudYama, NULL);
+				}else{
+				enviarInt(nuevoSocket,FSYS_NO_ESTABLE);
+				}
 				break;
 			}
 		}

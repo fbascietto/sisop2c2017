@@ -65,5 +65,8 @@
 #define RECIBIR_RUTA_ARCHIVO_FINAL 60
 #define ESTA_VIVO_NODO 61
 #define FSTAT_ERROR 62
+#define FSYS_NO_ESTABLE 63
+#define FSYS_ESTABLE 64
+
 
 #endif /* PROTOCOLO_H_ */
