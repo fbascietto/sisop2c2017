@@ -20,13 +20,6 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 	//retorno de la funcion que persiste el programa de reduccion
 	int retorno;
 
-	//persisto el programa reductor
-	retorno = persistirPrograma(solicitudDeserializada->programa_reduccion, solicitudDeserializada->programa);
-	if(retorno == -1 || retorno == -2 || retorno == -10){
-		log_destroy(worker_error_log);
-		return retorno;
-	}
-
 	int i;
 	char* buffer = string_new();
 	string_append(&buffer, "cat");
@@ -62,27 +55,36 @@ void responderSolicitudRL(int socket, int exit_code){
 	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
+	printf("Numero socket: %d. Exit code: %d\n", socket, exit_code);
+
+	int enviados;
+
 	switch(exit_code){
 
 	case 0:
 		log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de reduccion local a Master");
-		enviarMensajeSocketConLongitud(socket, REDUCCION_LOCAL_OK, NULL, 0);
+		enviados = enviarInt(socket, REDUCCION_LOCAL_OK);
+		printf("Bytes enviados a Master: %d\n", enviados);
 		break;
 	case -1:
 		log_error(worker_error_log, "Se envia a Master el error de creacion del programa de reduccion");
-		enviarMensajeSocketConLongitud(socket, REDUCCION_LOCAL_ERROR_CREACION, NULL, 0);
+		enviados = enviarInt(socket, REDUCCION_LOCAL_ERROR_CREACION);
+		printf("Bytes enviados a Master: %d\n", enviados);
 		break;
 	case -2:
 		log_error(worker_error_log, "Se envia a Master el error de escritura del contenido del programa de reduccion");
-		enviarMensajeSocketConLongitud(socket, REDUCCION_LOCAL_ERROR_ESCRITURA, NULL, 0);
+		enviados = enviarInt(socket, REDUCCION_LOCAL_ERROR_ESCRITURA);
+		printf("Bytes enviados a Master: %d\n", enviados);
 		break;
 	case -3:
 		log_error(worker_error_log, "Se envia a Master el error al realizar la llamada system para concatenar los archivos y ejecutar el script");
-		enviarMensajeSocketConLongitud(socket, REDUCCION_LOCAL_ERROR_SYSTEM, NULL, 0);
+		enviados = enviarInt(socket, REDUCCION_LOCAL_ERROR_SYSTEM);
+		printf("Bytes enviados a Master: %d\n", enviados);
 		break;
 	case -10:
 		log_error(worker_error_log, "Se envia a Master el error al dar permisos de ejecucion al programa de reduccion");
-		enviarMensajeSocketConLongitud(socket, REDUCCION_LOCAL_ERROR_PERMISOS, NULL, 0);
+		enviados = enviarInt(socket, REDUCCION_LOCAL_ERROR_PERMISOS);
+		printf("Bytes enviados a Master: %d\n", enviados);
 		break;
 
 	}

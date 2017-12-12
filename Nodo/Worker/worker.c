@@ -31,6 +31,13 @@ void main() {
 		log_info(worker_log_info, "El directorio scripts ya existe");
 	}
 
+	retorno_mkdir = mkdir("bloques", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		if(retorno_mkdir == 0){
+			log_trace(worker_log, "Se crea el directorio bloques");
+		}else{
+			log_info(worker_log_info, "El directorio bloques ya existe");
+		}
+
 	/*testeo de la funcion de persistencia de programas.OK
 	 **persistirPrograma("script_test.sh", "abcdefghijklmnopqrstuvwxyz 123456789101112131415161718192021222324252627282930 ea funciono");*/
 	iniciarWorker();

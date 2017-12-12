@@ -38,7 +38,7 @@ int puerto_fs;
 char* IP_fs;
 
 void iniciarWorker();
-int persistirPrograma(char*, char*);
+int persistirPrograma(char*, char*, int);
 void *esperarConexionesMasterYWorker(void *);
 void recibirSolicitudMaster(int);
 solicitud_recibir_palabra* recibirSolicitudWorker(int);

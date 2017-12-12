@@ -16,7 +16,8 @@
 #define LENGTH_NOMBRE_PROGRAMA 50
 #define LENGTH_IP 20
 #define LENGTH_ESTADO 30
-#define LENGTH_ETAPA 20
+#define LENGTH_ETAPA 30
+#define LENGTH_PALABRA 200
 
 /* Formatos YAMA */
 #define NOMBRE_NODO 10
@@ -87,7 +88,7 @@ typedef struct solicitud_reduccion_global {
 //ALMACENAMIENTO FINAL
 
 typedef struct solicitud_almacenado_final {
-	uint32_t nodo_id;		//nodo
+	char nodo_id[NOMBRE_NODO];		//nodo
 	char ip_worker[LENGTH_IP];
 	uint32_t puerto_worker;
 	char archivo_temporal_reduccion_global[LENGTH_RUTA_ARCHIVO_TEMP];		//Archivo temporal reduccion global
@@ -153,7 +154,7 @@ typedef struct {
 } solicitud_leer_y_enviar_archivo_temp;
 
 typedef struct {
-	char* palabra;
+	char palabra[LENGTH_PALABRA];
 	bool fin_de_archivo;
 
 } solicitud_recibir_palabra;

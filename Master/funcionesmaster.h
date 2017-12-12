@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
+#include <libgen.h>
 
 #ifndef MASTER_FUNCIONESMASTER_H_
 #define MASTER_FUNCIONESMASTER_H_

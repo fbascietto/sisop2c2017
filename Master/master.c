@@ -62,7 +62,6 @@ void main(int args, char* argv[]) {
 	char* yamaIP;
 	char* nombreNodo;
 	int yamaPort;
-	int socketConn;
 
 
 	infoConfig = config_create("config.txt");
@@ -83,37 +82,37 @@ void main(int args, char* argv[]) {
 	}
 
 	//TODO: crear un hilo para manejar esta comunicacion con Yama.
-	socketConn = conectarseA(yamaIP, yamaPort);
-	while(socketConn == 0){
-		socketConn = conectarseA(yamaIP, yamaPort);
+	socketYama = conectarseA(yamaIP, yamaPort);
+	while(socketYama == 0){
+		socketYama = conectarseA(yamaIP, yamaPort);
 		sleep(3);
 	}
 	gettimeofday(&t_ini, NULL);
-	enviarInt(socketConn,PROCESO_MASTER);
+	enviarInt(socketYama,PROCESO_MASTER);
 	int len = strlen(ruta_archivo_del_job);
 	uint32_t message_long = sizeof(char)*len;
-	enviarMensajeSocketConLongitud(socketConn,ACCION_PROCESAR_ARCHIVO,ruta_archivo_del_job,len);
+	enviarMensajeSocketConLongitud(socketYama,ACCION_PROCESAR_ARCHIVO,ruta_archivo_del_job,len);
 	while(1){
 		sleep(1);
 		Package* package = createPackage();
-		printf("esperando mensaje de yama: %d\n",socketConn);
-		int leidos = recieve_and_deserialize(package, socketConn);
+		printf("esperando mensaje de yama: %d\n",socketYama);
+		int leidos = recieve_and_deserialize(package, socketYama);
 		printf("codigo de mensaje: %d\n",	package->msgCode);
 		switch(package->msgCode){
 			case ACCION_PROCESAR_TRANSFORMACION:
-				procesarSolicitudTransformacion(socketConn, package->message_long, package->message);
+				procesarSolicitudTransformacion(socketYama, package->message_long, package->message);
 				//enviarMensajeSocketConLongitud(socketConn,RESULTADO_TRANSFORMACION,archivoMensage,len);
 				break;
 			case ACCION_PROCESAR_REDUCCION_LOCAL:
-				procesarSolicitudReduccionLocal(socketConn, package->message_long, package->message);
+				procesarSolicitudReduccionLocal(socketYama, package->message_long, package->message);
 				//enviarMensajeSocketConLongitud(socketConn,RESULTADO_REDUCCION_LOCAL,archivoMensage,len);
 				break;
 			case ACCION_PROCESAR_REDUCCION_GLOBAL:
-				procesarSolicitudReduccionGlobal(socketConn, package->message_long, package->message);
+				procesarSolicitudReduccionGlobal(socketYama, package->message_long, package->message);
 				//enviarMensajeSocketConLongitud(socketConn,RESULTADO_REDUCCION_GLOBAL,archivoMensage,len);
 				break;
 			case ACCION_PROCESAR_ALMACENADO_FINAL:
-				procesarSolicitudAlmacenadoFinal(socketConn, package->message_long, package->message);
+				procesarSolicitudAlmacenadoFinal(socketYama, package->message_long, package->message);
 				//enviarMensajeSocketConLongitud(socketConn,RESULTADO_ALMACENADO_FINAL,archivoMensage,len);
 				break;
 		}

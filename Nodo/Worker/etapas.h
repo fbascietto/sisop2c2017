@@ -50,6 +50,7 @@ int aparear(t_list*);
 solicitud_recibir_palabra* recibirPalabra(int);
 int escribirEnArchivo(char *);
 void responderSolicitudRG(int, int);
+void liberarUltimaPalabra(void* arg);
 
 //AF
 void almacenamientoFinal(char*, int, solicitud_realizar_almacenamiento_final*);

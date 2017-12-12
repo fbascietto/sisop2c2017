@@ -6,9 +6,35 @@
 
 double timeval_diff(struct timeval *a, struct timeval *b)
 {
-  return
-    (double)(a->tv_sec + (double)a->tv_usec/1000000) -
-    (double)(b->tv_sec + (double)b->tv_usec/1000000);
+	return
+			(double)(a->tv_sec + (double)a->tv_usec/1000000) -
+			(double)(b->tv_sec + (double)b->tv_usec/1000000);
+}
+
+//todo agregar id de job
+void enviarResultadoTransformacionYama(int socket, uint32_t code, int bloque, char* nodo_id){
+	int total_size = sizeof(char[NOMBRE_NODO]) + sizeof(uint32_t);
+	char *serializedPackage = malloc(total_size);
+	int offset = 0;
+	serializarDato(serializedPackage,&(bloque),sizeof(uint32_t),&offset);
+	serializarDato(serializedPackage,nodo_id,sizeof(char[NOMBRE_NODO]),&offset);
+	enviarMensajeSocketConLongitud(socket, code, serializedPackage, total_size);
+}
+
+void enviarResultadoReduccionLocalYama(int socket, uint32_t code, char* nodo_id){
+	int total_size = sizeof(char[NOMBRE_NODO]);
+	char *serializedPackage = malloc(total_size);
+	int offset = 0;
+	serializarDato(serializedPackage,nodo_id,sizeof(char[NOMBRE_NODO]),&offset);
+	enviarMensajeSocketConLongitud(socket, code, serializedPackage, total_size);
+}
+
+void enviarResultadoReduccionGlobalYama(int socket, uint32_t code, char* nodo_id){
+	int total_size = sizeof(char[NOMBRE_NODO]);
+	char *serializedPackage = malloc(total_size);
+	int offset = 0;
+	serializarDato(serializedPackage,nodo_id,sizeof(char[NOMBRE_NODO]),&offset);
+	enviarMensajeSocketConLongitud(socket, code, serializedPackage, total_size);
 }
 
 void enviarTransformacionWorker(void *args){
@@ -17,7 +43,7 @@ void enviarTransformacionWorker(void *args){
 	item_transformacion *itemTransformacion = (item_transformacion*) args;
 
 	solicitud_programa_transformacion* solicitud = malloc(sizeof(solicitud_programa_transformacion));
-	strcpy(&(solicitud->programa_transformacion),ruta_programa_transformador);
+	strcpy(&(solicitud->programa_transformacion),basename(ruta_programa_transformador));
 	char* filebuffer = fileToChar(ruta_programa_transformador);
 	//printf("file = %s\n", filebuffer );
 	solicitud->programa = filebuffer;
@@ -29,69 +55,47 @@ void enviarTransformacionWorker(void *args){
 	char* serializado = serializarSolicitudProgramaTransformacion(solicitud);
 	int len = getLong_SolicitudProgramaTransformacion(solicitud);
 
-	//solicitud_programa_transformacion* deserializado = deserializarSolicitudProgramaTransformacion(serializado);
-	//printf("programa = %s\n", deserializado->programa );
-
 	int socketConn = conectarseA(itemTransformacion->ip_worker, itemTransformacion->puerto_worker);
 	enviarInt(socketConn,PROCESO_MASTER);
 	enviarMensajeSocketConLongitud(socketConn, ACCION_TRANSFORMACION, serializado, len);
 
 	Package* package = createPackage();
-	int leidos = recieve_and_deserialize(package, socketConn);
-	switch(package->msgCode){
-		case TRANSFORMACION_OK:
-			//log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Yama");
-			enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_OK,solicitud->bloque,itemTransformacion->nodo_id);
-			break;
-		case TRANSFORMACION_ERROR_CREACION:
-			fallosEnTotal++;
-			//log_error(worker_error_log, "Se envia a Master el error de creacion del programa de transformacion");
-			enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
-			break;
-		case TRANSFORMACION_ERROR_ESCRITURA:
-			fallosEnTotal++;
-			//log_error(worker_error_log, "Se envia a Master el error de escritura del contenido del programa de transformacion");
-			enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
-			break;
-		case FSTAT_ERROR:
-			fallosEnTotal++;
-			enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
-			break;
-		case TRANSFORMACION_ERROR_PERMISOS:
-			fallosEnTotal++;
-			//log_error(worker_error_log, "Se envia a Master el error al dar permisos de ejecucion al programa de transformacion");
-			enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
-			break;
+	printf("Esperando conexiones del worker con archivo temp: %s\n", solicitud->archivo_temporal);
+
+	int msgcode;
+	recibirInt(socketConn, &msgcode);
+
+	printf("Socket %d. Numero de mensaje: %d\n", socketConn, msgcode);
+
+	switch(msgcode){
+	case TRANSFORMACION_OK:
+		//log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Yama");
+		enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_OK,solicitud->bloque,itemTransformacion->nodo_id);
+		break;
+	case TRANSFORMACION_ERROR_CREACION:
+		fallosEnTotal++;
+		//log_error(worker_error_log, "Se envia a Master el error de creacion del programa de transformacion");
+		enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
+		break;
+	case TRANSFORMACION_ERROR_ESCRITURA:
+		fallosEnTotal++;
+		//log_error(worker_error_log, "Se envia a Master el error de escritura del contenido del programa de transformacion");
+		enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
+		break;
+	case FSTAT_ERROR:
+		fallosEnTotal++;
+		enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
+		break;
+	case TRANSFORMACION_ERROR_PERMISOS:
+		fallosEnTotal++;
+		//log_error(worker_error_log, "Se envia a Master el error al dar permisos de ejecucion al programa de transformacion");
+		enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
+		break;
 	}
 	gettimeofday(&end, NULL);
 	double secs = timeval_diff(&end, &init);
 	cantidadEtapasTranformacion++;
 	tiempoAcumEtapasTransformacion += secs;
-}
-
-void enviarResultadoTransformacionYama(int socket, uint32_t code, int bloque, char* nodo_id){
-	int total_size = sizeof(char[NOMBRE_NODO]) + sizeof(uint32_t);
-	char *serializedPackage = malloc(total_size);
-	int offset = 0;
-	serializarDato(serializedPackage,&(bloque),sizeof(uint32_t),&offset);
-	serializarDato(serializedPackage,&(nodo_id),sizeof(char[NOMBRE_NODO]),&offset);
-	enviarMensajeSocketConLongitud(socket, code, serializedPackage, total_size);
-}
-
-void enviarResultadoReduccionLocalYama(int socket, uint32_t code, char* nodo_id){
-	int total_size = sizeof(char[NOMBRE_NODO]);
-	char *serializedPackage = malloc(total_size);
-	int offset = 0;
-	serializarDato(serializedPackage,&(nodo_id),sizeof(char[NOMBRE_NODO]),&offset);
-	enviarMensajeSocketConLongitud(socket, code, serializedPackage, total_size);
-}
-
-void enviarResultadoReduccionGlobalYama(int socket, uint32_t code, char* nodo_id){
-	int total_size = sizeof(char[NOMBRE_NODO]);
-	char *serializedPackage = malloc(total_size);
-	int offset = 0;
-	serializarDato(serializedPackage,&(nodo_id),sizeof(char[NOMBRE_NODO]),&offset);
-	enviarMensajeSocketConLongitud(socket, code, serializedPackage, total_size);
 }
 
 void enviarReduccionLocalWorker(void *args){
@@ -100,13 +104,25 @@ void enviarReduccionLocalWorker(void *args){
 	item_reduccion_local *itemRedLocal = (item_reduccion_local*) args;
 
 	solicitud_programa_reduccion_local* solicitud = malloc(sizeof(solicitud_programa_reduccion_local));
-	strcpy(&(solicitud->programa_reduccion),ruta_programa_reductor);
+	strcpy(solicitud->programa_reduccion,basename(ruta_programa_reductor));
 	char* filebuffer = fileToChar(ruta_programa_reductor);
 	solicitud->programa = filebuffer;
-	strcpy(&(solicitud->archivo_temporal_resultante),itemRedLocal->archivo_temporal_reduccion_local);
+	strcpy(solicitud->archivo_temporal_resultante,itemRedLocal->archivo_temporal_reduccion_local);
 	solicitud->length_programa = strlen(filebuffer);
 	solicitud->cantidad_archivos_temp = itemRedLocal->cantidad_archivos_temp;
 	solicitud->archivos_temporales = itemRedLocal->archivos_temporales_transformacion;
+
+	/*printf("----------------\n");
+	printf("La ruta del archivo resultante de reduccion local es: %s\n", solicitud->archivo_temporal_resultante);
+	int aux;
+	for(aux=0; aux<solicitud->cantidad_archivos_temp; aux++){
+		printf("La ruta del archivo temporal %d de transformacion es: %s\n", aux, solicitud->archivos_temporales[aux].archivo_temp);
+	}
+	printf("La cantidad de archivos temporales de transformacion a reducir son: %d\n", solicitud->cantidad_archivos_temp);
+	printf("La longitud del script de reduccion es: %d\n", solicitud->length_programa);
+	printf("El nombre del script de reduccion es: %s\n", solicitud->programa_reduccion);
+	printf("El contenido del script de reduccion es:\n\n%s\n", solicitud->programa);
+	printf("----------------\n");*/
 
 	char* serializado = serializarSolicitudProgramaReduccionLocal(solicitud);
 	int len = getLong_SolicitudProgramaReduccionLocal(solicitud);
@@ -118,28 +134,33 @@ void enviarReduccionLocalWorker(void *args){
 	enviarInt(socketConn,PROCESO_MASTER);
 	enviarMensajeSocketConLongitud(socketConn, ACCION_REDUCCION_LOCAL, serializado, len);
 
-	Package* package = createPackage();
-	int leidos = recieve_and_deserialize(package, socketConn);
-	switch(package->msgCode){
-		case REDUCCION_LOCAL_OK:
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_OK,itemRedLocal->nodo_id);
-			break;
-		case REDUCCION_LOCAL_ERROR_CREACION:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
-			break;
-		case REDUCCION_LOCAL_ERROR_ESCRITURA:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
-			break;
-		case REDUCCION_LOCAL_ERROR_SYSTEM:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
-			break;
-		case REDUCCION_LOCAL_ERROR_PERMISOS:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
-			break;
+	printf("Esperando conexiones del worker con archivo temp: %s y %d archivos a reducir\n", solicitud->archivo_temporal_resultante, solicitud->cantidad_archivos_temp);
+
+	int msgcode;
+	recibirInt(socketConn, &msgcode);
+
+	printf("Socket %d. Numero de mensaje: %d\n", socketConn, msgcode);
+
+	switch(msgcode){
+	case REDUCCION_LOCAL_OK:
+		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_OK,itemRedLocal->nodo_id);
+		break;
+	case REDUCCION_LOCAL_ERROR_CREACION:
+		fallosEnTotal++;
+		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
+		break;
+	case REDUCCION_LOCAL_ERROR_ESCRITURA:
+		fallosEnTotal++;
+		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
+		break;
+	case REDUCCION_LOCAL_ERROR_SYSTEM:
+		fallosEnTotal++;
+		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
+		break;
+	case REDUCCION_LOCAL_ERROR_PERMISOS:
+		fallosEnTotal++;
+		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
+		break;
 	}
 	gettimeofday(&end, NULL);
 	double secs = timeval_diff(&end, &init);
@@ -154,7 +175,7 @@ void enviarReduccionGlobalWorker(void *args){
 	solicitud_reduccion_global *solicitudRedGlobal = (solicitud_reduccion_global*) args;
 
 	solicitud_programa_reduccion_global* solicitud = malloc(sizeof(solicitud_programa_reduccion_global));
-	strcpy(&(solicitud->programa_reduccion),ruta_programa_reductor);
+	strcpy(&(solicitud->programa_reduccion),basename(ruta_programa_reductor));
 	char* filebuffer = fileToChar(ruta_programa_reductor);
 	solicitud->programa = filebuffer;
 	strcpy(&(solicitud->archivo_temporal_resultante),solicitudRedGlobal->archivo_temporal_reduccion_global);
@@ -163,41 +184,42 @@ void enviarReduccionGlobalWorker(void *args){
 	solicitud->workers = solicitudRedGlobal->workers;
 
 	char* serializado = serializarSolicitudProgramaReduccionGlobal(solicitud);
-	int len = getLong_SolicitudProgramaReduccionLocal(solicitud);
+	int len = getLong_SolicitudProgramaReduccionGlobal(solicitud);
 
 	//solicitud_programa_reduccion_global* deserializado = deserializarSolicitudProgramaReduccionGlobal(serializado);
 	//printf("programa = %s\n", deserializado->programa );
 
-	int socketConn = conectarseA(solicitudRedGlobal->encargado_worker->ip_worker, solicitudRedGlobal->encargado_worker->ip_worker);
+	int socketConn = conectarseA(solicitudRedGlobal->encargado_worker->ip_worker, solicitudRedGlobal->encargado_worker->puerto_worker);
 	enviarInt(socketConn,PROCESO_MASTER);
 	enviarMensajeSocketConLongitud(socketConn, ACCION_REDUCCION_GLOBAL, serializado, len);
 
-	Package* package = createPackage();
-	int leidos = recieve_and_deserialize(package, socketConn);
-	switch(package->msgCode){
-		case REDUCCION_GLOBAL_OK:
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_OK,solicitudRedGlobal->encargado_worker->nodo_id);
-			break;
-		case REDUCCION_GLOBAL_ERROR_CREACION:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
-			break;
-		case REDUCCION_GLOBAL_ERROR_ESCRITURA:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
-			break;
-		case REDUCCION_GLOBAL_ERROR_APAREO:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
-			break;
-		case REDUCCION_GLOBAL_ERROR_SYSTEM:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
-			break;
-		case REDUCCION_GLOBAL_ERROR_PERMISOS:
-			fallosEnTotal++;
-			enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
-			break;
+	int msgcode;
+	recibirInt(socketConn, &msgcode);
+
+	switch(msgcode){
+	case REDUCCION_GLOBAL_OK:
+		enviarResultadoReduccionGlobalYama(socketYama,REDUCCION_GLOBAL_OK,solicitudRedGlobal->encargado_worker->nodo_id);
+		break;
+	case REDUCCION_GLOBAL_ERROR_CREACION:
+		fallosEnTotal++;
+		enviarResultadoReduccionGlobalYama(socketYama,REDUCCION_GLOBAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
+		break;
+	case REDUCCION_GLOBAL_ERROR_ESCRITURA:
+		fallosEnTotal++;
+		enviarResultadoReduccionGlobalYama(socketYama,REDUCCION_GLOBAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
+		break;
+	case REDUCCION_GLOBAL_ERROR_APAREO:
+		fallosEnTotal++;
+		enviarResultadoReduccionGlobalYama(socketYama,REDUCCION_GLOBAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
+		break;
+	case REDUCCION_GLOBAL_ERROR_SYSTEM:
+		fallosEnTotal++;
+		enviarResultadoReduccionGlobalYama(socketYama,REDUCCION_GLOBAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
+		break;
+	case REDUCCION_GLOBAL_ERROR_PERMISOS:
+		fallosEnTotal++;
+		enviarResultadoReduccionGlobalYama(socketYama,REDUCCION_GLOBAL_ERROR,solicitudRedGlobal->encargado_worker->nodo_id);
+		break;
 	}
 
 	gettimeofday(&end, NULL);
@@ -214,36 +236,52 @@ void procesarSolicitudTransformacion(int socket, int message_long, char* message
 	if(solicitudTransfDeserializada->item_cantidad > cantidadMayorTransformacion){
 		cantidadMayorTransformacion = solicitudTransfDeserializada->item_cantidad;
 	}
+
+	pthread_t threadSolicitudTransformacionWorker[solicitudTransfDeserializada->item_cantidad];
 	for (var = 0; var < solicitudTransfDeserializada->item_cantidad; ++var) {
-		item_transformacion* itemTransformacion = malloc(sizeof(item_transformacion));
-		itemTransformacion = &(solicitudTransfDeserializada->items_transformacion[var]);
-		pthread_t threadSolicitudTransformacionWorker;
-		int er1 = pthread_create(&threadSolicitudTransformacionWorker, NULL,enviarTransformacionWorker,(void*) itemTransformacion);
-		//enviarTransformacionWorker((void*) itemTransformacion);
+		//pthread_t threadSolicitudTransformacionWorker;
+		int er1 = pthread_create(
+				&threadSolicitudTransformacionWorker[var],
+				NULL,
+				enviarTransformacionWorker,
+				&(solicitudTransfDeserializada->items_transformacion[var])
+		);
 		//pthread_join(threadSolicitudTransformacionWorker, NULL);
 	}
+
+
 }
 
 void procesarSolicitudReduccionLocal(int socket, int message_long, char* message){
-	solicitud_reduccion_local* solicitudReducLocalDeserializado = deserializar_solicitud_reduccion_local(message);
-	int var;
-	if(solicitudReducLocalDeserializado->item_cantidad > cantidadMayorReduccionLocal){
-		cantidadMayorReduccionLocal = solicitudReducLocalDeserializado->item_cantidad;
+	//solicitud_reduccion_local* solicitudReducLocalDeserializado = deserializar_solicitud_reduccion_local(message);
+	item_reduccion_local* itemReducLocalDeserializado = deserializar_item_reduccion_local(message);
+
+	printf("----------------\n");
+	printf("La ruta del archivo resultante de reduccion local es: %s\n", itemReducLocalDeserializado->archivo_temporal_reduccion_local);
+	int aux;
+	for(aux=0; aux<itemReducLocalDeserializado->cantidad_archivos_temp; aux++){
+		printf(
+				"La ruta del archivo temporal %d de transformacion es: %s\n",
+				aux,
+				itemReducLocalDeserializado->archivos_temporales_transformacion[aux].archivo_temp
+				);
 	}
-	for (var = 0; var < solicitudReducLocalDeserializado->item_cantidad; ++var) {
-		item_reduccion_local* itemRedLocal = malloc(sizeof(item_reduccion_local));
-		itemRedLocal = &(solicitudReducLocalDeserializado->items_reduccion_local[var]);
-		pthread_t threadSolicitudRedLocalWorker;
-		int er1 = pthread_create(&threadSolicitudRedLocalWorker, NULL,enviarReduccionLocalWorker,(void*) itemRedLocal);
-		//enviarReduccionLocalWorker((void*) itemRedLocal);
-		//pthread_join(threadSolicitudTransformacionWorker, NULL);
-	}
+	printf("La cantidad de archivos temporales de transformacion a reducir son: %d\n", itemReducLocalDeserializado->cantidad_archivos_temp);
+	printf("El nombre del nodo es: %s\n", itemReducLocalDeserializado->nodo_id);
+	printf("La ip del worker es: %s\n", itemReducLocalDeserializado->ip_worker);
+	printf("El puerto del worker es: %d\n", itemReducLocalDeserializado->puerto_worker);
+	printf("----------------\n");
+
+	pthread_t threadSolicitudRedLocalWorker;
+//	int er1 = pthread_create(&threadSolicitudRedLocalWorker, NULL,enviarReduccionLocalWorker,(void*) itemReducLocalDeserializado);
+	enviarReduccionLocalWorker((void*) itemReducLocalDeserializado);
 }
 
 void procesarSolicitudReduccionGlobal(int socket, int message_long, char* message){
 	solicitud_reduccion_global* solicitudReducLocalDeserializado = deserializar_solicitud_reduccion_global(message);
-	pthread_t threadSolicitudRedGlobalWorker;
-	int er1 = pthread_create(&threadSolicitudRedGlobalWorker, NULL,enviarReduccionGlobalWorker,(void*) solicitudReducLocalDeserializado);
+//	pthread_t threadSolicitudRedGlobalWorker;
+	enviarReduccionGlobalWorker((void*) solicitudReducLocalDeserializado);
+	//int er1 = pthread_create(&threadSolicitudRedGlobalWorker, NULL,enviarReduccionGlobalWorker,(void*) solicitudReducLocalDeserializado);
 	//enviarReduccionGlobalWorker((void*) solicitudReducLocalDeserializado);
 	//pthread_join(threadSolicitudRedGlobalWorker, NULL);
 
@@ -263,7 +301,7 @@ void enviarSolicitudFinalWorker(void *args){
 	int len = getLong_SolicitudRealizarAlmacenadoFinal(solicitud);
 
 	int socketConn= conectarseA(solicitudFinal->ip_worker, solicitudFinal->puerto_worker);
-
+	enviarInt(socketConn,PROCESO_MASTER);
 	enviarMensajeSocketConLongitud(socketConn, ACCION_ALMACENAMIENTO_FINAL, serializado, len);
 }
 
