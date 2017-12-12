@@ -23,6 +23,7 @@ void crearJob(t_list* bloques, t_list* listaNodos, char* tipoAlgoritmo, int idMa
 	nuevoJob->idMaster = idMaster;
 	nuevoJob->idJob = jobsID;
 	nuevoJob->planificacion = nuevaPrePlanificacion;
+	strcpy(nuevoJob->estadoAlmacenado, "esperando reduccion global");
 	nuevoJob->estadosReduccionesLocales = list_create();
 	nuevoJob->estadosTransformaciones = list_create();
 	generarEstados(nuevaPrePlanificacion, nuevoJob);
@@ -554,18 +555,18 @@ void actualizarValores(t_estado* unaPlanificacion, t_list* nodos, int cantidad){
 void restaurarValoresJob(t_job* job){
 	int tamanioPlanificacion = list_size(job->estadosTransformaciones);
 	int i;
-	t_estado* unaPlanificacion;
+	t_estado* unNodoPlanificado;
 
 	for(i=0; i<tamanioPlanificacion; i++){
-		unaPlanificacion = list_get(job->estadosTransformaciones, i);
+		unNodoPlanificado = list_get(job->estadosTransformaciones, i);
 
-		unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajo--;
-		unaPlanificacion->nodoPlanificado->nodo->disponibilidad++;
+		unNodoPlanificado->nodoPlanificado->nodo->cargaDeTrabajo--;
+		unNodoPlanificado->nodoPlanificado->nodo->disponibilidad++;
 
-		actualizarValores(unaPlanificacion, nodosConectados, 1);
+		actualizarValores(unNodoPlanificado, nodosConectados, 1);
 	}
-	unaPlanificacion = job->reduccionGlobal;
-	actualizarValores(unaPlanificacion, nodosConectados, unaPlanificacion->nodoPlanificado->reduccionGlobal);
+	unNodoPlanificado = job->reduccionGlobal;
+	actualizarValores(unNodoPlanificado, nodosConectados, unNodoPlanificado->nodoPlanificado->reduccionGlobal);
 }
 
 int obtenerPosicionJob(int idJob, t_list* jobs){
@@ -631,7 +632,7 @@ t_job* terminarJob(int idJob){
 
 	restaurarValoresJob(job);
 
-	printf("job %d finalizado exitosamente\n", idJob);
+	log_trace(logYama,"job %d finalizado", idJob);
 	return job;
 }
 

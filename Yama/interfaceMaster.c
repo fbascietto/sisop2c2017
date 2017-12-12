@@ -21,7 +21,6 @@ char* serializarSolicitudTransformacion(solicitud_transformacion* solicitudTrans
 
 	serializarDato(serializedPackage,&(solicitudTransformacion->item_cantidad),sizeof(uint32_t),&offset);
 
-	//serializar items
 	uint32_t size_items = getLong_items_transformacion(solicitudTransformacion->items_transformacion,solicitudTransformacion->item_cantidad);
 	serializarDato(serializedPackage,&(size_items),sizeof(uint32_t),&offset);
 

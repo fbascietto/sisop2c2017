@@ -18,6 +18,7 @@
 #include "../bibliotecas/protocolo.h"
 #include "../bibliotecas/estructuras.h"
 #include "interfaceMaster.h"
+#include "job.h"
 
 #ifndef YAMA_FUNCIONESYAMA_H_
 #define YAMA_FUNCIONESYAMA_H_
@@ -39,6 +40,11 @@ int socketFS;
 uint32_t idMaster;
 uint32_t rutaGlobal;
 
+
+t_log* logYama;
+t_log* logYamaImpreso;
+t_log* logYamaError;
+t_log* logYamaErrorImpreso;
 
 /*
  * nodosConectados son todos los nodos que se conectaron
@@ -97,6 +103,7 @@ typedef struct{
 	t_list* estadosTransformaciones;
 	t_list* estadosReduccionesLocales;
 	t_estado* reduccionGlobal;
+	char estadoAlmacenado[LENGTH_ESTADO];
 	t_list* planificacion;
 }t_job;
 
@@ -123,6 +130,19 @@ bool finalizaronReduccionesLocalesNodos(t_job* job);
 bool termino(void* elemento);
 void procesarSolicitudMaster(int nuevoSocket);
 
+
+/************ tabla de estados **********/
+void tablaDeEstados(t_job* job);
+void imprimirTransformaciones(t_list* transformaciones, int idJob, int idMaster);
+void imprimirReduccionesLocales(t_list* reducciones, t_list* transformaciones, int idJob, int idMaster);
+void logEstadoTransformacion(int idJob, int idMaster, t_estado* unEstado);
+void logEstadoReduccionLocal(int idJob, int idMaster, t_estado* estadoTransformacion, t_estado* estadoReduccionLocal);
+void logEstadoReduccionGlobal(int idJob, int idMaster, t_estado* estadoReduccionGlobal);
+void logEstadoAlmacenadoFinal(t_job* job);
+
+void enProcesoReduccionLocal(int idNodo, t_job* job);
+void enProcesoReduccionGlobal(t_job* job);
+void enProcesoAlmacenadoFinal(t_job* job);
 
 
 #endif /* YAMA_FUNCIONESYAMA_H_ */

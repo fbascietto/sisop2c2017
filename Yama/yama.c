@@ -24,39 +24,55 @@ void main() {
 	jobsActivos=list_create();
 	jobsFinalizados=list_create();
 
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	logYama = log_create("logYama.txt", "YAMA", 0, level);
+	logYamaImpreso = log_create("logYama.txt", "YAMA", 1, level);
+	logYamaError = log_create("logYama.txt", "YAMA", 0, level_ERROR);
+	logYamaErrorImpreso = log_create("logYama.txt", "YAMA", 1, level_ERROR);
+
 	//cargo config.txt
 	inicializarConfigYama();
 
 	socketFS = 0;
 	int socketEscucha;
+	int puerto = 5100;
 	fd_set fdSocketsEscucha;
 	FD_ZERO(&fdSocketsEscucha);
-	socketEscucha= escuchar(5100);
+	socketEscucha= escuchar(puerto);
 	FD_SET(socketEscucha, &fdSocketsEscucha);
 
-	printf("pid de yama %d \nusarlo para enviar seniales\n", getpid());
+	log_trace(logYamaImpreso, "pid de yama %d \nusarlo para enviar seniales", getpid());
+	log_trace(logYamaImpreso, "conectando con el filesystem");
+
+	socketFS = conectarseA(fsIP, fsPort);
+	enviarInt(socketFS,PROCESO_YAMA);
+
+	int estadoFS;
+	recibirInt(socketFS, &estadoFS);
 
 
+	int i = 1;
+	while(estadoFS == FSYS_NO_ESTABLE){
+		log_trace(logYamaErrorImpreso, "filesystem no estable, esperando a que se estabilice\nse intentara de nuevo en %d segundos", i);
+		sleep(i);
+		enviarInt(socketFS, PROCESO_YAMA);
+		recibirInt(socketFS, &estadoFS);
+		i++;
+	}
+
+	log_trace(logYamaImpreso, "filesystem estable");
 
 	esperarConexion = malloc(sizeof(t_esperar_conexion));
-
 	esperarConexion->fdSocketEscucha = fdSocketsEscucha;
 	esperarConexion->socketEscucha = socketEscucha;
 
-
-
-	socketFS = conectarseA(fsIP, fsPort);
-//	while(socketFS == 0){
-//		socketFS = conectarseA(fsIP, fsPort);
-//		sleep(3);
-//	}
-
-	enviarInt(socketFS,PROCESO_YAMA);
-
-		//Espero conexión de procesos master
-
 	esperarConexionMasterYFS((void*) esperarConexion);
 
+	log_destroy(logYama);
+	log_destroy(logYamaError);
+	log_destroy(logYamaErrorImpreso);
+	log_destroy(logYamaImpreso);
 }
 
 
