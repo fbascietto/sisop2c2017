@@ -40,10 +40,10 @@ void responderSolicitudRL(int, int);
 
 //RG
 int reduccionGlobal(solicitud_programa_reduccion_global*);
-void prepararParaApareo(t_list*, t_worker*, int);
+void prepararParaApareo(t_list*, t_worker*);
 int leerYEnviarArchivoTemp(char*, int);
 bool esMenor(char*, char*);
-bool termino(void*);
+bool termino(t_elemento*);
 bool algunoNoTermino(t_list*);
 void procesarElemento(void*);
 int aparear(t_list*);

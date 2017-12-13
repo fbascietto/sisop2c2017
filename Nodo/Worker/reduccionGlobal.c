@@ -37,7 +37,7 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 
 	for(i=0; i<solicitudDeserializada->cantidad_workers; i++){
 
-		prepararParaApareo(lista_de_RG, &(solicitudDeserializada->workers[i]), i);
+		prepararParaApareo(lista_de_RG, &(solicitudDeserializada->workers[i]));
 
 	}
 	retorno = aparear(lista_de_RG);
@@ -71,7 +71,7 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 }
 
 
-void prepararParaApareo(t_list* elementos_para_RG, t_worker* worker, int posicion){
+void prepararParaApareo(t_list* elementos_para_RG, t_worker* worker){
 
 	t_elemento* unElemento = malloc(sizeof(t_elemento));
 
@@ -89,10 +89,8 @@ void prepararParaApareo(t_list* elementos_para_RG, t_worker* worker, int posicio
 	unElemento->worker = worker;
 	unElemento->pedir = true;
 	unElemento->fin = false;
-	unElemento->posicion = posicion;
 	unElemento->ultima_palabra = malloc(LENGTH_PALABRA);
-
-	list_add(elementos_para_RG, unElemento);
+	unElemento->posicion = list_add(elementos_para_RG, unElemento);
 
 
 
@@ -235,14 +233,14 @@ int escribirEnArchivo(char* palabra_a_escribir){
 
 bool esMenor(char* cadena1, char* cadena2){
 
-	if(strcmp(cadena1, cadena2) < 0 || cadena2 == "") return true;
+	printf("Se compara %s con la palabra candidata: %s", cadena1, cadena2);
+
+	if(strcmp(cadena1, cadena2) < 0 || !strcmp(cadena2, "")) return true;
 	return false;
 
 }
 
-bool termino(void* unElemento){
-
-	t_elemento* elemento = (t_elemento*) unElemento;
+bool termino(t_elemento* elemento){
 
 	return elemento->fin;
 
@@ -256,9 +254,7 @@ bool algunoNoTermino(t_list* lista){
 	for(i=0; i < list_size(lista); i++){
 
 		elemento = list_get(lista, i);
-		if(!termino(elemento)){
-			return true;
-		}
+		if(!termino(elemento)) return true;
 
 	}
 
@@ -306,26 +302,21 @@ int aparear(t_list* lista){
 	//siempre y cuando haya algun elemento de la lista que falte terminar de recorrer el archivo
 	while(algunoNoTermino(lista)){
 
-
 		palabraCandidata = "";
 
 		list_iterate(lista, procesarElemento);
 		elegido = list_get(lista, posicionCandidata);
 		elegido->pedir = true;
-		//list_replace(lista, posicionCandidata, elegido);
 		retorno = escribirEnArchivo(palabraCandidata);
 		if(retorno != 0){
 			log_error(worker_error_log, "El apareo no fue exitoso");
 			return -3;
 		}
 
-//		if(strcmp(palabraCandidata, "")!=0){
-//			free(palabraCandidata);
-//		}
-
 	}
 
 	list_iterate(lista, liberarUltimaPalabra);
+	free(palabraCandidata);
 
 	return 0;
 
