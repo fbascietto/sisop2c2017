@@ -25,8 +25,6 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 
 	//para recorrer array
 	int i;
-	//para realizar conexion con otros workers
-	int socket;
 
 	//retorno de la funcion que persiste el programa de reduccion
 	int retorno;
@@ -142,8 +140,6 @@ int leerYEnviarArchivoTemp(char* ruta_arch_temp, int socket){
 
 		serialized = serializarSolicitudRecibirPalabra(respuesta);
 		uint32_t total_size = getLong_SolicitudRecibirPalabra(respuesta);
-		uint32_t tamanioLen = strlen(serialized);
-		printf("tamanio total_size: %d, tamanio Len: %d\n", total_size, tamanioLen);
 		enviados = enviarMensajeSocketConLongitud(socket, ACCION_RECIBIR_PALABRA, serialized, total_size);
 		printf("Soy proceso: %d. Se envian a worker encargado %d bytes\n", getpid(), enviados);
 
@@ -164,7 +160,8 @@ int leerYEnviarArchivoTemp(char* ruta_arch_temp, int socket){
 	respuesta_fin->fin_de_archivo = true;
 	strcpy(respuesta_fin->palabra, "");
 	char* serialized_fin = serializarSolicitudRecibirPalabra(respuesta_fin);
-	enviarMensajeSocket(socket, ACCION_RECIBIR_PALABRA, serialized_fin);
+	uint32_t total_size_fin = getLong_SolicitudRecibirPalabra(respuesta_fin);
+	enviarMensajeSocketConLongitud(socket, ACCION_RECIBIR_PALABRA, serialized_fin, total_size_fin);
 
 	free(serialized_fin);
 	free(buffer);
@@ -316,7 +313,6 @@ int aparear(t_list* lista){
 	}
 
 	list_iterate(lista, liberarUltimaPalabra);
-	free(palabraCandidata);
 
 	return 0;
 

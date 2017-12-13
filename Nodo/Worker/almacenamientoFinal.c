@@ -31,7 +31,6 @@ void almacenamientoFinal(char* IP_fs, int puerto_fs, solicitud_realizar_almacena
 
 	//le envio el archivo temporal de reduccion global resultante al fs
 	enviarMensaje(socketConn, ruta_final);
-	enviarMensaje(socketConn, ruta_red_global);
 
 	log_trace(worker_log, "Comienzo de envio de archivo");
 	envioArchivo(socketConn, ruta_red_global);
