@@ -20,11 +20,11 @@
 #include <commons/config.h>
 #include <commons/collections/list.h>
 
-#define PUERTO_FS 5141
+#define PUERTO_FS 5140
 
 void main(int argc, char *argv[]){
-	t_log_level LogL = LOG_LEVEL_TRACE;
-	t_log* logFS = log_create("log.txt","YAMAFS",0,LogL);
+	LogL = LOG_LEVEL_TRACE;
+	logFS = log_create("log.txt","YAMAFS",0,LogL);
 
 	/*creo carpeta metadata*/
 	int status = mkdir("metadata", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -72,6 +72,7 @@ void main(int argc, char *argv[]){
 	pthread_join(threadEscucharConsola, NULL);
 	//pthread_join(threadEsperaConexionstring_append(&es, NULL);
 	pthread_kill(threadEsperaConexiones, SIGUSR1);
+
 
 	log_trace(logFS,"Se sale del fs.");
 	log_destroy(logFS);

@@ -35,6 +35,8 @@ int estable;
 int end;
 int formatted;
 int clean;
+t_log_level LogL;
+t_log* logFS;
 
 typedef struct {
 	int socketCliente;
