@@ -190,6 +190,7 @@ void creoListaNodosDesdeNodosBin(){
 
 		list_add(nodos, nodo);
 	}
+
 	/*si levanté nodos.bin bien, lo considero que el fs tiene formato ok*/
 	formatted = 1;
 
@@ -661,7 +662,7 @@ void *esperarConexiones(void *args) {
 
 			t_esperar_mensaje *tEsperarMensaje = malloc(sizeof(t_esperar_mensaje));
 						tEsperarMensaje->socketCliente = nuevoSocket;
-			printf("soy el cliente numero: %d\n", cliente);
+			//printf("soy el cliente numero: %d\n", cliente);
 
 			switch(cliente){
 			case PROCESO_NODO:
@@ -676,7 +677,7 @@ void *esperarConexiones(void *args) {
 				if(estable){
 				enviarInt(nuevoSocket,FSYS_ESTABLE);
 				pthread_create(&threadSolicitudYama, NULL, procesarSolicitudYama, tEsperarMensaje);
-				pthread_join(threadSolicitudYama, NULL);
+				//pthread_join(threadSolicitudYama, NULL);
 				}else{
 				enviarInt(nuevoSocket,FSYS_NO_ESTABLE);
 				}
@@ -1034,8 +1035,7 @@ int traeBloquesLibres(){
 }
 
 void *escucharConsola(){
-	t_log_level logL;
-	t_log* logFS = log_create("log.txt","Yamafs",0,logL);
+
 
 	carpetas = inicializarDirectorios();
 
@@ -3079,106 +3079,91 @@ void transformacionFinalWorker(int nuevoSocket){
 
 void procesarSolicitudYama(void* args){
 
-	t_esperar_mensaje *argumentos = malloc(sizeof(t_esperar_mensaje));
-			argumentos = (t_esperar_mensaje*) args;
-	int nuevoSocket = argumentos->socketCliente;
-	free(args);
+	while(1){
 
-	int masterRecibido;
-	char* solicitudArchivo;
+		t_esperar_mensaje *argumentos = malloc(sizeof(t_esperar_mensaje));
+				argumentos = (t_esperar_mensaje*) args;
+		int nuevoSocket = argumentos->socketCliente;
+		free(args);
 
-	int err = 	recibirInt(nuevoSocket, &masterRecibido);
+		int masterRecibido;
+		char* solicitudArchivo;
 
-	uint32_t numMaster = masterRecibido;
+		int err = recibirInt(nuevoSocket, &masterRecibido);
 
-	printf("Recibi una solicitud del Master %d\n", numMaster);
+		if(err== -1){
+			log_error(logFS,"Error en conexión con YAMA.");
+			break;
+		}
 
-	/*
-	 *	todo completar con los bloques usados
-	 *
-	 *
-	 *	todo usar las funciones de nahuel
-	 *
-	 *
-	 *	serializar_y_enviar_yama(bloques, idMaster, socketYama);
-	 */
-	//	recibirInt(nuevoSocket,numMaster);
+		uint32_t numMaster = masterRecibido;
 
-	if(err == 0){printf("Error recibiendo num. de Master. Se recibieron %d bytes\n", err);}
+		log_trace(logFS,"Recibi una solicitud del Master %d\n", numMaster);
 
-	char* ruta_archivo = string_new();
-	ruta_archivo = recibirMensaje(nuevoSocket);
+		if(err == 0){log_error(logFS,"Error recibiendo num. de Master. Se recibieron %d bytes\n", err);break;}
 
-	printf("recibi la ruta: %s\n", ruta_archivo);
+		char* ruta_archivo = string_new();
+		ruta_archivo = recibirMensaje(nuevoSocket);
 
-	int carpeta = identificaDirectorio(ruta_archivo,carpetas);
-	printf("carpeta numero %d\n", carpeta);
+		//printf("recibi la ruta: %s\n", ruta_archivo);
 
-	char* ruta_metadata = getRutaMetadata(ruta_archivo,carpetas, carpeta);
-	printf("ruta metadata %s\n", ruta_metadata);
+		int carpeta = identificaDirectorio(ruta_archivo,carpetas);
+		//printf("carpeta numero %d\n", carpeta);
 
-	t_list * lista_bloques = obtener_lista_metadata(ruta_metadata);
-	int i = 0;
+		char* ruta_metadata = getRutaMetadata(ruta_archivo,carpetas, carpeta);
+		printf("ruta metadata %s\n", ruta_metadata);
+
+		t_list * lista_bloques = obtener_lista_metadata(ruta_metadata);
+		int i = 0;
 
 
-	char ** parametros1;
-	char ** parametros2;
+		char ** parametros1;
+		char ** parametros2;
 
-	/*
-	Ejemplo para usar:
-	t_bloques_enviados* bloquesEnviados = malloc(sizeof(t_bloques_enviados));
-	t_bloque_serializado* bloqueAAgregar1 = crearBloqueSerializado(numeroBloque, bytesOcupados, ip, puerto, idNodo, idBloque);
-	t_bloque_serializado* bloqueAAgregar2 = crearBloqueSerializado(numeroBloque2, bytesOcupados2, ip2, puerto2, idNodo2, idBloque2);
-	bloquesEnviados->cantidad_bloques = 0; //inicializo en cero antes de agregar bloques
-	agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar1);
-	agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar2);
-	return bloquesEnviados;
-	 */
+		int size = list_size(lista_bloques);
+		uint32_t nroBloque;
 
+		t_bloques_enviados* bloquesEnviados;
+		bloquesEnviados = malloc(sizeof(t_bloques_enviados));
+		bloquesEnviados->lista_bloques = malloc(sizeof(t_bloque)*size*2);
+		bloquesEnviados->cantidad_bloques = 0;
 
-	int size = list_size(lista_bloques);
-	uint32_t nroBloque;
+		for(;i < list_size(lista_bloques);i++){
 
-	t_bloques_enviados* bloquesEnviados;
-	bloquesEnviados = malloc(sizeof(t_bloques_enviados));
-	bloquesEnviados->lista_bloques = malloc(sizeof(t_bloque)*size*2);
-	bloquesEnviados->cantidad_bloques = 0;
+			t_bloque_nodo* bloque = list_get(lista_bloques,i);
+			parametros1 = string_get_string_as_array(bloque->Copia0);
+			t_nodo* nodo1 = getNodoPorNombre(parametros1[0],nodos);
 
-	for(;i < list_size(lista_bloques);i++){
+			nroBloque = atoi(parametros1[1]);
 
-		t_bloque_nodo* bloque = list_get(lista_bloques,i);
-		parametros1 = string_get_string_as_array(bloque->Copia0);
-		t_nodo* nodo1 = getNodoPorNombre(parametros1[0],nodos);
+			printf("numero bloque A: %d\n", nroBloque);
+			printf("puerto del worker(?): %d", nodo1->puerto);
 
-		nroBloque = atoi(parametros1[1]);
-
-		printf("numero bloque A: %d\n", nroBloque);
-		printf("puerto del worker(?): %d", nodo1->puerto);
-
-		t_bloque* bloqueAAgregar1 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo1->ip, nodo1->puerto, nodo1->nombre_nodo, bloque->bloque);
-		agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar1);
+			t_bloque* bloqueAAgregar1 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo1->ip, nodo1->puerto, nodo1->nombre_nodo, bloque->bloque);
+			agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar1);
 
 
 
-		parametros2 = string_get_string_as_array(bloque->Copia1);
-		t_nodo* nodo2 = getNodoPorNombre(parametros2[0],nodos);
-		nroBloque = atoi(parametros2[1]);
+			parametros2 = string_get_string_as_array(bloque->Copia1);
+			t_nodo* nodo2 = getNodoPorNombre(parametros2[0],nodos);
+			nroBloque = atoi(parametros2[1]);
 
-		printf("numero bloque B: %d\n", nroBloque);
-		printf("puerto del worker(?): %d", nodo1->puerto);
+			printf("numero bloque B: %d\n", nroBloque);
+			printf("puerto del worker(?): %d", nodo1->puerto);
 
-		t_bloque* bloqueAAgregar2 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo2->ip, nodo2->puerto, nodo2->nombre_nodo, bloque->bloque);
-		agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar2);
+			t_bloque* bloqueAAgregar2 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo2->ip, nodo2->puerto, nodo2->nombre_nodo, bloque->bloque);
+			agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar2);
+
+		}
+
+		string_iterate_lines(parametros1,free);
+		free(parametros1);
+		string_iterate_lines(parametros2,free);
+		free(parametros2);
+
+		serializar_y_enviar_yama(bloquesEnviados,numMaster,nuevoSocket);
 
 	}
-
-	string_iterate_lines(parametros1,free);
-	free(parametros1);
-	string_iterate_lines(parametros2,free);
-	free(parametros2);
-
-	serializar_y_enviar_yama(bloquesEnviados,numMaster,nuevoSocket);
-
 }
 
 char* serializarBloquesEnviados(t_bloques_enviados* bloques, uint32_t* id_master, uint32_t* total_size){
