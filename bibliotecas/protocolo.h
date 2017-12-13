@@ -67,6 +67,8 @@
 #define FSTAT_ERROR 62
 #define FSYS_NO_ESTABLE 63
 #define FSYS_ESTABLE 64
+#define ACCION_TERMINAR_JOB 65
+
 
 
 #endif /* PROTOCOLO_H_ */

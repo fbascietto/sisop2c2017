@@ -9,6 +9,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <libgen.h>
+#include <stdint.h>
 
 #ifndef MASTER_FUNCIONESMASTER_H_
 #define MASTER_FUNCIONESMASTER_H_
@@ -23,6 +24,7 @@ struct timeval t_ini, t_fin;
 
 int cantidadEtapasTranformacion;
 int cantidadEtapasReduccionLocal;
+int activosReduccionLocal;
 int cantidadEtapasReduccionGlobal;
 
 double tiempoAcumEtapasTransformacion;
@@ -35,5 +37,7 @@ int cantidadMayorTransformacion;
 int cantidadMayorReduccionLocal;
 
 double timeval_diff(struct timeval *a, struct timeval *b);
+
+uint32_t idJob;//todo: global
 
 #endif /* MASTER_FUNCIONESMASTER_H_ */

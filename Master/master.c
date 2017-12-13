@@ -16,7 +16,6 @@
 #include "../bibliotecas/protocolo.h"
 #include "interfaceMaster.h"
 
-
 void main(int args, char* argv[]) {
 
 	//testSerializarSolicitudTrasnformacion();
@@ -63,6 +62,8 @@ void main(int args, char* argv[]) {
 	char* nombreNodo;
 	int yamaPort;
 
+	activosReduccionLocal = 0;
+
 
 	infoConfig = config_create("config.txt");
 
@@ -92,13 +93,22 @@ void main(int args, char* argv[]) {
 	int len = strlen(ruta_archivo_del_job);
 	uint32_t message_long = sizeof(char)*len;
 	enviarMensajeSocketConLongitud(socketYama,ACCION_PROCESAR_ARCHIVO,ruta_archivo_del_job,len);
+	recibirInt(socketYama,&idJob);
 	while(1){
-		sleep(1);
 		Package* package = createPackage();
 		printf("esperando mensaje de yama: %d\n",socketYama);
 		int leidos = recieve_and_deserialize(package, socketYama);
 		printf("codigo de mensaje: %d\n",	package->msgCode);
 		switch(package->msgCode){
+			case ACCION_REPLANIFICACION: ;
+				uint32_t idJobReplanificacion = malloc(sizeof(uint32_t));
+				int offset = 0;
+				deserializarDato(&(idJobReplanificacion),package->message,sizeof(uint32_t),&offset);
+				idJob = idJobReplanificacion;
+				break;
+			case ACCION_TERMINAR_JOB:
+				close(socketYama);
+				break;
 			case ACCION_PROCESAR_TRANSFORMACION:
 				procesarSolicitudTransformacion(socketYama, package->message_long, package->message);
 				//enviarMensajeSocketConLongitud(socketConn,RESULTADO_TRANSFORMACION,archivoMensage,len);
@@ -115,6 +125,9 @@ void main(int args, char* argv[]) {
 				procesarSolicitudAlmacenadoFinal(socketYama, package->message_long, package->message);
 				//enviarMensajeSocketConLongitud(socketConn,RESULTADO_ALMACENADO_FINAL,archivoMensage,len);
 				break;
+		}
+		if(package->msgCode ==ACCION_TERMINAR_JOB){
+			break;
 		}
 	}
 	gettimeofday(&t_fin, NULL);
