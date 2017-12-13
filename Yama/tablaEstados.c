@@ -10,6 +10,7 @@ void tablaDeEstadosJobsFinalizados(){
 }
 
 void tablaDeEstados(t_job* job){
+	log_trace(logYamaImpreso, "imprimiendo tabla de estados del job %d", job->idJob);
 	imprimirTransformaciones(job->estadosTransformaciones, job->idJob, job->idMaster);
 	imprimirReduccionesLocales(job->estadosReduccionesLocales, job->estadosTransformaciones, job->idJob, job->idMaster);
 	logEstadoReduccionGlobal(job->idJob, job->idMaster, job->reduccionGlobal);
@@ -144,7 +145,7 @@ void actualizarEstado(char idNodo[NOMBRE_NODO], int numero_bloque, int etapa, in
 			for(j=0; j<list_size(job->estadosTransformaciones); j++){
 				t_estado* estadoTransformacion = list_get(job->estadosTransformaciones, j);
 				if(strcmp(estado->nodoPlanificado->nodo->idNodo, estadoTransformacion->nodoPlanificado->nodo->idNodo) == 0){
-					logEstadoReduccionLocal(idJob, idMaster, estadoTransformacion, estado);
+					logEstadoReduccionLocal(idJob, job->idMaster, estadoTransformacion, estado);
 				}
 			}
 		}else{

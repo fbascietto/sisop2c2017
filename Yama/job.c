@@ -251,19 +251,6 @@ void enProcesoSiguienteEtapa(char* idWorker, int etapa, t_job* job){
 	}
 }
 
-//todo
-//t_list* falloWorker(int bloque, char* etapa, int idWorker, t_job* job){
-//	if(strcmp(etapa, "transformacion") == 0){
-//		cambiarEtapaFallo(idWorker, bloque, job);
-//		t_list* nodosJob = obtenerNodosJob(job);
-//		t_list* bloquesJob = obtenerBloquesJob(job);
-//		t_list* laReplanificacion = replanificacion(nodosJob, idWorker, bloquesJob, dispBase, algoritmoBalanceo);
-//		return laReplanificacion;
-//	} else{
-//		terminarJob(job);
-//		return NULL;
-//	}
-//}
 
 bool chequearReduccionLocalNodo(char* idWorker, int bloque, t_job* job){
 	int i;
@@ -284,63 +271,6 @@ bool chequearReduccionLocalNodo(char* idWorker, int bloque, t_job* job){
 	}
 	return true;
 }
-
-///**
-// *
-// *	Si el nombre es incorrecto, devolver -1,
-// *	caso contrario devolver 0 para transformacion
-// *	si todos los nodos fueron transformados devuelve 1
-// *	devolver 2 para reduccion local
-// *	devolver 3 para reduccion global
-// */
-//int cambiarEtapaOK(char* idWorker, char* etapa, int bloque, t_job* job){
-//	int i;
-//	int tamanioEstados;
-//	t_estado* unEstado;
-//
-//	if(strcmp(etapa, "transformacion") == 0){
-//		tamanioEstados= list_size(job->estadosTransformaciones);
-//		for (i=0; i<tamanioEstados; i++){
-//			unEstado = list_get(job->estadosTransformaciones, i);
-//			if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idWorker) == 0 &&
-//					unEstado->nodoPlanificado->bloque->numero_bloque == bloque){
-//				strncpy(unEstado->estado, "finalizado", LENGTH_FINALIZADO);
-//				if(chequearReduccionLocalNodo(idWorker, bloque, job)){
-//					enProcesoSiguienteEtapa(idWorker, etapa, job);
-//					return 1;
-//				}else{
-//					return 0;
-//				}
-//			}
-//		}
-//
-//	} else if(strcmp(etapa, "reduccion local") == 0){
-//		tamanioEstados= list_size(job->estadosReduccionesLocales);
-//		for (i=0; i<tamanioEstados; i++){
-//			unEstado = list_get(job->estadosReduccionesLocales, i);
-//			if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idWorker) == 0){
-//				strncpy(unEstado->estado, "finalizado", LENGTH_FINALIZADO);
-//				enProcesoSiguienteEtapa(idWorker, etapa, job);
-//				return 1;
-//			}
-//		}
-//	} else if(strcmp(etapa, "reduccion global") == 0){
-//		strncpy(job->reduccionGlobal->estado, "finalizado", LENGTH_FINALIZADO);
-//		return 2;
-//	}
-//
-//	return -1;
-//}
-//
-////todo
-//void respuestaWorker(char* respuesta, int bloque, char* etapa, int idWorker, int idJob){
-//	t_job* job = obtenerJob(idJob, jobsActivos);
-//	if (strcmp(respuesta, "finalizado") == 0){
-//		cambiarEtapaOK(idWorker, etapa, bloque, job);
-//	}else {
-//		//falloWorker(idWorker, etapa, bloque, job);
-//	}
-//}
 
 t_list* obtenerBloques(t_job* job){
 	int i;
@@ -614,17 +544,6 @@ t_job* moverJobAFinalizados(int idJob){
  */
 t_job* terminarJob(int idJob){
 
-
-	//	printf("finalizando job, mostrando estadisticas (pueden repetirse los nodos)\n\n");
-
-
-	// todo
-	//	/**estadisticas**/
-	//	printf("id del master: %d\nid del job: %d\n", job->idMaster, job->idJob);
-	//	list_iterate(job->estadosTransformaciones,estadisticas);
-	//	estadisticas(unaPlanificacion);
-	//
-	//	/** fin estadisticas**/
 
 	t_job* job;
 

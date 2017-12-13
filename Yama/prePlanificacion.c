@@ -242,28 +242,6 @@ t_nodo* nodoConMenorCargaTrabajo(t_list* nodos){
 }
 
 
-//todo
-void loguear_nodos_asignados(t_list* planificacion){
-	int i;
-	int cantidadBloques = list_size(planificacion);
-
-	t_planificacion* unaPlanificacion;
-
-	t_log_level level = LOG_LEVEL_TRACE;
-	t_log* yama_log = log_create("logYama.txt", "YAMA", 0, level);
-
-
-
-	for(i=0; i<cantidadBloques; i++){
-		unaPlanificacion = list_get(planificacion, i);
-		log_trace(yama_log, "bloque %d  asignado al nodo: %s",
-				unaPlanificacion->bloque->numero_bloque, unaPlanificacion->nodo->idNodo);
-		log_trace(yama_log, "con disponibilidad restante : %d  y reduccionGlobal (deberia estar en 0): %d\n",
-				unaPlanificacion->nodo->disponibilidad, unaPlanificacion->reduccionGlobal);
-	}
-
-	free(yama_log);
-}
 
 void* obtenerIdNodoPlanificado(void* nodo){
 	t_planificacion* nodoPlanificado = (t_planificacion*) nodo;
@@ -462,32 +440,17 @@ void desconectarNodo(char* idNodo){
 	int cantidadNodos = list_size(nodosConectados);
 	t_nodo* unNodo;
 
+	log_trace(logYamaErrorImpreso, "se cayo el nodo %s, se elimina de los nodos conectados", idNodo);
+
 	for(i=0; i<cantidadNodos; i++){
 		unNodo = list_get(nodosConectados, i);
 		if(strcmp(unNodo->idNodo, idNodo)==0){
 			unNodo = list_remove(nodosConectados, i);
+			list_destroy_and_destroy_elements(unNodo->bloquesAsignados, free);
 			free(unNodo);
 			break;
 		}
 	}
-}
-
-void estadisticas(void* unaPlanif){
-	t_estado* unaPlanificacion = (t_estado*) unaPlanif;
-	if(unaPlanificacion->nodoPlanificado->reduccionGlobal == 0){
-		printf("\n\n-------------------------------------------------\n");
-		printf("bloque: %d nodo: %s, ip: %s, puerto: %d, cargaDeTrabajoActual: %d \n",
-				unaPlanificacion->nodoPlanificado->bloque->idBloque,
-				unaPlanificacion->nodoPlanificado->nodo->idNodo,
-				unaPlanificacion->nodoPlanificado->nodo->ipWorker,
-				unaPlanificacion->nodoPlanificado->nodo->puerto,
-				unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajoActual);
-	}else{
-		printf("nodo de reduccion final: %s con una cargaDeTrabajoActual: %d \n",
-				unaPlanificacion->nodoPlanificado->nodo->idNodo,
-				unaPlanificacion->nodoPlanificado->nodo->cargaDeTrabajoActual);
-	}
-
 }
 
 

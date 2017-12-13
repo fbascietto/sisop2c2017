@@ -10,6 +10,7 @@ C_SRCS += \
 ../interfaceMaster.c \
 ../job.c \
 ../prePlanificacion.c \
+../tablaEstados.c \
 ../yama.c 
 
 OBJS += \
@@ -19,6 +20,7 @@ OBJS += \
 ./interfaceMaster.o \
 ./job.o \
 ./prePlanificacion.o \
+./tablaEstados.o \
 ./yama.o 
 
 C_DEPS += \
@@ -28,6 +30,7 @@ C_DEPS += \
 ./interfaceMaster.d \
 ./job.d \
 ./prePlanificacion.d \
+./tablaEstados.d \
 ./yama.d 
 
 

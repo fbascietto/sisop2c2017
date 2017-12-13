@@ -17,7 +17,6 @@ char* serializarSolicitudTransformacion(solicitud_transformacion* solicitudTrans
 	char *serializedPackage = malloc(total_size);
 
 	int offset = 0;
-	int size_to_send;
 
 	serializarDato(serializedPackage,&(solicitudTransformacion->item_cantidad),sizeof(uint32_t),&offset);
 
@@ -26,7 +25,6 @@ char* serializarSolicitudTransformacion(solicitud_transformacion* solicitudTrans
 
 	char* serialized_items = serializar_items_transformacion(&(solicitudTransformacion->items_transformacion),solicitudTransformacion->item_cantidad);
 	serializarDato(serializedPackage,serialized_items,sizeof(char)*size_items,&offset);
-	free(serialized_items);
 
 	return serializedPackage;
 }
@@ -198,7 +196,7 @@ void testSerializarSolicitudTrasnformacion(){
 }
 
 void agregarItemTransformacion(solicitud_transformacion* solicitudTransformacion, item_transformacion* item){
-	//solicitudTransformacion->items_transformacion = realloc(solicitudTransformacion->items_transformacion,sizeof(item_transformacion)*(solicitudTransformacion->item_cantidad+1));
+
 	strcpy(solicitudTransformacion->items_transformacion[solicitudTransformacion->item_cantidad].archivo_temporal,item->archivo_temporal);
 	solicitudTransformacion->items_transformacion[solicitudTransformacion->item_cantidad].bloque = item->bloque;
 	solicitudTransformacion->items_transformacion[solicitudTransformacion->item_cantidad].bytes_ocupados = item->bytes_ocupados;

@@ -15,7 +15,7 @@
 #include "funcionesyama.h"
 #include "prePlanificacion.h"
 
-void main() {
+int main() {
 
 	socketFS=0;
 	nodosConectados=list_create();
@@ -23,6 +23,14 @@ void main() {
 	rutaGlobal=0;
 	jobsActivos=list_create();
 	jobsFinalizados=list_create();
+
+
+	//todo
+	struct sigaction sa;
+	sa.sa_handler = recargarConfiguracion;
+	sa.sa_flags = SA_RESTART;
+	if (sigaction(SIGUSR1,&sa,0) < 0) // Setup signal
+		log_trace(logYamaErrorImpreso,"sigaction failed");
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
@@ -45,12 +53,16 @@ void main() {
 	log_trace(logYamaImpreso, "pid de yama %d \nusarlo para enviar seniales", getpid());
 	log_trace(logYamaImpreso, "conectando con el filesystem");
 
+
 	socketFS = conectarseA(fsIP, fsPort);
+	while(socketFS == 0){
+		conectarseA(fsIP, fsPort);
+	}
+
 	enviarInt(socketFS,PROCESO_YAMA);
 
 	int estadoFS;
 	recibirInt(socketFS, &estadoFS);
-
 
 	int i = 1;
 	while(estadoFS == FSYS_NO_ESTABLE){
@@ -73,6 +85,8 @@ void main() {
 	log_destroy(logYamaError);
 	log_destroy(logYamaErrorImpreso);
 	log_destroy(logYamaImpreso);
+
+	return EXIT_SUCCESS;
 }
 
 

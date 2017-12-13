@@ -11,9 +11,9 @@
 
 
 void recibirMensajeMaster(void *args){
-	int* socket = (int*) args;
-	int nuevoSocket = *socket;
-	free(args);
+	t_esperar_mensaje *tEsperarMensaje = (t_esperar_mensaje*) args;
+	int nuevoSocket = tEsperarMensaje->socketCliente;
+	//free(args);
 
 	while(1){
 		Package* package = createPackage();
@@ -77,7 +77,6 @@ void recibirMensajeFS(void *args){
 	t_esperar_mensaje *argumentos = (t_esperar_mensaje*) args;
 	int nuevoSocket = argumentos->socketCliente;
 	free(args);
-	free(argumentos);
 
 	Package* package = createPackage();
 	recieve_and_deserialize(package, nuevoSocket);
@@ -99,19 +98,17 @@ void recibirMensajeFS(void *args){
 	bloques = procesarBloquesRecibidos(package->message, &idMaster);
 	log_trace(logYamaImpreso, "se recibieron %d bloques de yamafs para el master %d", list_size(bloques), idMaster);
 
+
+	//todo mutex
 	crearNuevoJob(idMaster, bloques, algoritmo);
 
 	nuevoJob = jobGlobal;
 	/** fin mutex **/
 
-	log_trace(logYamaImpreso, "---------job creado---------\n id de job: %d, id de master: %d, cantidad de nodos: &d, cantidad de bloques a transformar: %d", nuevoJob->idJob, nuevoJob->idMaster, list_size(nuevoJob->estadosReduccionesLocales), list_size(nuevoJob->estadosTransformaciones));
+	tablaDeEstados(nuevoJob);
 
-	//		printf("\nDATOS TRANSFORMACION\n");
-	//		list_iterate(nuevoJob->estadosTransformaciones, estadisticas);
-	//		printf("\nDATOS REDUCCIONLOCAL\n");
-	//		list_iterate(nuevoJob->estadosReduccionesLocales, estadisticas);
-	//		printf("id de Job: %d\n", nuevoJob->idJob);
-	//		printf("serializando transformaciones\n");
+	log_trace(logYamaImpreso, "               ---------job creado---------\n id de job: %d, id de master: %d, cantidad de nodos: %d, cantidad de bloques a transformar: %d", nuevoJob->idJob, nuevoJob->idMaster, list_size(nuevoJob->estadosReduccionesLocales), list_size(nuevoJob->estadosTransformaciones));
+
 	// ------------------ ENVIO SOLICITUD TRANSFORMACION A MASTER -------------------------
 
 	solicitudTransformacion = obtenerSolicitudTrasnformacion(nuevoJob);
@@ -148,10 +145,7 @@ int esperarConexionesSocketYama(fd_set *master, int socketEscucha) {
 
 	int retorno;
 
-	struct sigaction sa;
-	sa.sa_handler = recargarConfiguracion;
-	if (sigaction(SIGUSR1,&sa,0) < 0) // Setup signal
-		log_trace(logYamaErrorImpreso,"sigaction failed");
+
 
 	fallo_por_signal:
 	retorno = select(socketEscucha + 1, readSet, NULL, NULL, NULL);
@@ -176,7 +170,6 @@ int esperarConexionesSocketYama(fd_set *master, int socketEscucha) {
 void esperarMensajeMaster(t_esperar_conexion* argumentos) {
 	while (1) {
 
-		//TODO: Recibir instrucciones master y crear thread por cada una
 		int nuevoSocket = -1;
 		nuevoSocket = esperarConexionesSocketYama(&argumentos->fdSocketEscucha,
 				argumentos->socketEscucha);
@@ -188,6 +181,9 @@ void esperarMensajeMaster(t_esperar_conexion* argumentos) {
 			int cliente;
 			recibirInt(nuevoSocket, &cliente);
 
+			t_esperar_mensaje *tEsperarMensaje = malloc(sizeof(t_esperar_mensaje));
+			 tEsperarMensaje->socketCliente = nuevoSocket;
+
 			/* define el thread */
 			pthread_t threadSolicitudes;
 
@@ -195,7 +191,7 @@ void esperarMensajeMaster(t_esperar_conexion* argumentos) {
 
 			switch (cliente) {
 			case PROCESO_MASTER:
-				er1 = pthread_create(&threadSolicitudes, NULL, recibirMensajeMaster, (void*) &nuevoSocket);
+				er1 = pthread_create(&threadSolicitudes, NULL, recibirMensajeMaster, (void*) tEsperarMensaje);
 				break;
 			}
 		}
@@ -224,7 +220,8 @@ solicitud_transformacion* obtenerSolicitudTrasnformacion(t_job* job){
 
 	// menos 1 porque esta el de reduccion global en la planificacion
 	solicitud_transformacion* solicitud = malloc(sizeof(solicitud_transformacion));
-	solicitud->items_transformacion = malloc(sizeof(item_transformacion)*tamanioTransformacion);
+	solicitud->items_transformacion = calloc(tamanioTransformacion, sizeof(item_transformacion));
+	solicitud->item_cantidad = 0;
 	item_transformacion* item = malloc(sizeof(item_transformacion));
 
 	for(i=0; i<tamanioTransformacion ;i++){
@@ -233,7 +230,6 @@ solicitud_transformacion* obtenerSolicitudTrasnformacion(t_job* job){
 		agregarItemTransformacion(solicitud, item);
 	}
 	return solicitud;
-	//return obtenerSolicitudTrasnformacionMock(message);
 }
 
 item_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job, char idNodo[NOMBRE_NODO]){
@@ -273,7 +269,6 @@ item_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job, char idNodo[NOM
 	item->archivos_temporales_transformacion = listaRutasTransformacion;
 	item->cantidad_archivos_temp = cantTransformaciones;
 	return item;
-	//return obtenerSolicitudReduccionLocalMock(message);
 }
 
 int cantidadTransformaciones(char* idNodo, t_list* estados){
@@ -298,6 +293,7 @@ solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job){ //t_lis
 	int tamanioReduccionLocal = list_size(job->estadosReduccionesLocales);
 
 	solicitud_reduccion_global* solicitud = malloc(sizeof(solicitud_reduccion_global));
+	solicitud->item_cantidad = 0;
 	solicitud->workers = malloc(sizeof(t_worker)*tamanioReduccionLocal);
 
 	for(i=0; i<tamanioReduccionLocal ;i++){
@@ -385,7 +381,7 @@ void procesarResultadoTransformacion(int nuevoSocket, Package* package, uint32_t
 
 		/**** fallo uno de los nodos ***/
 		log_trace(logYamaErrorImpreso, "fallo el job %d en el nodo %d, notificando replanificacion a master", idJob, idNodo);
-		enviarMensajeSocketConLongitud(nuevoSocket, ACCION_REPLANIFICACION, NULL, NULL);
+		enviarInt(nuevoSocket, ACCION_REPLANIFICACION);
 
 		/***** termino el job *****/
 		t_job* jobFallado;
@@ -399,16 +395,15 @@ void procesarResultadoTransformacion(int nuevoSocket, Package* package, uint32_t
 
 		desconectarNodo(idNodo);
 
-
-		//todo sePuedePlanificar hablar con francisco
 		if(sePuedePlanificar(bloques)){
 
 			solicitud_transformacion* solicitudTransformacion;
 			char* solicitudTransfSerializado;
 			uint32_t longitud;
 
+			//todo
 			/** insertar mutex **/
-			crearNuevoJob(idMaster, bloques, algoritmoBalanceo);
+			crearNuevoJob(nuevoSocket, bloques, algoritmoBalanceo);
 
 			jobReplanificado = jobGlobal;
 			/** insertar mutex **/
@@ -418,15 +413,15 @@ void procesarResultadoTransformacion(int nuevoSocket, Package* package, uint32_t
 			solicitudTransfSerializado = serializarSolicitudTransformacion(solicitudTransformacion);
 			longitud = getLong_SolicitudTransformacion(solicitudTransformacion);
 
-			enviarMensajeSocketConLongitud(idMaster,ACCION_PROCESAR_TRANSFORMACION,solicitudTransfSerializado,longitud);
+			enviarMensajeSocketConLongitud(nuevoSocket,ACCION_PROCESAR_TRANSFORMACION,solicitudTransfSerializado,longitud);
 
+			free(solicitudTransformacion->items_transformacion);
 			free(solicitudTransformacion);
 			free(solicitudTransfSerializado);
 
 		}else{
-			log_trace(logYamaErrorImpreso, "el job %d no se puede replanificar, terminando job", idJob);
-			t_job* job = terminarJob(idJob);
-			tablaDeEstados(job);
+			log_trace(logYamaErrorImpreso, "el job %d no se puede replanificar, job finalizado", idJob);
+			//todo enviar mensaje terminar job a master
 		}
 	}
 }
@@ -448,7 +443,7 @@ void procesarResultadoReduccionLocal(int nuevoSocket, Package* package, uint32_t
 	if(resultado == REDUCCION_LOCAL_OK){
 		if(finalizaronReduccionesLocalesNodos(job)){
 
-			enProcesoReduccionGlobal(idJob);
+			enProcesoReduccionGlobal(job);
 
 			tablaDeEstados(job);
 
@@ -464,6 +459,8 @@ void procesarResultadoReduccionLocal(int nuevoSocket, Package* package, uint32_t
 		}
 	}else{
 		log_trace(logYamaErrorImpreso, "fallo el job %d en la reduccion local, terminando job", idJob);
+		desconectarNodo(idNodo);
+		//todo insertar mutex
 		job = terminarJob(idJob);
 	}
 
@@ -498,7 +495,10 @@ void procesarResultadoReduccionGlobal(int nuevoSocket, Package* package, uint32_
 	}else{
 
 		log_trace(logYamaErrorImpreso, "fallo el job %d en la reduccion global, terminando job", idJob);
+		//todo insertar mutex
+		desconectarNodo(idNodo);
 		job = terminarJob(idJob);
+		tablaDeEstados(job);
 	}
 
 }
@@ -507,7 +507,6 @@ void procesarResultadoAlmacenadoFinal(int nuevoSocket, Package* package, uint32_
 
 	int offset = 0;
 	char idNodo[NOMBRE_NODO];
-	uint32_t numero_bloque;
 
 	deserializarDato(idNodo, package->message, NOMBRE_NODO, &offset);
 
@@ -516,22 +515,22 @@ void procesarResultadoAlmacenadoFinal(int nuevoSocket, Package* package, uint32_
 	idJob = obtenerIdJob(nuevoSocket, jobsActivos);
 	actualizarEstado(idNodo, NULL, RESULTADO_REDUCCION_GLOBAL, idJob, resultado);
 
-	t_job* job = obtenerJob(idJob, jobsActivos);
 
 	if(resultado == ALMACENADO_FINAL_OK){
 		log_trace(logYamaErrorImpreso, "el job %d se ejecuto con exito, terminando job", idJob);
 	}else{
+		desconectarNodo(idNodo);
 		log_trace(logYamaErrorImpreso, "fallo el job %d en almacenado final, terminando job", idJob);
 	}
 
-	tablaDeEstados(job);
 
-	terminarJob(idJob);
+	//todo insertar mutex
+	t_job* job = terminarJob(idJob);
+	tablaDeEstados(job);
 }
 
 void procesarSolicitudArchivoMaster(int nuevoSocket, Package* package){
 	char* solicitudArchivo = malloc(package->message_long);
-	uint32_t* tamanioSerializado = malloc(sizeof(uint32_t));
 
 	strcpy(solicitudArchivo, package->message);
 
@@ -541,25 +540,11 @@ void procesarSolicitudArchivoMaster(int nuevoSocket, Package* package){
 	enviarMensaje(socketFS, solicitudArchivo);
 
 	free(solicitudArchivo);
-	free(tamanioSerializado);
 
 	t_esperar_mensaje* tEsperarMensaje = malloc(sizeof(t_esperar_mensaje));
 	tEsperarMensaje->socketCliente = socketFS;
 	recibirMensajeFS(tEsperarMensaje);
 
-}
-
-void datosBloques(void* elemento){
-	t_bloque* bloque = (t_bloque*) elemento;
-	int i = rutaGlobal++;
-	printf("------------------------\n");
-	printf("Los bytes ocupados de %d son: %d\n",i, bloque->bytes_ocupados);
-	printf("El id de bloque de %d es: %d\n",i, bloque->idBloque);
-	printf("El numero de bloque %d son: %d\n",i,bloque->numero_bloque);
-	printf("El nombre de nodo de %d es: %s\n",i,bloque->idNodo);
-	printf("El ip de %d es: %s\n",i,bloque->ip);
-	printf("El puerto de %d es: %d\n\n",i,bloque->puerto);
-	printf("------------------------\n");
 }
 
 //se obtiene ademas el id del master
@@ -571,9 +556,6 @@ t_list* procesarBloquesRecibidos(char* message, uint32_t* masterId){
 
 	adaptarBloques(bloquesRecibidos, bloques);
 
-	list_iterate(bloques, datosBloques);
-	rutaGlobal = 0;
-
 	return bloques;
 }
 
@@ -582,16 +564,11 @@ t_list* procesarBloquesRecibidos(char* message, uint32_t* masterId){
  * con formatos t_bloque*
  */
 void adaptarBloques(t_bloques_enviados* bloquesRecibidos, t_list* bloques){
-
 	int i;
 
 	for(i=0; i<bloquesRecibidos->cantidad_bloques; i++){
-
-		printf("posicion de memoria: %p", &(bloquesRecibidos->lista_bloques[i]));
 		list_add(bloques, &(bloquesRecibidos->lista_bloques[i]));
-
 	}
-
 }
 
 bool finalizoTransformacionesNodo(char* idNodo, int numero_bloque, int idJob){
@@ -696,6 +673,7 @@ void cargarValoresPlanificacion(){
 		dispBase = config_get_int_value(infoConfig,"DISP_BASE");
 		log_trace(logYamaImpreso, "Disponibilidad Base: %d", dispBase);
 	}
+
 
 }
 

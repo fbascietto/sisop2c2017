@@ -37,7 +37,6 @@ int retardoPlanificacion; //en milisegundos
 char* algoritmoBalanceo;
 
 int socketFS;
-uint32_t idMaster;
 uint32_t rutaGlobal;
 
 
