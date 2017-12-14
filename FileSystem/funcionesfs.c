@@ -3077,12 +3077,13 @@ void transformacionFinalWorker(int nuevoSocket){
 
 void procesarSolicitudYama(void* args){
 
-	while(1){
-
-		t_esperar_mensaje *argumentos = malloc(sizeof(t_esperar_mensaje));
+	t_esperar_mensaje *argumentos = malloc(sizeof(t_esperar_mensaje));
 				argumentos = (t_esperar_mensaje*) args;
 		int nuevoSocket = argumentos->socketCliente;
 		free(args);
+
+	while(1){
+
 
 		int masterRecibido;
 		char* solicitudArchivo;
