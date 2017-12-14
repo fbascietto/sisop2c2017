@@ -295,7 +295,6 @@ solicitud_recibir_palabra* recibirSolicitudWorker(int nuevoSocket){
 
 	Package* package = createPackage();
 	int leidos = recieve_and_deserialize(package, nuevoSocket);
-	printf("Soy el proceso: %d. Se recibio message code: %d en recibirSolicitudWorker\n", getpid(), package->msgCode);
 	int exit_code;
 
 	switch(package->msgCode){
@@ -306,7 +305,6 @@ solicitud_recibir_palabra* recibirSolicitudWorker(int nuevoSocket){
 		break;
 	case ACCION_RECIBIR_PALABRA:
 		palabra = deserializarSolicitudRecibirPalabra(package->message);
-		printf("Soy el proceso: %d. Se deserializo el fin de la palabra: %d y la palabra: %s\n", getpid(), palabra->fin_de_archivo, palabra->palabra);
 		break;
 
 	}

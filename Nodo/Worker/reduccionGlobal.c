@@ -126,22 +126,20 @@ int leerYEnviarArchivoTemp(char* ruta_arch_temp, int socket){
 	//estructura que se envia al worker encargado
 	solicitud_recibir_palabra* respuesta = malloc(sizeof(solicitud_recibir_palabra));
 
-	while(!feof(f1)){
+	while(1){
 
 		//leo de a un registro (una linea porque ya viene ordenado el archivo) para guardar en buffer y enviar
-		fgets(buffer, LENGTH_PALABRA, f1);
+		if((fgets(buffer, LENGTH_PALABRA, f1)) == NULL) break;
 
 		log_trace(worker_log, "Se envia al worker encargado un registro para la reduccion global");
 		respuesta->fin_de_archivo = false;
 		strcpy(respuesta->palabra, buffer);
 
 		printf("Soy proceso: %d. palabra a enviar en el socket: %d es: %s\n", getpid(), socket, respuesta->palabra);
-		printf("Soy proceso: %d. fin de archivo: %d\n", getpid(), respuesta->fin_de_archivo);
 
 		serialized = serializarSolicitudRecibirPalabra(respuesta);
 		uint32_t total_size = getLong_SolicitudRecibirPalabra(respuesta);
 		enviados = enviarMensajeSocketConLongitud(socket, ACCION_RECIBIR_PALABRA, serialized, total_size);
-		printf("Soy proceso: %d. Se envian a worker encargado %d bytes\n", getpid(), enviados);
 
 		free(serialized);
 
@@ -182,9 +180,6 @@ solicitud_recibir_palabra* recibirPalabra(int socket){
 	solicitud_recibir_palabra* palabra;
 	palabra = recibirSolicitudWorker(socket);
 	enviarInt(socket, CONTINUAR_ENVIO);
-
-	printf("Soy proceso: %d. palabra recibida en el socket: %d es: %s\n", getpid(), socket, palabra->palabra);
-	printf("Soy proceso: %d. fin de archivo: %d\n", getpid(), palabra->fin_de_archivo);
 
 	return palabra;
 
@@ -263,6 +258,7 @@ void procesarElemento(void* unElemento){
 
 	t_elemento* elemento = (t_elemento*) unElemento;
 
+	printf("ultima palabra del elemento %s antes del chequeo %s ", elemento->worker->nodo_id, elemento->ultima_palabra);
 	//verifica si hay que pedir palabra
 	if(!elemento->fin && elemento->pedir){
 
@@ -275,11 +271,12 @@ void procesarElemento(void* unElemento){
 
 	}
 
+	printf("palabra del elemento %s despues del chequeo %s ", elemento->worker->nodo_id, elemento->ultima_palabra);
 	//compara con la palabra candidata
 	if(!elemento->fin && esMenor(elemento->ultima_palabra, palabraCandidata)){
 		palabraCandidata = elemento->ultima_palabra;
 		posicionCandidata = elemento->posicion;
-		printf("Soy proceso: %d. La palabra candidata es: %s\n", getpid(), palabraCandidata);
+		printf("Se cambio la palabra candidata a: %s\n", palabraCandidata);
 
 	}
 
