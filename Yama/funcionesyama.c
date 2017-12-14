@@ -60,16 +60,18 @@ void recibirMensajeMaster(void *args){
  * y lo agrega a jobsActivos
  * en base a un paquete de bloques
  */
-void crearNuevoJob(int idMaster, t_list* bloques, char* algoritmo) {
+t_job* crearNuevoJob(int idMaster, t_list* bloques, char* algoritmo) {
 	t_list* nodos;
 	t_list* bloquesReducidos;
-	t_job* nuevoJob = malloc(sizeof(t_job));
+	t_job* nuevoJob;
 	// ---------------------------- CREO JOB ----------------------------------------------
 
 	/** insertar mutex **/
 	nodos = obtenerNodosParticipantes(bloques);
 	bloquesReducidos = reducirBloques(bloques);
-	crearJob(bloquesReducidos, nodos, algoritmo, idMaster);
+	nuevoJob = crearJob(bloquesReducidos, nodos, algoritmo, idMaster);
+
+	return nuevoJob;
 
 }
 
@@ -98,12 +100,7 @@ void recibirMensajeFS(void *args){
 	bloques = procesarBloquesRecibidos(package->message, &idMaster);
 	log_trace(logYamaImpreso, "se recibieron %d bloques de yamafs para el master %d", list_size(bloques), idMaster);
 
-
-	//todo mutex
-	crearNuevoJob(idMaster, bloques, algoritmo);
-
-	nuevoJob = jobGlobal;
-	/** fin mutex **/
+	nuevoJob = crearNuevoJob(idMaster, bloques, algoritmo);
 
 	tablaDeEstados(nuevoJob);
 
@@ -119,6 +116,7 @@ void recibirMensajeFS(void *args){
 	log_trace(logYama, "solicitud de transformacion terminada y serializada\n se enviaran %d bytes al master %d", longitud, idMaster);
 	log_trace(logYamaImpreso, "se envian datos de transformacion a master %d", idMaster);
 
+	enviarInt(idMaster, nuevoJob->idJob);
 	enviarMensajeSocketConLongitud(idMaster,ACCION_PROCESAR_TRANSFORMACION,solicitudTransfSerializado,longitud);
 
 	free(solicitudTransformacion->items_transformacion);
@@ -182,7 +180,7 @@ void esperarMensajeMaster(t_esperar_conexion* argumentos) {
 			recibirInt(nuevoSocket, &cliente);
 
 			t_esperar_mensaje *tEsperarMensaje = malloc(sizeof(t_esperar_mensaje));
-			 tEsperarMensaje->socketCliente = nuevoSocket;
+			tEsperarMensaje->socketCliente = nuevoSocket;
 
 			/* define el thread */
 			pthread_t threadSolicitudes;
@@ -379,9 +377,7 @@ void procesarResultadoTransformacion(int nuevoSocket, Package* package, uint32_t
 		}
 	} else{
 
-		/**** fallo uno de los nodos ***/
-		log_trace(logYamaErrorImpreso, "fallo el job %d en el nodo %d, notificando replanificacion a master", idJob, idNodo);
-		enviarInt(nuevoSocket, ACCION_REPLANIFICACION);
+
 
 		/***** termino el job *****/
 		t_job* jobFallado;
@@ -401,12 +397,14 @@ void procesarResultadoTransformacion(int nuevoSocket, Package* package, uint32_t
 			char* solicitudTransfSerializado;
 			uint32_t longitud;
 
-			//todo
-			/** insertar mutex **/
-			crearNuevoJob(nuevoSocket, bloques, algoritmoBalanceo);
+			jobReplanificado = crearNuevoJob(nuevoSocket, bloques, algoritmoBalanceo);
 
-			jobReplanificado = jobGlobal;
-			/** insertar mutex **/
+			/**** fallo uno de los nodos ***/
+			log_trace(logYamaErrorImpreso, "fallo el job %d en el nodo %d, notificando replanificacion a master, id de job replanificado: %d", idJob, idNodo, jobReplanificado->idJob);
+			char* idJobSerializado = malloc(sizeof(uint32_t));
+			int offset = 0;
+			serializarDato(idJobSerializado, &(jobReplanificado->idJob), sizeof(uint32_t), &offset);
+			enviarMensajeSocketConLongitud(nuevoSocket, ACCION_REPLANIFICACION, idJobSerializado, sizeof(uint32_t));
 
 			solicitudTransformacion = obtenerSolicitudTrasnformacion(jobReplanificado);
 
@@ -421,7 +419,12 @@ void procesarResultadoTransformacion(int nuevoSocket, Package* package, uint32_t
 
 		}else{
 			log_trace(logYamaErrorImpreso, "el job %d no se puede replanificar, job finalizado", idJob);
-			//todo enviar mensaje terminar job a master
+			char* jobFinalizado = malloc(sizeof(uint32_t));
+			int offset = 0;
+			int terminoJob = ACCION_TERMINAR_JOB;
+			serializarDato(jobFinalizado, &terminoJob, sizeof(uint32_t), &offset);
+			enviarMensajeSocketConLongitud(nuevoSocket, ACCION_TERMINAR_JOB, jobFinalizado, sizeof(uint32_t));
+
 		}
 	}
 }
@@ -459,9 +462,13 @@ void procesarResultadoReduccionLocal(int nuevoSocket, Package* package, uint32_t
 		}
 	}else{
 		log_trace(logYamaErrorImpreso, "fallo el job %d en la reduccion local, terminando job", idJob);
-		desconectarNodo(idNodo);
-		//todo insertar mutex
 		job = terminarJob(idJob);
+		char* jobFinalizado = malloc(sizeof(uint32_t));
+		int offset = 0;
+		int terminoJob = ACCION_TERMINAR_JOB;
+		serializarDato(jobFinalizado, &terminoJob, sizeof(uint32_t), &offset);
+		enviarMensajeSocketConLongitud(nuevoSocket, ACCION_TERMINAR_JOB, jobFinalizado, sizeof(uint32_t));
+
 	}
 
 
@@ -495,10 +502,13 @@ void procesarResultadoReduccionGlobal(int nuevoSocket, Package* package, uint32_
 	}else{
 
 		log_trace(logYamaErrorImpreso, "fallo el job %d en la reduccion global, terminando job", idJob);
-		//todo insertar mutex
-		desconectarNodo(idNodo);
 		job = terminarJob(idJob);
 		tablaDeEstados(job);
+		char* jobFinalizado = malloc(sizeof(uint32_t));
+		int offset = 0;
+		int terminoJob = ACCION_TERMINAR_JOB;
+		serializarDato(jobFinalizado, &terminoJob, sizeof(uint32_t), &offset);
+		enviarMensajeSocketConLongitud(nuevoSocket, ACCION_TERMINAR_JOB, jobFinalizado, sizeof(uint32_t));
 	}
 
 }
@@ -519,8 +529,12 @@ void procesarResultadoAlmacenadoFinal(int nuevoSocket, Package* package, uint32_
 	if(resultado == ALMACENADO_FINAL_OK){
 		log_trace(logYamaErrorImpreso, "el job %d se ejecuto con exito, terminando job", idJob);
 	}else{
-		desconectarNodo(idNodo);
 		log_trace(logYamaErrorImpreso, "fallo el job %d en almacenado final, terminando job", idJob);
+		char* jobFinalizado = malloc(sizeof(uint32_t));
+		int offset = 0;
+		int terminoJob = ACCION_TERMINAR_JOB;
+		serializarDato(jobFinalizado, &terminoJob, sizeof(uint32_t), &offset);
+		enviarMensajeSocketConLongitud(nuevoSocket, ACCION_TERMINAR_JOB, jobFinalizado, sizeof(uint32_t));
 	}
 
 

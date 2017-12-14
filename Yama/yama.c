@@ -53,10 +53,11 @@ int main() {
 	log_trace(logYamaImpreso, "pid de yama %d \nusarlo para enviar seniales", getpid());
 	log_trace(logYamaImpreso, "conectando con el filesystem");
 
-
+	int contadorfs = 1;
 	socketFS = conectarseA(fsIP, fsPort);
 	while(socketFS == 0){
-		conectarseA(fsIP, fsPort);
+		sleep(contadorfs);
+		socketFS = conectarseA(fsIP, fsPort);
 	}
 
 	enviarInt(socketFS,PROCESO_YAMA);
