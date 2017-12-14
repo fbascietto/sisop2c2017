@@ -12,7 +12,7 @@
 #include "prePlanificacion.h"
 #include "funcionesyama.h"
 
-void crearJob(t_list* bloques, t_list* listaNodos, char* tipoAlgoritmo, int idMaster);
+t_job* crearJob(t_list* bloques, t_list* listaNodos, char* tipoAlgoritmo, int idMaster);
 void generarEstados(t_list* unaPreplanificacion, t_job* job);
 t_estado* crearEstadoTransformacion(t_planificacion* unNodoPlanificado);
 t_estado* crearEstadoReduccionLocal(t_planificacion* unNodoPlanificado, char* rutaReduccionLocal);

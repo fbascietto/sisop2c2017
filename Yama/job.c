@@ -14,7 +14,7 @@ int jobsID = 0;
  * recibe una lista de bloques, una lista de nodos, un tipo de algoritmo y un id de master
  * y devuelve un nuevo job
  */
-void crearJob(t_list* bloques, t_list* listaNodos, char* tipoAlgoritmo, int idMaster){
+t_job* crearJob(t_list* bloques, t_list* listaNodos, char* tipoAlgoritmo, int idMaster){
 	int valorBase = dispBase;
 	usleep(retardoPlanificacion);
 	t_list* nuevaPrePlanificacion = prePlanificacion(bloques, valorBase, listaNodos, tipoAlgoritmo);
@@ -30,9 +30,10 @@ void crearJob(t_list* bloques, t_list* listaNodos, char* tipoAlgoritmo, int idMa
 
 	jobsID++;
 
-	jobGlobal = nuevoJob;
 
-	list_add(jobsActivos, jobGlobal);
+	list_add(jobsActivos, nuevoJob);
+
+	return nuevoJob;
 
 }
 
@@ -547,6 +548,7 @@ t_job* terminarJob(int idJob){
 
 	t_job* job;
 
+	//todo chequear que se mueva a finalizado
 	job = moverJobAFinalizados(idJob);
 
 	restaurarValoresJob(job);

@@ -97,7 +97,7 @@ typedef struct{
 } t_estado;
 
 typedef struct{
-	int idJob;
+	uint32_t idJob;
 	int idMaster;
 	t_list* estadosTransformaciones;
 	t_list* estadosReduccionesLocales;
@@ -128,7 +128,7 @@ bool finalizoTransformacionesNodo(char* idNodo, int numero_bloque, int idJob);
 bool finalizaronReduccionesLocalesNodos(t_job* job);
 bool termino(void* elemento);
 void procesarSolicitudMaster(int nuevoSocket);
-
+t_job* crearNuevoJob(int idMaster, t_list* bloques, char* algoritmo);
 
 /************ tabla de estados **********/
 void tablaDeEstados(t_job* job);

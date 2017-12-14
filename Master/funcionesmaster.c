@@ -38,6 +38,7 @@ void enviarResultadoReduccionGlobalYama(int socket, uint32_t code, char* nodo_id
 }
 
 void enviarTransformacionWorker(void *args){
+	uint32_t id_job = idJob;
 	struct timeval init, end;
 	gettimeofday(&init, NULL);
 	item_transformacion *itemTransformacion = (item_transformacion*) args;
@@ -66,6 +67,9 @@ void enviarTransformacionWorker(void *args){
 	recibirInt(socketConn, &msgcode);
 
 	printf("Socket %d. Numero de mensaje: %d\n", socketConn, msgcode);
+	if(id_job != idJob){
+		return;
+	}
 
 	switch(msgcode){
 	case TRANSFORMACION_OK:
@@ -99,6 +103,7 @@ void enviarTransformacionWorker(void *args){
 }
 
 void enviarReduccionLocalWorker(void *args){
+	uint32_t id_job = idJob;
 	struct timeval init, end;
 	gettimeofday(&init, NULL);
 	item_reduccion_local *itemRedLocal = (item_reduccion_local*) args;
@@ -141,23 +146,32 @@ void enviarReduccionLocalWorker(void *args){
 
 	printf("Socket %d. Numero de mensaje: %d\n", socketConn, msgcode);
 
+	if(id_job != idJob){
+		return;
+	}
+
 	switch(msgcode){
 	case REDUCCION_LOCAL_OK:
+		activosReduccionLocal--;
 		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_OK,itemRedLocal->nodo_id);
 		break;
 	case REDUCCION_LOCAL_ERROR_CREACION:
+		activosReduccionLocal--;
 		fallosEnTotal++;
 		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
 		break;
 	case REDUCCION_LOCAL_ERROR_ESCRITURA:
+		activosReduccionLocal--;
 		fallosEnTotal++;
 		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
 		break;
 	case REDUCCION_LOCAL_ERROR_SYSTEM:
+		activosReduccionLocal--;
 		fallosEnTotal++;
 		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
 		break;
 	case REDUCCION_LOCAL_ERROR_PERMISOS:
+		activosReduccionLocal--;
 		fallosEnTotal++;
 		enviarResultadoReduccionLocalYama(socketYama,REDUCCION_LOCAL_ERROR,itemRedLocal->nodo_id);
 		break;
@@ -273,8 +287,12 @@ void procesarSolicitudReduccionLocal(int socket, int message_long, char* message
 	printf("----------------\n");
 
 	pthread_t threadSolicitudRedLocalWorker;
-//	int er1 = pthread_create(&threadSolicitudRedLocalWorker, NULL,enviarReduccionLocalWorker,(void*) itemReducLocalDeserializado);
-	enviarReduccionLocalWorker((void*) itemReducLocalDeserializado);
+	//enviarReduccionLocalWorker((void*) itemReducLocalDeserializado);
+	activosReduccionLocal++;
+	if(activosReduccionLocal>cantidadMayorReduccionLocal){
+		cantidadMayorReduccionLocal = activosReduccionLocal;
+	}
+	int er1 = pthread_create(&threadSolicitudRedLocalWorker, NULL,enviarReduccionLocalWorker,itemReducLocalDeserializado);
 }
 
 void procesarSolicitudReduccionGlobal(int socket, int message_long, char* message){
@@ -303,6 +321,8 @@ void enviarSolicitudFinalWorker(void *args){
 	int socketConn= conectarseA(solicitudFinal->ip_worker, solicitudFinal->puerto_worker);
 	enviarInt(socketConn,PROCESO_MASTER);
 	enviarMensajeSocketConLongitud(socketConn, ACCION_ALMACENAMIENTO_FINAL, serializado, len);
+
+	//TODO: enviar nodo id, ALMACENADO_FINAL_OK y ALMACENADO_FINAL_ERROR
 }
 
 void procesarSolicitudAlmacenadoFinal(int socket, int message_long, char* message){
