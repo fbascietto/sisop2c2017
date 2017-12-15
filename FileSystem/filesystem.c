@@ -15,7 +15,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <signal.h>
-
+#include "../bibliotecas/fileCleaner.c"
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
@@ -24,7 +24,7 @@
 
 void main(int argc, char *argv[]){
 
-	system("export LC_ALL=C");
+	vaciarArchivo("log.txt");
 
 	LogL = LOG_LEVEL_TRACE;
 	logFS = log_create("log.txt","YAMAFS",0,LogL);

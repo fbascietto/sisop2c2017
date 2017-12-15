@@ -47,7 +47,7 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 	char* comando = string_from_format("cat \"%s\" | .\"/scripts/%s\" > \"%s\"", ruta_archivo_apareo,
 			solicitudDeserializada->programa_reduccion, ruta_archivo_temp_final);
 
-	printf("comando guardado: %s", comando);
+	vaciarArchivo(ruta_archivo_temp_final);
 
 	retorno = system(comando);
 	if(retorno == -1){

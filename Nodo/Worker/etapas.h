@@ -30,6 +30,8 @@ typedef struct{
 
 } t_elemento;
 
+void vaciarArchivo(char*);
+
 //T
 int transformacion(solicitud_programa_transformacion*, char*);
 void responderSolicitudT(int, int);

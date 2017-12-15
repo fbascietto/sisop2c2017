@@ -14,8 +14,11 @@
 #include "../bibliotecas/sockets.c"
 #include "funcionesyama.h"
 #include "prePlanificacion.h"
+#include "../bibliotecas/fileCleaner.c"
 
 int main() {
+
+	vaciarArchivo("logYama.txt");
 
 	socketFS=0;
 	nodosConectados=list_create();

@@ -103,6 +103,9 @@ int transformacion(solicitud_programa_transformacion* solicitudDeserializada, ch
 	//puntero que va a tener la cadena de caracteres que se le pasa a la funcion system para ejecutar el script
 	char* s = string_from_format("cat \"%s\" | .\"/scripts/%s\" | sort > \"%s\"", new,
 			solicitudDeserializada->programa_transformacion, solicitudDeserializada->archivo_temporal);
+
+	vaciarArchivo(solicitudDeserializada->archivo_temporal);
+
 	retorno = system(s);
 	if(retorno == -1){
 		log_error(worker_error_log, "No se pudo realizar la transformacion");

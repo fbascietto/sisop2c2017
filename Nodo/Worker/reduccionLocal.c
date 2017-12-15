@@ -35,6 +35,8 @@ int reduccionLocal(solicitud_programa_reduccion_local* solicitudDeserializada){
 	string_append_with_format(&buffer, " | sort | .\"/scripts/%s\" > \"%s\"",
 			solicitudDeserializada->programa_reduccion, solicitudDeserializada->archivo_temporal_resultante);
 
+	vaciarArchivo(solicitudDeserializada->archivo_temporal_resultante);
+
 	retorno = system(buffer);
 	if(retorno == -1){
 		log_error(worker_error_log, "No se pudo realizar la reduccion local");

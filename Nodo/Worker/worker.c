@@ -16,6 +16,8 @@ void main() {
 
 	int retorno_mkdir;
 
+	vaciarArchivo("logWorker.txt");
+
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
 	t_log_level level_INFO = LOG_LEVEL_INFO;

@@ -8,12 +8,16 @@
 #include "funcionesWorker.h"
 
 
+void vaciarArchivo(char* ruta){
+
+	FILE* fclean = fopen(ruta, "w");
+	fclose(fclean);
+
+}
+
 void iniciarWorker(){
 
 	//--------------WORKER LEE ARCHIVO DE CONFIGURACION--------------------
-
-
-	system("export LC_ALL=C");
 
 	infoConfig = config_create("../config.txt");
 
