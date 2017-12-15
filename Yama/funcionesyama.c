@@ -108,20 +108,36 @@ void recibirMensajeFS(void *args){
 
 	// ------------------ ENVIO SOLICITUD TRANSFORMACION A MASTER -------------------------
 
-	solicitudTransformacion = obtenerSolicitudTrasnformacion(nuevoJob);
+	enviarInt(idMaster, nuevoJob->idJob);
+	//	solicitudTransformacion = obtenerSolicitudTrasnformacion(nuevoJob);
 
-	solicitudTransfSerializado = serializarSolicitudTransformacion(solicitudTransformacion);
-	longitud = getLong_SolicitudTransformacion(solicitudTransformacion);
+	//	solicitudTransfSerializado = serializarSolicitudTransformacion(solicitudTransformacion);
+	//	longitud = getLong_SolicitudTransformacion(solicitudTransformacion);
 
-	log_trace(logYama, "solicitud de transformacion terminada y serializada\n se enviaran %d bytes al master %d", longitud, idMaster);
+//	log_trace(logYamaImpreso, "solicitud de transformacion terminada y serializada\n se enviaran %d bytes al master %d", longitud, idMaster);
 	log_trace(logYamaImpreso, "se envian datos de transformacion a master %d", idMaster);
 
-	enviarInt(idMaster, nuevoJob->idJob);
-	enviarMensajeSocketConLongitud(idMaster,ACCION_PROCESAR_TRANSFORMACION,solicitudTransfSerializado,longitud);
+	int i;
+	int tamanioTransformacion = list_size(nuevoJob->estadosTransformaciones);
+	int enviados;
+	t_estado* unEstado;
+	item_transformacion* item;
+	for(i=0; i<tamanioTransformacion ;i++){
+		unEstado = list_get(nuevoJob->estadosTransformaciones, i);
+		item = crearItemTransformacion(unEstado->nodoPlanificado->nodo->idNodo, unEstado->nodoPlanificado->nodo->ipWorker, unEstado->nodoPlanificado->nodo->puerto, unEstado->nodoPlanificado->bloque->numero_bloque, unEstado->nodoPlanificado->bloque->bytes_ocupados, unEstado->archivoTemporal);
+		uint32_t size_item_transformacion = getLong_one_item_transformacion(item);
+		char* serialized_item_transformacion = serializar_item_transformacion(item);
+		enviados += enviarMensajeSocketConLongitud(idMaster,ACCION_PROCESAR_TRANSFORMACION,serialized_item_transformacion,size_item_transformacion);
+	}
+	//	int enviados = enviarMensajeSocketConLongitud(idMaster,ACCION_PROCESAR_TRANSFORMACION,solicitudTransfSerializado,longitud);
 
-	free(solicitudTransformacion->items_transformacion);
+
+
+	log_trace(logYamaImpreso, "bytes enviados %d", enviados);
+
+//	free(solicitudTransformacion->items_transformacion);
+//	free(solicitudTransfSerializado);
 	free(solicitudTransformacion);
-	free(solicitudTransfSerializado);
 	free(package);
 }
 
@@ -561,6 +577,11 @@ void procesarSolicitudArchivoMaster(int nuevoSocket, Package* package){
 
 }
 
+void datosBloques(void* elemento){
+	t_bloque* unBloque = (t_bloque*) elemento;
+	log_trace(logYamaImpreso, "numeroBytes: %d, idBloque: %d, idNodo: %s, ip: %s, numeroBloque: %d, puerto: %d", unBloque->bytes_ocupados, unBloque->idBloque, unBloque->idNodo, unBloque->ip, unBloque->numero_bloque, unBloque->puerto);
+}
+
 //se obtiene ademas el id del master
 t_list* procesarBloquesRecibidos(char* message, uint32_t* masterId){
 
@@ -569,6 +590,8 @@ t_list* procesarBloquesRecibidos(char* message, uint32_t* masterId){
 	t_list* bloques = list_create();
 
 	adaptarBloques(bloquesRecibidos, bloques);
+
+	list_iterate(bloques, datosBloques);
 
 	return bloques;
 }
