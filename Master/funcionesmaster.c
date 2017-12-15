@@ -261,8 +261,8 @@ void procesarSolicitudTransformacion(int socket, int message_long, char* message
 			&threadSolicitudTransformacionWorker,
 			NULL,
 			enviarTransformacionWorker,
-			itemTransfDeserializada
-	);
+			(void*) (itemTransfDeserializada));
+	pthread_join(threadSolicitudTransformacionWorker, NULL);
 
 }
 

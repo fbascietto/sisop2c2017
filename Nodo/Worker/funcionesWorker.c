@@ -272,7 +272,8 @@ void recibirSolicitudMaster(int nuevoSocket){
 	case ACCION_ALMACENAMIENTO_FINAL:
 		log_trace(worker_log, "Solicitud de almacenamiento final recibida");
 		solicitudAFDeserializada = deserializarSolicitudRealizarAlmacenadoFinal(package->message);
-		almacenamientoFinal(IP_fs, puerto_fs, solicitudAFDeserializada);
+		//todo
+		//almacenamientoFinal(IP_fs, puerto_fs, solicitudAFDeserializada);
 		responderSolicitudAlmacenadoFinal(nuevoSocket);
 		log_destroy(worker_log);
 		free(solicitudAFDeserializada);

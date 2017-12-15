@@ -390,10 +390,25 @@ int recieve_and_deserialize(Package *package, int socketCliente){
 	if (!aux) return 0;
 	leidos+=aux;
 
+	int largoLeido = -1, size;
 	package->message = malloc(sizeof(char)*package->message_long);
-	aux = recv(socketCliente, package->message, package->message_long, 0);
-	if (!aux) return 0;
-	leidos+=aux;
+	size = package->message_long;
+
+	/*
+	 * chequeo que hasta que no se llegue el largo del mensaje siga recv'iendo
+	 * si no leyo el largo del mensaje
+	 */
+	while(1){
+			largoLeido = recv(socketCliente, package->message, size, 0);
+			leidos += aux;
+			if(largoLeido == 0){ //toda esta fumada es para cuando algun cliente se desconecta.
+				printf("Socket dice: Cliente en socket N° %d se desconecto\n", socketCliente);
+				package->message = "-1";
+				return leidos;
+			}
+			if(largoLeido < size) size= size - largoLeido;
+			else break;
+	}
 
 	free(buffer);
 

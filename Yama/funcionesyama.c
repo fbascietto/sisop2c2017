@@ -92,7 +92,7 @@ void recibirMensajeFS(void *args){
 	char* algoritmo = algoritmoBalanceo;
 
 
-	solicitud_transformacion* solicitudTransformacion;
+//	solicitud_transformacion* solicitudTransformacion;
 	char* solicitudTransfSerializado;
 	uint32_t longitud;
 	t_list* bloques;
