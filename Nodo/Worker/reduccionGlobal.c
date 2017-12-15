@@ -18,7 +18,7 @@ int reduccionGlobal(solicitud_programa_reduccion_global* solicitudDeserializada)
 	string_append(&ruta_archivo_apareo, "Apareo-");
 	string_append(&ruta_archivo_apareo, basename(solicitudDeserializada->archivo_temporal_resultante));
 
-	printf("Soy proceso: %d. La ruta del archivo de apareo despues de generarse es: %s\n", getpid(), ruta_archivo_apareo);
+	vaciarArchivo(ruta_archivo_apareo);
 
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
@@ -131,11 +131,10 @@ int leerYEnviarArchivoTemp(char* ruta_arch_temp, int socket){
 		//leo de a un registro (una linea porque ya viene ordenado el archivo) para guardar en buffer y enviar
 		if((fgets(buffer, LENGTH_PALABRA, f1)) == NULL) break;
 
-		log_trace(worker_log, "Se envia al worker encargado un registro para la reduccion global");
 		respuesta->fin_de_archivo = false;
 		strcpy(respuesta->palabra, buffer);
 
-		printf("Soy proceso: %d. palabra a enviar en el socket: %d es: %s\n", getpid(), socket, respuesta->palabra);
+		log_trace(worker_log, "Se envia al worker encargado la palabra: %s", respuesta->palabra);
 
 		serialized = serializarSolicitudRecibirPalabra(respuesta);
 		uint32_t total_size = getLong_SolicitudRecibirPalabra(respuesta);
@@ -189,12 +188,14 @@ int escribirEnArchivo(char* palabra_a_escribir){
 
 	int retorno;
 
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
-	FILE* f1;
+	log_trace(worker_log, "Se escribe en el archivo la palabra: %s", palabra_a_escribir);
 
-	printf("Soy proceso: %d. La ruta del archivo de apareo a la hora de escribir es: %s\n", getpid(), ruta_archivo_apareo);
+	FILE* f1;
 
 	f1 = fopen(ruta_archivo_apareo, "r+");
 	if(f1 == NULL){
@@ -217,6 +218,7 @@ int escribirEnArchivo(char* palabra_a_escribir){
 
 	fclose(f1);
 
+	log_destroy(worker_log);
 	log_destroy(worker_error_log);
 
 	return 0;
@@ -224,8 +226,6 @@ int escribirEnArchivo(char* palabra_a_escribir){
 }
 
 bool esMenor(char* cadena1, char* cadena2){
-
-	printf("Se compara %s con la palabra candidata: %s", cadena1, cadena2);
 
 	if(strcmp(cadena1, cadena2) < 0 || !strcmp(cadena2, "")) return true;
 	return false;
@@ -258,7 +258,6 @@ void procesarElemento(void* unElemento){
 
 	t_elemento* elemento = (t_elemento*) unElemento;
 
-	printf("ultima palabra del elemento %s antes del chequeo %s ", elemento->worker->nodo_id, elemento->ultima_palabra);
 	//verifica si hay que pedir palabra
 	if(!elemento->fin && elemento->pedir){
 
@@ -271,7 +270,6 @@ void procesarElemento(void* unElemento){
 
 	}
 
-	printf("palabra del elemento %s despues del chequeo %s ", elemento->worker->nodo_id, elemento->ultima_palabra);
 	//compara con la palabra candidata
 	if(!elemento->fin && esMenor(elemento->ultima_palabra, palabraCandidata)){
 		palabraCandidata = elemento->ultima_palabra;
@@ -328,41 +326,31 @@ void responderSolicitudRG(int socket, int exit_code){
 	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
-	printf("Soy proceso: %d. Numero socket: %d. Exit code: %d\n", getpid(), socket, exit_code);
-
-	int enviados;
-
 	switch(exit_code){
 
 	case 0:
 		log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de reduccion global a Master");
-		enviados = enviarInt(socket, REDUCCION_GLOBAL_OK);
-		printf("Soy proceso: %d. Bytes enviados a Master: %d\n", getpid(), enviados);
+		enviarInt(socket, REDUCCION_GLOBAL_OK);
 		break;
 	case -1:
 		log_error(worker_error_log, "Se envia a Master el error de creacion del programa de reduccion");
-		enviados = enviarInt(socket, REDUCCION_GLOBAL_ERROR_CREACION);
-		printf("Soy proceso: %d. Bytes enviados a Master: %d\n", getpid(), enviados);
+		enviarInt(socket, REDUCCION_GLOBAL_ERROR_CREACION);
 		break;
 	case -2:
 		log_error(worker_error_log, "Se envia a Master el error de escritura del contenido del programa de reduccion");
-		enviados = enviarInt(socket, REDUCCION_GLOBAL_ERROR_ESCRITURA);
-		printf("Soy proceso: %d. Bytes enviados a Master: %d\n", getpid(), enviados);
+		enviarInt(socket, REDUCCION_GLOBAL_ERROR_ESCRITURA);
 		break;
 	case -3:
 		log_error(worker_error_log, "Se envia a Master el error en el apareo");
-		enviados = enviarInt(socket, REDUCCION_GLOBAL_ERROR_APAREO);
-		printf("Soy proceso: %d. Bytes enviados a Master: %d\n", getpid(), enviados);
+		enviarInt(socket, REDUCCION_GLOBAL_ERROR_APAREO);
 		break;
 	case -4:
 		log_error(worker_error_log, "Se envia a Master el error en la llamada system para terminar la reduccion global");
-		enviados = enviarInt(socket, REDUCCION_GLOBAL_ERROR_SYSTEM);
-		printf("Soy proceso: %d. Bytes enviados a Master: %d\n", getpid(), enviados);
+		enviarInt(socket, REDUCCION_GLOBAL_ERROR_SYSTEM);
 		break;
 	case -10:
 		log_error(worker_error_log, "Se envia a Master el error al dar permisos de ejecucion al programa de reduccion");
-		enviados = enviarInt(socket, REDUCCION_GLOBAL_ERROR_PERMISOS);
-		printf("Soy proceso: %d. Bytes enviados a Master: %d\n", getpid(), enviados);
+		enviarInt(socket, REDUCCION_GLOBAL_ERROR_PERMISOS);
 		break;
 
 	}
