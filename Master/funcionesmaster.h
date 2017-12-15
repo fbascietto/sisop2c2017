@@ -22,6 +22,7 @@ char* ruta_archivo_log;
 int socketYama;
 struct timeval t_ini, t_fin;
 
+int activosTransformacion;
 int cantidadEtapasTranformacion;
 int cantidadEtapasReduccionLocal;
 int activosReduccionLocal;

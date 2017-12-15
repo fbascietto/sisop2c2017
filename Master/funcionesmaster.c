@@ -73,24 +73,29 @@ void enviarTransformacionWorker(void *args){
 
 	switch(msgcode){
 	case TRANSFORMACION_OK:
+		activosTransformacion--;
 		//log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Yama");
 		enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_OK,solicitud->bloque,itemTransformacion->nodo_id);
 		break;
 	case TRANSFORMACION_ERROR_CREACION:
+		activosTransformacion--;
 		fallosEnTotal++;
 		//log_error(worker_error_log, "Se envia a Master el error de creacion del programa de transformacion");
 		enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
 		break;
 	case TRANSFORMACION_ERROR_ESCRITURA:
+		activosTransformacion--;
 		fallosEnTotal++;
 		//log_error(worker_error_log, "Se envia a Master el error de escritura del contenido del programa de transformacion");
 		enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
 		break;
 	case FSTAT_ERROR:
+		activosTransformacion--;
 		fallosEnTotal++;
 		enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
 		break;
 	case TRANSFORMACION_ERROR_PERMISOS:
+		activosTransformacion--;
 		fallosEnTotal++;
 		//log_error(worker_error_log, "Se envia a Master el error al dar permisos de ejecucion al programa de transformacion");
 		enviarResultadoTransformacionYama(socketYama,TRANSFORMACION_ERROR,solicitud->bloque,itemTransformacion->nodo_id);
@@ -243,26 +248,21 @@ void enviarReduccionGlobalWorker(void *args){
 }
 
 void procesarSolicitudTransformacion(int socket, int message_long, char* message){
-	solicitud_transformacion* solicitudTransfDeserializada = deserializar_solicitud_transformacion(message);
-
-	printf("cantidad de items = %d\n", solicitudTransfDeserializada->item_cantidad );
+	//solicitud_transformacion* solicitudTransfDeserializada = deserializar_solicitud_transformacion(message);
+	item_transformacion* itemTransfDeserializada = deserializar_item_transformacion(message);
 	int var;
-	if(solicitudTransfDeserializada->item_cantidad > cantidadMayorTransformacion){
-		cantidadMayorTransformacion = solicitudTransfDeserializada->item_cantidad;
-	}
 
-	pthread_t threadSolicitudTransformacionWorker[solicitudTransfDeserializada->item_cantidad];
-	for (var = 0; var < solicitudTransfDeserializada->item_cantidad; ++var) {
-		//pthread_t threadSolicitudTransformacionWorker;
-		int er1 = pthread_create(
-				&threadSolicitudTransformacionWorker[var],
-				NULL,
-				enviarTransformacionWorker,
-				&(solicitudTransfDeserializada->items_transformacion[var])
-		);
-		//pthread_join(threadSolicitudTransformacionWorker, NULL);
+	pthread_t threadSolicitudTransformacionWorker;
+	activosTransformacion++;
+	if(activosTransformacion > cantidadMayorTransformacion){
+		cantidadMayorTransformacion = activosTransformacion;
 	}
-
+	int er1 = pthread_create(
+			&threadSolicitudTransformacionWorker,
+			NULL,
+			enviarTransformacionWorker,
+			&(itemTransfDeserializada)
+	);
 
 }
 
