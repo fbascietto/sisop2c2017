@@ -124,10 +124,10 @@ void main(int args, char* argv[]) {
 			break;
 		}
 	}
-	gettimeofday(&t_fin, NULL);
-	metrica();
-	log_destroy(worker_info_log);
-	log_destroy(worker_error_log);
+//	gettimeofday(&t_fin, NULL);
+//	metrica();
+//	log_destroy(worker_info_log);
+//	log_destroy(worker_error_log);
 
 }
 

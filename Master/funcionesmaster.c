@@ -262,7 +262,7 @@ void procesarSolicitudTransformacion(int socket, int message_long, char* message
 			NULL,
 			enviarTransformacionWorker,
 			(void*) (itemTransfDeserializada));
-	pthread_join(threadSolicitudTransformacionWorker, NULL);
+//	pthread_join(threadSolicitudTransformacionWorker, NULL);
 
 }
 
@@ -323,6 +323,13 @@ void enviarSolicitudFinalWorker(void *args){
 	enviarMensajeSocketConLongitud(socketConn, ACCION_ALMACENAMIENTO_FINAL, serializado, len);
 
 	//TODO: enviar nodo id, ALMACENADO_FINAL_OK y ALMACENADO_FINAL_ERROR
+	uint32_t termino;
+	recibirInt(socketConn, &termino);
+	int total_size = sizeof(char[NOMBRE_NODO]);
+	char *serializedPackage = malloc(total_size);
+	int offset = 0;
+	serializarDato(serializedPackage,solicitudFinal->nodo_id,sizeof(char[NOMBRE_NODO]),&offset);
+	enviarMensajeSocketConLongitud(socketYama, termino, serializedPackage, total_size);
 }
 
 void procesarSolicitudAlmacenadoFinal(int socket, int message_long, char* message){

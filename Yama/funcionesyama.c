@@ -17,7 +17,14 @@ void recibirMensajeMaster(void *args){
 
 	while(1){
 		Package* package = createPackage();
-		recieve_and_deserialize(package, nuevoSocket);
+		int leidos = recieve_and_deserialize(package, nuevoSocket);
+
+		if(leidos == 0){
+			close(nuevoSocket);
+			break;
+		}
+		log_trace(logYamaImpreso, "bytes leidos %d", leidos);
+		log_trace(logYamaImpreso, "codigo mensaje %d", package->msgCode);
 
 		switch(package->msgCode){
 
@@ -92,7 +99,7 @@ void recibirMensajeFS(void *args){
 	char* algoritmo = algoritmoBalanceo;
 
 
-//	solicitud_transformacion* solicitudTransformacion;
+	//	solicitud_transformacion* solicitudTransformacion;
 	char* solicitudTransfSerializado;
 	uint32_t longitud;
 	t_list* bloques;
@@ -114,7 +121,7 @@ void recibirMensajeFS(void *args){
 	//	solicitudTransfSerializado = serializarSolicitudTransformacion(solicitudTransformacion);
 	//	longitud = getLong_SolicitudTransformacion(solicitudTransformacion);
 
-//	log_trace(logYamaImpreso, "solicitud de transformacion terminada y serializada\n se enviaran %d bytes al master %d", longitud, idMaster);
+	//	log_trace(logYamaImpreso, "solicitud de transformacion terminada y serializada\n se enviaran %d bytes al master %d", longitud, idMaster);
 	log_trace(logYamaImpreso, "se envian datos de transformacion a master %d", idMaster);
 
 	int i;
@@ -135,9 +142,9 @@ void recibirMensajeFS(void *args){
 
 	log_trace(logYamaImpreso, "bytes enviados %d", enviados);
 
-//	free(solicitudTransformacion->items_transformacion);
-//	free(solicitudTransfSerializado);
-//	free(solicitudTransformacion);
+	//	free(solicitudTransformacion->items_transformacion);
+	//	free(solicitudTransfSerializado);
+	//	free(solicitudTransformacion);
 	free(package);
 }
 
@@ -539,24 +546,24 @@ void procesarResultadoAlmacenadoFinal(int nuevoSocket, Package* package, uint32_
 	int idJob;
 
 	idJob = obtenerIdJob(nuevoSocket, jobsActivos);
-	actualizarEstado(idNodo, NULL, RESULTADO_REDUCCION_GLOBAL, idJob, resultado);
+	actualizarEstado(idNodo, NULL, RESULTADO_ALMACENADO_FINAL, idJob, resultado);
 
 
 	if(resultado == ALMACENADO_FINAL_OK){
 		log_trace(logYamaErrorImpreso, "el job %d se ejecuto con exito, terminando job", idJob);
 	}else{
 		log_trace(logYamaErrorImpreso, "fallo el job %d en almacenado final, terminando job", idJob);
-		char* jobFinalizado = malloc(sizeof(uint32_t));
-		int offset = 0;
-		int terminoJob = ACCION_TERMINAR_JOB;
-		serializarDato(jobFinalizado, &terminoJob, sizeof(uint32_t), &offset);
-		enviarMensajeSocketConLongitud(nuevoSocket, ACCION_TERMINAR_JOB, jobFinalizado, sizeof(uint32_t));
 	}
 
 
 	//todo insertar mutex
 	t_job* job = terminarJob(idJob);
 	tablaDeEstados(job);
+	char* jobFinalizado = malloc(sizeof(uint32_t));
+	offset = 0;
+	int terminoJob = ACCION_TERMINAR_JOB;
+	serializarDato(jobFinalizado, &terminoJob, sizeof(uint32_t), &offset);
+	enviarMensajeSocketConLongitud(nuevoSocket, ACCION_TERMINAR_JOB, jobFinalizado, sizeof(uint32_t));
 }
 
 void procesarSolicitudArchivoMaster(int nuevoSocket, Package* package){

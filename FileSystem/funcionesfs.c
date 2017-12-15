@@ -674,7 +674,7 @@ void *esperarConexiones(void *args) {
 				//respondo solicitud de bloques de archivo
 				if(estable){
 				enviarInt(nuevoSocket,FSYS_ESTABLE);
-				pthread_create(&threadSolicitudYama, NULL, procesarSolicitudYama, tEsperarMensaje);
+				pthread_create(&threadSolicitudYama, NULL, procesarSolicitudYama, (void *)tEsperarMensaje);
 				//pthread_join(threadSolicitudYama, NULL);
 				}else{
 				enviarInt(nuevoSocket,FSYS_NO_ESTABLE);
