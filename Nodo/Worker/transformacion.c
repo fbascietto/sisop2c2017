@@ -134,36 +134,27 @@ void responderSolicitudT(int socket, int exit_code){
 	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
-	printf("Numero socket: %d. Exit code: %d\n", socket, exit_code);
-
-	int enviados;
-
 	switch(exit_code){
 
 	case 0:
 		log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de transformacion de un bloque a Master");
-		enviados = enviarInt(socket, TRANSFORMACION_OK);
-		printf("Bytes enviados a Master: %d\n", enviados);
+		enviarInt(socket, TRANSFORMACION_OK);
 		break;
 	case -1:
 		log_error(worker_error_log, "Se envia a Master el error de creacion del programa de transformacion");
-		enviados = enviarInt(socket, TRANSFORMACION_ERROR_CREACION);
-		printf("Bytes enviados a Master: %d\n", enviados);
+		enviarInt(socket, TRANSFORMACION_ERROR_CREACION);
 		break;
 	case -2:
 		log_error(worker_error_log, "Se envia a Master el error de escritura del contenido del programa de transformacion");
-		enviados = enviarInt(socket, TRANSFORMACION_ERROR_ESCRITURA);
-		printf("Bytes enviados a Master: %d\n", enviados);
+		enviarInt(socket, TRANSFORMACION_ERROR_ESCRITURA);
 		break;
 	case -3:
 		log_error(worker_error_log, "Se envia a Master el error al acceder a los datos del archivo del data.bin");
-		enviados = enviarInt(socket, FSTAT_ERROR);
-		printf("Bytes enviados a Master: %d\n", enviados);
+		enviarInt(socket, FSTAT_ERROR);
 		break;
 	case -10:
 		log_error(worker_error_log, "Se envia a Master el error al dar permisos de ejecucion al programa de transformacion");
-		enviados = enviarInt(socket, TRANSFORMACION_ERROR_PERMISOS);
-		printf("Bytes enviados a Master: %d\n", enviados);
+		enviarInt(socket, TRANSFORMACION_ERROR_PERMISOS);
 		break;
 
 	}

@@ -45,6 +45,12 @@ void almacenamientoFinal(char* IP_fs, int puerto_fs, solicitud_realizar_almacena
 
 void responderSolicitudAlmacenadoFinal(int socket){
 
-	enviarMensajeSocketConLongitud(socket, ALMACENADO_FINAL_OK, NULL, 0);
+	t_log_level level = LOG_LEVEL_TRACE;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
+	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
+
+	log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de almacenamiento final a Master");
+	enviarInt(socket, ALMACENADO_FINAL_OK);
 
 }
