@@ -14,7 +14,6 @@
 
 void main() {
 
-
 	int retorno_mkdir;
 
 	t_log_level level = LOG_LEVEL_TRACE;

@@ -18,14 +18,6 @@
 
 void main(int args, char* argv[]) {
 
-	//testSerializarSolicitudTrasnformacion();
-	//testSerializarItemTransformacion();
-	//testSerializarSolicitudReduccionLocal();
-	//testSerializarSolicitudReduccionGlobal();
-	//testSerializarSolicitudAlmacenadoFinal();
-	//testSerializarSolicitudReduccionGlobal();
-
-
 	t_log_level level_INFO = LOG_LEVEL_INFO;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
 	t_log* worker_info_log = log_create("logMaster.txt", "MASTER", 1, level_INFO);
@@ -64,6 +56,7 @@ void main(int args, char* argv[]) {
 
 	activosReduccionLocal = 0;
 
+	system("export LC_ALL=C");
 
 	infoConfig = config_create("config.txt");
 

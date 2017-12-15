@@ -13,6 +13,8 @@ void iniciarWorker(){
 	//--------------WORKER LEE ARCHIVO DE CONFIGURACION--------------------
 
 
+	system("export LC_ALL=C");
+
 	infoConfig = config_create("../config.txt");
 
 

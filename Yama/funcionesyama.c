@@ -119,7 +119,7 @@ void recibirMensajeFS(void *args){
 
 	int i;
 	int tamanioTransformacion = list_size(nuevoJob->estadosTransformaciones);
-	int enviados;
+	int enviados = 0;
 	t_estado* unEstado;
 	item_transformacion* item;
 	for(i=0; i<tamanioTransformacion ;i++){
@@ -137,7 +137,7 @@ void recibirMensajeFS(void *args){
 
 //	free(solicitudTransformacion->items_transformacion);
 //	free(solicitudTransfSerializado);
-	free(solicitudTransformacion);
+//	free(solicitudTransformacion);
 	free(package);
 }
 
@@ -665,6 +665,8 @@ char* generarRutaTemporal(){
 
 
 void inicializarConfigYama(){
+
+	system("export LC_ALL=C");
 
 	log_trace(logYama, "Cargando configuracion de Yama");
 

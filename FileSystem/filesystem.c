@@ -23,6 +23,9 @@
 #define PUERTO_FS 5140
 
 void main(int argc, char *argv[]){
+
+	system("export LC_ALL=C");
+
 	LogL = LOG_LEVEL_TRACE;
 	logFS = log_create("log.txt","YAMAFS",0,LogL);
 

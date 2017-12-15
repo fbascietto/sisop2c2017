@@ -46,6 +46,8 @@ t_nodo* inicializoDataBin(char* rutaBin, char* nombreNodo, int puerto){
 
 void iniciarDataNode(){
 
+	system("export LC_ALL=C");
+
 	t_log_level LogL = LOG_LEVEL_TRACE;
 	logNodo = log_create("log.txt","DataNode",1,LogL);
 
