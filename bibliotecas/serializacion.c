@@ -5,6 +5,7 @@
  *      Author: utnso
  */
 
+#include <string.h>
 
 void serializar_desde_int(void* buffer, int value, int* offset){
 	int offset_loc = *offset;

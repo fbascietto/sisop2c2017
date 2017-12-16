@@ -242,6 +242,8 @@ t_bloque* deserializar_bloque_serializado(char* serialized){
 	deserializarDato(&(bloqueSerializado->idNodo),serialized,NOMBRE_NODO,&offset);
 	deserializarDato(&(bloqueSerializado->idBloque),serialized,sizeof(uint32_t),&offset);
 
+	free(serialized);
+
 	return bloqueSerializado;
 }
 
@@ -255,7 +257,6 @@ t_bloque* deserializar_bloques_serializados(char* serialized, uint32_t items_can
 	for (i = 0; i < items_cantidad; i++) {
 		uint32_t size_item;
 		deserializarDato(&(size_item),serialized,sizeof(uint32_t),&offset);
-//		serialized_item = realloc(serialized_item, sizeof(char)*size_item);
 		deserializarDato(serialized_item,serialized,size_item,&offset);
 		t_bloque* aux = deserializar_bloque_serializado(serialized_item);
 		bloquesSerializado[i] = *(aux);

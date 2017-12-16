@@ -87,10 +87,32 @@ void recibirMensajeFS(void *args){
 	int nuevoSocket = argumentos->socketCliente;
 	free(args);
 
-	Package* package = createPackage();
-	recieve_and_deserialize(package, nuevoSocket);
 
-	uint32_t idMaster;
+	t_list* bloques = list_create();
+
+	int idMaster;
+
+	//recibo idMaster
+	recibirInt(nuevoSocket, &idMaster);
+
+	while(1){
+		int messageCode = 0;
+		recibirInt(nuevoSocket, &messageCode);
+		switch(messageCode){
+		case PROCESAR_BLOQUE: ;
+
+			Package* package = createPackage();
+			recieve_and_deserialize(package, nuevoSocket);
+			t_bloque* bloqueRecibido = deserializar_bloque_serializado(package);
+			procesarBloqueRecibido(bloques, bloqueRecibido);
+			break;
+
+		case ENVIO_BLOQUE_TERMINADO: ;	break;
+
+		}
+
+		if(messageCode == ENVIO_BLOQUE_TERMINADO) break;
+	}
 
 
 
@@ -98,13 +120,10 @@ void recibirMensajeFS(void *args){
 	t_job* nuevoJob;
 	char* algoritmo = algoritmoBalanceo;
 
-
 	//	solicitud_transformacion* solicitudTransformacion;
 	char* solicitudTransfSerializado;
 	uint32_t longitud;
-	t_list* bloques;
 
-	bloques = procesarBloquesRecibidos(package->message, &idMaster);
 	log_trace(logYamaImpreso, "se recibieron %d bloques de yamafs para el master %d", list_size(bloques), idMaster);
 
 	nuevoJob = crearNuevoJob(idMaster, bloques, algoritmo);
@@ -584,23 +603,18 @@ void procesarSolicitudArchivoMaster(int nuevoSocket, Package* package){
 
 }
 
-void datosBloques(void* elemento){
+void datoBloque(void* elemento){
 	t_bloque* unBloque = (t_bloque*) elemento;
 	log_trace(logYamaImpreso, "numeroBytes: %d, idBloque: %d, idNodo: %s, ip: %s, numeroBloque: %d, puerto: %d", unBloque->bytes_ocupados, unBloque->idBloque, unBloque->idNodo, unBloque->ip, unBloque->numero_bloque, unBloque->puerto);
 }
 
 //se obtiene ademas el id del master
-t_list* procesarBloquesRecibidos(char* message, uint32_t* masterId){
+void procesarBloqueRecibido(t_list* bloques, t_bloque* unBloque){
 
-	t_bloques_enviados* bloquesRecibidos = deserializar_bloques_enviados(message, masterId);
+	list_add(bloques, unBloque);
 
-	t_list* bloques = list_create();
+	datoBloque((void*) unBloque);
 
-	adaptarBloques(bloquesRecibidos, bloques);
-
-	list_iterate(bloques, datosBloques);
-
-	return bloques;
 }
 
 /*

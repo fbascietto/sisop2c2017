@@ -7,6 +7,10 @@
 #include <errno.h>
 #include <sys/sendfile.h>
 #include "protocolo.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 
 #define TAMBUFFER 1024
 #define MAX_CLIENTES 10

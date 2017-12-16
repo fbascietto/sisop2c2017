@@ -9,7 +9,8 @@ void tablaDeEstadosJobsFinalizados(){
 	list_iterate(jobsFinalizados, tablaDeEstados);
 }
 
-void tablaDeEstados(t_job* job){
+void tablaDeEstados(void* unJob){
+	t_job* job = (void*) unJob;
 	log_trace(logYamaImpreso, "imprimiendo tabla de estados del job %d", job->idJob);
 	imprimirTransformaciones(job->estadosTransformaciones, job->idJob, job->idMaster);
 	imprimirReduccionesLocales(job->estadosReduccionesLocales, job->estadosTransformaciones, job->idJob, job->idMaster);
@@ -95,7 +96,7 @@ void logEstadoAlmacenadoFinal(t_job* job){
 }
 
 
-void enProcesoReduccionLocal(int idNodo, t_job* job){
+void enProcesoReduccionLocal(char* idNodo, t_job* job){
 	t_estado* estadoRedLoc = obtenerEstadoRedLoc(job->estadosReduccionesLocales, idNodo);
 	strcpy(estadoRedLoc->estado, "en proceso");
 }

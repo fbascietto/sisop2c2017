@@ -119,7 +119,7 @@ item_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job, char idNodo[NOM
 solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job);
 solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_job* job);
 
-t_list* procesarBloquesRecibidos(char* message, uint32_t* masterId);
+t_list* procesarBloqueRecibido(t_list* bloques, t_bloque* unBloque);
 char* serializarSolicitudJob(char* solicitudArchivo, uint32_t masterId, uint32_t* tamanioSerializado);
 void adaptarBloques(t_bloques_enviados* bloquesRecibidos, t_list* bloques);
 bool resultadoOk(char* resultado);
@@ -131,7 +131,7 @@ void procesarSolicitudMaster(int nuevoSocket);
 t_job* crearNuevoJob(int idMaster, t_list* bloques, char* algoritmo);
 
 /************ tabla de estados **********/
-void tablaDeEstados(t_job* job);
+void tablaDeEstados(void* unJob);
 void imprimirTransformaciones(t_list* transformaciones, int idJob, int idMaster);
 void imprimirReduccionesLocales(t_list* reducciones, t_list* transformaciones, int idJob, int idMaster);
 void logEstadoTransformacion(int idJob, int idMaster, t_estado* unEstado);
@@ -139,7 +139,7 @@ void logEstadoReduccionLocal(int idJob, int idMaster, t_estado* estadoTransforma
 void logEstadoReduccionGlobal(int idJob, int idMaster, t_estado* estadoReduccionGlobal);
 void logEstadoAlmacenadoFinal(t_job* job);
 
-void enProcesoReduccionLocal(int idNodo, t_job* job);
+void enProcesoReduccionLocal(char* idNodo, t_job* job);
 void enProcesoReduccionGlobal(t_job* job);
 void enProcesoAlmacenadoFinal(t_job* job);
 

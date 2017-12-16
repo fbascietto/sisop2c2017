@@ -2745,7 +2745,7 @@ int leerBloque(t_nodo * nodo, int bloque, int largo, unsigned char * buffer){
 		unsigned char * buff;
 		buff = malloc((size_t)bytesAleer);
 		while(bytesRecibidos<bytesAleer){
-			int rec =  recv(nodo->socket_nodo,buff,(size_t)bytesAleer-bytesRecibidos,NULL);
+			int rec =  recv(nodo->socket_nodo,buff,(size_t)bytesAleer-bytesRecibidos, 0);
 			bytesRecibidos += rec;
 			for (;j<rec;j++){
 				buffer[i]=buff[j];
@@ -2799,7 +2799,7 @@ int obtenerMD5Archivo(char * archivo, t_list* folderList){
 }
 
 void * cls(){
-	system("clear");
+	return system("clear");
 }
 
 
@@ -3122,36 +3122,52 @@ void procesarSolicitudYama(void* args){
 		int size = list_size(lista_bloques);
 		uint32_t nroBloque;
 
-		t_bloques_enviados* bloquesEnviados;
-		bloquesEnviados = malloc(sizeof(t_bloques_enviados));
-		bloquesEnviados->lista_bloques = malloc(sizeof(t_bloque)*size*2);
-		bloquesEnviados->cantidad_bloques = 0;
+//		t_bloques_enviados* bloquesEnviados;
+//		bloquesEnviados = malloc(sizeof(t_bloques_enviados));
+//		bloquesEnviados->lista_bloques = malloc(sizeof(t_bloque)*size*2);
+//		bloquesEnviados->cantidad_bloques = 0;
+
+		enviarInt(nuevoSocket, numMaster);
 
 		for(;i < list_size(lista_bloques);i++){
 
 			t_bloque_nodo* bloque = list_get(lista_bloques,i);
+
+			/* ---------------------- BLOQUE 1 ----------------------- */
 			parametros1 = string_get_string_as_array(bloque->Copia0);
 			t_nodo* nodo1 = getNodoPorNombre(parametros1[0],nodos);
-
 			nroBloque = atoi(parametros1[1]);
 
 			printf("numero bloque A: %d\n", nroBloque);
-			printf("puerto del worker(?): %d", nodo1->puerto);
+			printf("puerto del worker(?): %d\n", nodo1->puerto);
 
 			t_bloque* bloqueAAgregar1 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo1->ip, nodo1->puerto, nodo1->nombre_nodo, bloque->bloque);
-			agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar1);
+//			agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar1);
+			char* bloqueUnoSerializado = serializar_bloque_serializado(bloqueAAgregar1);
+			uint32_t largoBloqueSerializado = getLong_one_bloque_serializado(bloqueAAgregar1);
+
+			enviarInt(nuevoSocket, PROCESAR_BLOQUE);
+			enviarMensajeSocketConLongitud(nuevoSocket, PROCESAR_BLOQUE, bloqueUnoSerializado, largoBloqueSerializado);
 
 
+			free(bloqueUnoSerializado);
 
+			/* ------------------- BLOQUE 2 -------------------*/
 			parametros2 = string_get_string_as_array(bloque->Copia1);
 			t_nodo* nodo2 = getNodoPorNombre(parametros2[0],nodos);
 			nroBloque = atoi(parametros2[1]);
 
 			printf("numero bloque B: %d\n", nroBloque);
-			printf("puerto del worker(?): %d", nodo1->puerto);
+			printf("puerto del worker(?): %d\n", nodo1->puerto);
 
 			t_bloque* bloqueAAgregar2 = crearBloqueSerializado(nroBloque, bloque->tamanio_bloque, nodo2->ip, nodo2->puerto, nodo2->nombre_nodo, bloque->bloque);
-			agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar2);
+			char* bloqueDosSerializado = serializar_bloque_serializado(bloqueAAgregar2);
+//			agregarBloqueSerializado(bloquesEnviados, bloqueAAgregar2);
+
+			enviarInt(nuevoSocket, PROCESAR_BLOQUE);
+			enviarMensajeSocketConLongitud(nuevoSocket, PROCESAR_BLOQUE, bloqueDosSerializado, largoBloqueSerializado);
+
+			free(bloqueDosSerializado);
 
 		}
 
@@ -3160,7 +3176,7 @@ void procesarSolicitudYama(void* args){
 		string_iterate_lines(parametros2,free);
 		free(parametros2);
 
-		serializar_y_enviar_yama(bloquesEnviados,numMaster,nuevoSocket);
+//		serializar_y_enviar_yama(bloquesEnviados,numMaster,nuevoSocket);
 
 	}
 }
