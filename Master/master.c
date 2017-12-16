@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <commons/config.h>
-#include <commons/log.h>
 #include <commons/string.h>
 #include "../bibliotecas/sockets.c"
 #include "../bibliotecas/sockets.h"
@@ -23,12 +22,12 @@ void main(int args, char* argv[]) {
 
 	t_log_level level_INFO = LOG_LEVEL_INFO;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
-	t_log* worker_info_log = log_create("logMaster.txt", "MASTER", 1, level_INFO);
-	t_log* worker_error_log = log_create("logMaster.txt", "MASTER", 1, level_ERROR);
+	t_log* master_info_log = log_create("logMaster.txt", "MASTER", 1, level_INFO);
+	t_log* master_error_log = log_create("logMaster.txt", "MASTER", 1, level_ERROR);
 
 	if(args != 5){
 
-		log_error(worker_error_log, "Cantidad de parametros incorrectos.");
+		log_error(master_error_log, "Cantidad de parametros incorrectos.");
 		exit(0);
 
 	}
@@ -39,16 +38,16 @@ void main(int args, char* argv[]) {
 	ruta_archivo_final_fs = argv[4];
 
 	char* info = string_from_format("El programa transformador que se utilizara para el job es: %s", ruta_programa_transformador);
-	log_info(worker_info_log, info);
+	log_info(master_info_log, info);
 	free(info);
 	info = string_from_format("El programa reductor que se utilizara para el job es: %s", ruta_programa_reductor);
-	log_info(worker_info_log, info);
+	log_info(master_info_log, info);
 	free(info);
 	info = string_from_format("La ruta del archivo que se procesara en el job es: %s", ruta_archivo_del_job);
-	log_info(worker_info_log, info);
+	log_info(master_info_log, info);
 	free(info);
 	info = string_from_format("La ruta del archivo resultante del job es: %s", ruta_archivo_final_fs);
-	log_info(worker_info_log, info);
+	log_info(master_info_log, info);
 	free(info);
 
 
@@ -126,8 +125,8 @@ void main(int args, char* argv[]) {
 	}
 //	gettimeofday(&t_fin, NULL);
 //	metrica();
-//	log_destroy(worker_info_log);
-//	log_destroy(worker_error_log);
+//	log_destroy(master_info_log);
+//	log_destroy(master_error_log);
 
 }
 

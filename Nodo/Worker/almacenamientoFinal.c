@@ -10,7 +10,7 @@
 #include "../../bibliotecas/sockets.h"
 #include <commons/log.h>
 
-void almacenamientoFinal(char* IP_fs, int puerto_fs, solicitud_realizar_almacenamiento_final* solicitudDeserializada){
+int almacenamientoFinal(char* IP_fs, int puerto_fs, solicitud_realizar_almacenamiento_final* solicitudDeserializada){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
@@ -33,24 +33,51 @@ void almacenamientoFinal(char* IP_fs, int puerto_fs, solicitud_realizar_almacena
 	enviarMensaje(socketConn, ruta_final);
 
 	log_trace(worker_log, "Comienzo de envio de archivo");
-	envioArchivo(socketConn, ruta_red_global);
+	int retorno = envioArchivo(socketConn, ruta_red_global);
+	if(retorno!=0){
+		return retorno;
+	}
+
 	log_trace(worker_log, "Finalizacion de envio de archivo");
 
 	log_destroy(worker_log);
 	free(ruta_final);
 	free(ruta_red_global);
 
+	return 0;
+
 }
 
 
-void responderSolicitudAlmacenadoFinal(int socket){
+void responderSolicitudAlmacenadoFinal(int socket, int exit_code){
 
 	t_log_level level = LOG_LEVEL_TRACE;
 	t_log_level level_ERROR = LOG_LEVEL_ERROR;
 	t_log* worker_log = log_create("logWorker.txt", "WORKER", 1, level);
 	t_log* worker_error_log = log_create("logWorker.txt", "WORKER", 1, level_ERROR);
 
-	log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de almacenamiento final a Master");
-	enviarInt(socket, ALMACENADO_FINAL_OK);
+	switch(exit_code){
+
+	case 0:
+		log_trace(worker_log, "Se envia confirmacion de finalizacion de etapa de almacenamiento final a Master");
+		enviarInt(socket, ALMACENADO_FINAL_OK);
+		break;
+	case -1:
+		log_error(worker_error_log, "Se envia error al abrir el archivo que se envia al Filesystem en la etapa de almacenamiento final a Master");
+		enviarInt(socket, ALMACENADO_FINAL_ERROR_ABRIR_ARCHIVO);
+		break;
+	case -2:
+		log_error(worker_error_log, "Se envia error al acceder al archivo que se envia al Filesystem en la etapa de almacenamiento final a Master");
+		enviarInt(socket, ALMACENADO_FINAL_ERROR_ACCEDER_ARCHIVO);
+		break;
+	case -3:
+		log_error(
+				worker_error_log,
+				"Se envia error al enviarle los datos preliminares al Filesytem sobre el archivo que se le envia en la etapa de almacenamiento final a Master"
+				);
+		enviarInt(socket, ALMACENADO_FINAL_ERROR_ENVIANDO_DATOS_PRELIMINARES);
+		break;
+
+	}
 
 }

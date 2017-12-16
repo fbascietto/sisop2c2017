@@ -10,6 +10,7 @@
 #include <sys/time.h>
 #include <libgen.h>
 #include <stdint.h>
+#include <commons/log.h>
 
 #ifndef MASTER_FUNCIONESMASTER_H_
 #define MASTER_FUNCIONESMASTER_H_

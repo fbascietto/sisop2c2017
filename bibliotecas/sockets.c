@@ -1,4 +1,4 @@
- /*
+/*
  *  Created on: 6/9/2017
  *      Author: utnso
  */
@@ -87,21 +87,21 @@ int enviarMensaje(int socketDestino, char* mensaje) {
 }
 
 int esperarConexionesSocket(fd_set *master, int socketEscucha) {
- 	//dado un set y un socket de escucha, verifica mediante select, si hay alguna conexion nueva para aceptar
- 	int nuevoSocket = -1;
- 	fd_set readSet;
- 	FD_ZERO(&readSet);
- 	readSet = *(master);
- 	if (select(socketEscucha + 1, &readSet, NULL, NULL, NULL) == -1) {
- 		perror("select");
- 		exit(4);
- 	}
- 	if (FD_ISSET(socketEscucha, &readSet)) {
- 		// handle new connections
- 		nuevoSocket = aceptarConexion(socketEscucha);
- 	}
- 	return nuevoSocket;
- }
+	//dado un set y un socket de escucha, verifica mediante select, si hay alguna conexion nueva para aceptar
+	int nuevoSocket = -1;
+	fd_set readSet;
+	FD_ZERO(&readSet);
+	readSet = *(master);
+	if (select(socketEscucha + 1, &readSet, NULL, NULL, NULL) == -1) {
+		perror("select");
+		exit(4);
+	}
+	if (FD_ISSET(socketEscucha, &readSet)) {
+		// handle new connections
+		nuevoSocket = aceptarConexion(socketEscucha);
+	}
+	return nuevoSocket;
+}
 
 
 char *recibirMensaje(int socketDestino) {
@@ -188,158 +188,154 @@ int envioArchivo(int peer_socket, char * archivo){
 	int offset;
 	int remain_data;
 
-    fd = open(archivo, O_RDONLY);
-    if (fd == -1)
-    {
-            fprintf(stderr, "Error abriendo archivo --> %s", strerror(errno));
+	fd = open(archivo, O_RDONLY);
+	if (fd == -1)
+	{
+		return -1;
+	}
 
-            exit(EXIT_FAILURE);
-    }
+	if (fstat(fd, &file_stat) < 0)
+	{
+		return -2;
+	}
 
-    if (fstat(fd, &file_stat) < 0)
-    {
-            fprintf(stderr, "Error fstat --> %s", strerror(errno));
+	/* fprintf(stdout, "Acepto nodo --> %s\n", inet_ntoa(peer_addr.sin_addr));*/
 
-            exit(EXIT_FAILURE);
-    }
+	len = enviarInt(peer_socket, ENVIAR_ARCHIVO_TEXTO);
+	/* Envio tamaño archivo */
 
-    fprintf(stdout, "Tamaño: \n%d bytes\n", file_stat.st_size);
+	if (len < 0)
+	{
+		return -3;
+	}
 
-    /* fprintf(stdout, "Acepto nodo --> %s\n", inet_ntoa(peer_addr.sin_addr));*/
+	//len = send(peer_socket, file_size, sizeof(file_size), 0);
+	len = enviarInt(peer_socket, file_stat.st_size);
+	/* envio nombre archivo */
+	// send(peer_socket, archivo, sizeof(archivo), 0);
 
-    enviarInt(peer_socket, ENVIAR_ARCHIVO_TEXTO);
-    /* Envio tamaño archivo */
+	if (len < 0)
+	{
+		return -3;
+	}
 
-    //len = send(peer_socket, file_size, sizeof(file_size), 0);
-    enviarInt(peer_socket, file_stat.st_size);
-    /* envio nombre archivo */
-    // send(peer_socket, archivo, sizeof(archivo), 0);
+	len = enviarMensaje(peer_socket, archivo);
 
-    enviarMensaje(peer_socket, archivo);
+	if (len < 0)
+	{
+		return -3;
+	}
 
-    if (len < 0)
-    {
-          fprintf(stderr, "Error enviando datos preliminares --> %s", strerror(errno));
+	offset = 0;
+	remain_data = file_stat.st_size;
 
-          exit(EXIT_FAILURE);
-    }
+	/* Sending file data */
+	while (((sent_bytes = sendfile(peer_socket, fd, &offset, TAMBUFFER)) > 0) && (remain_data > 0)){
+		remain_data -= sent_bytes;
+	}
 
-    fprintf(stdout, "FS envia %d bytes de tamaño de archivo\n", len);
+	close(fd);
 
-    offset = 0;
-    remain_data = file_stat.st_size;
-
-    /* Sending file data */
-    while (((sent_bytes = sendfile(peer_socket, fd, &offset, TAMBUFFER)) > 0) && (remain_data > 0))
-    {
-            fprintf(stdout, "1. FS envio %d bytes de los datos de archivo, el offset es : %d y faltan = %d bytes\n", sent_bytes, offset, remain_data);
-            remain_data -= sent_bytes;
-            fprintf(stdout, "2. FS envio %d bytes de los datos de archivo, el offset es : %d y faltan = %d bytes\n", sent_bytes, offset, remain_data);
-    }
-
-    int fileClose = close(fd);
-
-    if(fileClose == 0){
-    	printf("Se cerro el archivo archivo %s", archivo);
-    }
-    close(peer_socket);
-    return 0;
+	close(peer_socket);
+	return 0;
 
 }
-void *recibirArchivo(int client_socket){
 
-			ssize_t len;
-			char * nombre_archivo;
-	        struct sockaddr_in remote_addr;
-	        char buffer[TAMBUFFER];
-	        int file_size;
-	        FILE *received_file;
+int recibirArchivo(int client_socket){
+
+	ssize_t len;
+	char * nombre_archivo;
+	struct sockaddr_in remote_addr;
+	char buffer[TAMBUFFER];
+	int file_size;
+	FILE *received_file;
 
 
-	        //recv(client_socket, buffer, TAMBUFFER, 0);
-	        //file_size = atoi(buffer);
+	//recv(client_socket, buffer, TAMBUFFER, 0);
+	//file_size = atoi(buffer);
 
-	        recibirInt(client_socket, &file_size);
-	        int remain_data = file_size;
-	        //recv(client_socket, nombre_archivo, TAMBUFFER, 0);
-	        nombre_archivo = recibirMensaje(client_socket);
-	        if(!strcmp(nombre_archivo,"-1")){
-	        	printf("error al recibir el nombre del archivo");
-	        }else{
-	        	received_file = fopen(nombre_archivo, "w");
+	recibirInt(client_socket, &file_size);
+	int remain_data = file_size;
+	//recv(client_socket, nombre_archivo, TAMBUFFER, 0);
+	nombre_archivo = recibirMensaje(client_socket);
+	if(!strcmp(nombre_archivo,"-1")){
+		printf("error al recibir el nombre del archivo");
+		return -1;
+	}else{
+		received_file = fopen(nombre_archivo, "w");
 
-				if (received_file == NULL)
-				{
-						fprintf(stderr, "Fallo al abrir el archivo %s\n", strerror(errno));
+		if (received_file == NULL)
+		{
+			fprintf(stderr, "Fallo al abrir el archivo %s\n", strerror(errno));
+			return -2;
+		}
+		while (((len = recv(client_socket, buffer, TAMBUFFER, 0)) > 0) && (remain_data > 0))
+		{
+			fwrite(buffer, sizeof(char), len, received_file);
+			remain_data -= len;
 
-						exit(EXIT_FAILURE);
-				}
-				while (((len = recv(client_socket, buffer, TAMBUFFER, 0)) > 0) && (remain_data > 0))
-			   {
-					   fwrite(buffer, sizeof(char), len, received_file);
-					   remain_data -= len;
-					   fprintf(stdout, "Recibidos %d bytes y se esperan :- %d bytes\n", len, remain_data);
-			   }
-			   fclose(received_file);
+		}
+		fclose(received_file);
 
-			   close(client_socket);
-	        }
+		close(client_socket);
+	}
 
+	return 0;
 }
 
 char *replace_str(char *str, char *orig, char *rep)
 {
-  static char buffer[255];
-  char *p;
+	static char buffer[255];
+	char *p;
 
-  if(!(p = strstr(str, orig)))
-    return str;
+	if(!(p = strstr(str, orig)))
+		return str;
 
-  strncpy(buffer, str, p-str);
-  buffer[p-str] = '\0';
+	strncpy(buffer, str, p-str);
+	buffer[p-str] = '\0';
 
-  sprintf(buffer+(p-str), "%s%s", rep, p+strlen(orig));
+	sprintf(buffer+(p-str), "%s%s", rep, p+strlen(orig));
 
-  return buffer;
+	return buffer;
 }
 
 /*
-* Escribe dato en el socket cliente. Devuelve numero de bytes escritos,
-* o -1 si hay error.
-*/
+ * Escribe dato en el socket cliente. Devuelve numero de bytes escritos,
+ * o -1 si hay error.
+ */
 int escribirSocketClient(int fd, char *datos, int longitud)
 {
 	int escrito = 0;
 	int aux = 0;
 
 	/*
-	* Comprobacion de los parametros de entrada
-	*/
+	 * Comprobacion de los parametros de entrada
+	 */
 	if ((fd == -1) || (datos == NULL) || (longitud < 1))
 		return -1;
 
 	/*
-	* Bucle hasta que hayamos escrito todos los caracteres que nos han
-	* indicado.
-	*/
+	 * Bucle hasta que hayamos escrito todos los caracteres que nos han
+	 * indicado.
+	 */
 	while (escrito < longitud)
 	{
 		aux = write (fd, datos + escrito, longitud - escrito);
 		if (aux > 0)
 		{
 			/*
-			* Si hemos conseguido escribir caracteres, se actualiza la
-			* variable escrito
-			*/
+			 * Si hemos conseguido escribir caracteres, se actualiza la
+			 * variable escrito
+			 */
 			escrito = escrito + aux;
 		}
 		else
 		{
 			/*
-			* Si se ha cerrado el socket, devolvemos el numero de caracteres
-			* leidos.
-			* Si ha habido error, devolvemos -1
-			*/
+			 * Si se ha cerrado el socket, devolvemos el numero de caracteres
+			 * leidos.
+			 * Si ha habido error, devolvemos -1
+			 */
 			if (aux == 0)
 				return escrito;
 			else
@@ -348,8 +344,8 @@ int escribirSocketClient(int fd, char *datos, int longitud)
 	}
 
 	/*
-	* Devolvemos el total de caracteres leidos
-	*/
+	 * Devolvemos el total de caracteres leidos
+	 */
 	return escrito;
 }
 
@@ -403,15 +399,15 @@ int recieve_and_deserialize(Package *package, int socketCliente){
 	 * si no leyo el largo del mensaje
 	 */
 	while(1){
-			largoLeido = recv(socketCliente, package->message, size, 0);
-			leidos += aux;
-			if(largoLeido == 0){ //toda esta fumada es para cuando algun cliente se desconecta.
-				printf("Socket dice: Cliente en socket N° %d se desconecto\n", socketCliente);
-				package->message = "-1";
-				return leidos;
-			}
-			if(largoLeido < size) size= size - largoLeido;
-			else break;
+		largoLeido = recv(socketCliente, package->message, size, 0);
+		leidos += aux;
+		if(largoLeido == 0){ //toda esta fumada es para cuando algun cliente se desconecta.
+			printf("Socket dice: Cliente en socket N° %d se desconecto\n", socketCliente);
+			package->message = "-1";
+			return leidos;
+		}
+		if(largoLeido < size) size= size - largoLeido;
+		else break;
 	}
 
 	free(buffer);
@@ -433,8 +429,8 @@ char* fileToChar(char* filename){
 	/* open the file to be sent */
 	fd = open(filename, O_RDONLY);
 	if (fd == -1) {
-	  fprintf(stderr, "unable to open '%s': %s\n", filename, strerror(errno));
-	  exit(1);
+		fprintf(stderr, "unable to open '%s': %s\n", filename, strerror(errno));
+		exit(1);
 	}
 
 	/* get the size of the file to be sent */
@@ -503,64 +499,64 @@ int leerSocketClient(int fd, char *datos, int longitud)
 	int aux = 0;
 
 	/*
-	* Comprobacion de que los parametros de entrada son correctos
-	*/
+	 * Comprobacion de que los parametros de entrada son correctos
+	 */
 	if ((fd == -1) || (datos == NULL) || (longitud < 1))
 		return -1;
 
 	/*
-	* Mientras no hayamos leido todos los datos solicitados
-	*/
+	 * Mientras no hayamos leido todos los datos solicitados
+	 */
 	while (leido < longitud)
 	{
 		aux = read (fd, datos + leido, longitud - leido);
 		if (aux > 0)
 		{
 			/*
-			* Si hemos conseguido leer datos, incrementamos la variable
-			* que contiene los datos leidos hasta el momento
-			*/
+			 * Si hemos conseguido leer datos, incrementamos la variable
+			 * que contiene los datos leidos hasta el momento
+			 */
 			leido = leido + aux;
 		}
 		else
 		{
 			/*
-			* Si read devuelve 0, es que se ha cerrado el socket. Devolvemos
-			* los caracteres leidos hasta ese momento
-			*/
+			 * Si read devuelve 0, es que se ha cerrado el socket. Devolvemos
+			 * los caracteres leidos hasta ese momento
+			 */
 			if (aux == 0)
 				return leido;
 			if (aux == -1)
 			{
 				/*
-				* En caso de error, la variable errno nos indica el tipo
-				* de error.
-				* El error EINTR se produce si ha habido alguna
-				* interrupcion del sistema antes de leer ningun dato. No
-				* es un error realmente.
-				* El error EGAIN significa que el socket no esta disponible
-				* de momento, que lo intentemos dentro de un rato.
-				* Ambos errores se tratan con una espera de 100 microsegundos
-				* y se vuelve a intentar.
-				* El resto de los posibles errores provocan que salgamos de
-				* la funcion con error.
-				*/
+				 * En caso de error, la variable errno nos indica el tipo
+				 * de error.
+				 * El error EINTR se produce si ha habido alguna
+				 * interrupcion del sistema antes de leer ningun dato. No
+				 * es un error realmente.
+				 * El error EGAIN significa que el socket no esta disponible
+				 * de momento, que lo intentemos dentro de un rato.
+				 * Ambos errores se tratan con una espera de 100 microsegundos
+				 * y se vuelve a intentar.
+				 * El resto de los posibles errores provocan que salgamos de
+				 * la funcion con error.
+				 */
 				switch (errno)
 				{
-					case EINTR:
-					case EAGAIN:
-						usleep (100);
-						break;
-					default:
-						return -1;
+				case EINTR:
+				case EAGAIN:
+					usleep (100);
+					break;
+				default:
+					return -1;
 				}
 			}
 		}
 	}
 
 	/*
-	* Se devuelve el total de los caracteres leidos
-	*/
+	 * Se devuelve el total de los caracteres leidos
+	 */
 	return leido;
 }
 

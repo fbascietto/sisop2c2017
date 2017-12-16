@@ -262,7 +262,7 @@ void procesarSolicitudTransformacion(int socket, int message_long, char* message
 			NULL,
 			enviarTransformacionWorker,
 			(void*) (itemTransfDeserializada));
-//	pthread_join(threadSolicitudTransformacionWorker, NULL);
+	//	pthread_join(threadSolicitudTransformacionWorker, NULL);
 
 }
 
@@ -278,7 +278,7 @@ void procesarSolicitudReduccionLocal(int socket, int message_long, char* message
 				"La ruta del archivo temporal %d de transformacion es: %s\n",
 				aux,
 				itemReducLocalDeserializado->archivos_temporales_transformacion[aux].archivo_temp
-				);
+		);
 	}
 	printf("La cantidad de archivos temporales de transformacion a reducir son: %d\n", itemReducLocalDeserializado->cantidad_archivos_temp);
 	printf("El nombre del nodo es: %s\n", itemReducLocalDeserializado->nodo_id);
@@ -297,7 +297,7 @@ void procesarSolicitudReduccionLocal(int socket, int message_long, char* message
 
 void procesarSolicitudReduccionGlobal(int socket, int message_long, char* message){
 	solicitud_reduccion_global* solicitudReducLocalDeserializado = deserializar_solicitud_reduccion_global(message);
-//	pthread_t threadSolicitudRedGlobalWorker;
+	//	pthread_t threadSolicitudRedGlobalWorker;
 	enviarReduccionGlobalWorker((void*) solicitudReducLocalDeserializado);
 	//int er1 = pthread_create(&threadSolicitudRedGlobalWorker, NULL,enviarReduccionGlobalWorker,(void*) solicitudReducLocalDeserializado);
 	//enviarReduccionGlobalWorker((void*) solicitudReducLocalDeserializado);
@@ -306,9 +306,13 @@ void procesarSolicitudReduccionGlobal(int socket, int message_long, char* messag
 }
 
 void enviarSolicitudFinalWorker(void *args){
+
+	t_log_level level = LOG_LEVEL_INFO;
+	t_log_level level_ERROR = LOG_LEVEL_ERROR;
+	t_log* master_log = log_create("logMaster.txt", "MASTER", 1, level);
+	t_log* master_error_log = log_create("logMaster.txt", "MASTER", 1, level_ERROR);
+
 	solicitud_almacenado_final *solicitudFinal = (solicitud_almacenado_final*) args;
-	//int socketConn = conectarseA(solicitudFinal->ip_worker, solicitudFinal->puerto_worker);
-	//enviarInt(socketConn,PROCESO_MASTER);
 
 	solicitud_realizar_almacenamiento_final* solicitud = malloc(sizeof(solicitud_realizar_almacenamiento_final));
 
@@ -322,20 +326,52 @@ void enviarSolicitudFinalWorker(void *args){
 	enviarInt(socketConn,PROCESO_MASTER);
 	enviarMensajeSocketConLongitud(socketConn, ACCION_ALMACENAMIENTO_FINAL, serializado, len);
 
-	//TODO: enviar nodo id, ALMACENADO_FINAL_OK y ALMACENADO_FINAL_ERROR
 	uint32_t termino;
 	recibirInt(socketConn, &termino);
-	int total_size = sizeof(char[NOMBRE_NODO]);
-	char *serializedPackage = malloc(total_size);
-	int offset = 0;
-	serializarDato(serializedPackage,solicitudFinal->nodo_id,sizeof(char[NOMBRE_NODO]),&offset);
-	enviarMensajeSocketConLongitud(socketYama, termino, serializedPackage, total_size);
+
+	switch(termino){
+
+	case ALMACENADO_FINAL_OK:
+		log_trace(master_log, "El almacenamiento final termino correctamente");
+		break;
+	case ALMACENADO_FINAL_ERROR_ABRIR_ARCHIVO:
+		log_error(master_error_log, "No se pudo abrir el archivo para enviarselo al Filesystem");
+		break;
+	case ALMACENADO_FINAL_ERROR_ACCEDER_ARCHIVO:
+		log_error(master_error_log, "No se pudo acceder al archivo para enviarselo al Filesystem");
+		break;
+
+	case ALMACENADO_FINAL_ERROR_ENVIANDO_DATOS_PRELIMINARES:
+		log_error(master_error_log, "No se pudo enviar correctamente los datos preliminares al envio del archivo al Filesystem");
+		break;
+
+	}
+
+	if(termino == ALMACENADO_FINAL_OK){
+
+		int total_size = sizeof(char[NOMBRE_NODO]);
+		char *serializedPackage = malloc(total_size);
+		int offset = 0;
+		serializarDato(serializedPackage,solicitudFinal->nodo_id,sizeof(char[NOMBRE_NODO]),&offset);
+		enviarMensajeSocketConLongitud(socketYama, ALMACENADO_FINAL_OK, serializedPackage, total_size);
+
+	}else{
+
+		int total_size = sizeof(char[NOMBRE_NODO]);
+		char *serializedPackage = malloc(total_size);
+		int offset = 0;
+		serializarDato(serializedPackage,solicitudFinal->nodo_id,sizeof(char[NOMBRE_NODO]),&offset);
+		enviarMensajeSocketConLongitud(socketYama, ALMACENADO_FINAL_ERROR, serializedPackage, total_size);
+
+	}
+
+
 }
 
 void procesarSolicitudAlmacenadoFinal(int socket, int message_long, char* message){
 	solicitud_almacenado_final* solicitudAlmacFinalDeserializado = deserializar_solicitud_almacenado_final(message);
 	//enviarSolicitudFinalWorker((void*) solicitudAlmacFinalDeserializado);
-	pthread_t threadSolicitudFinalWorker;
-	int er1 = pthread_create(&threadSolicitudFinalWorker, NULL,enviarSolicitudFinalWorker,(void*) solicitudAlmacFinalDeserializado);
+	enviarSolicitudFinalWorker((void*)solicitudAlmacFinalDeserializado);
 	//pthread_join(threadSolicitudFinalWorker, NULL);
+	free(solicitudAlmacFinalDeserializado);
 }

@@ -3110,11 +3110,8 @@ void agregarBloqueSerializado(t_bloques_enviados* bloquesEnviados, t_bloque* blo
 
 void transformacionFinalWorker(int nuevoSocket){
 
-	char* ruta_final = string_new();
-	char* archivo_tmp = string_new();
-
-	ruta_final = recibirMensaje(nuevoSocket);
-	archivo_tmp = recibirMensaje(nuevoSocket);
+	char* ruta_final = recibirMensaje(nuevoSocket);
+	char* archivo_tmp = recibirMensaje(nuevoSocket);
 	recibirArchivo(nuevoSocket);
 
 	guardarArchivoLocalDeTextoEnFS(archivo_tmp,ruta_final,carpetas);

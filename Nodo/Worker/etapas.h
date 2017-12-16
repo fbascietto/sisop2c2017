@@ -55,8 +55,8 @@ void responderSolicitudRG(int, int);
 void liberarUltimaPalabra(void* arg);
 
 //AF
-void almacenamientoFinal(char*, int, solicitud_realizar_almacenamiento_final*);
-void responderSolicitudAlmacenadoFinal(int);
+int almacenamientoFinal(char*, int, solicitud_realizar_almacenamiento_final*);
+void responderSolicitudAlmacenadoFinal(int, int);
 
 
 #endif /* ETAPAS_H_ */
