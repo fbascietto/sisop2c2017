@@ -261,6 +261,8 @@ void recibirSolicitudMaster(int nuevoSocket){
 		log_trace(worker_log, "Solicitud de almacenamiento final recibida");
 		log_trace(worker_log, "Comienzo de almacenamiento final");
 		solicitudAFDeserializada = deserializarSolicitudRealizarAlmacenadoFinal(package->message);
+		printf("La ruta del archivo final fs es: %s\n",solicitudAFDeserializada->ruta_archivo_final_fs);
+		printf("La ruta del archivo temporal resultante reduccion global es: %s\n",solicitudAFDeserializada->ruta_archivo_temporal_resultante_reduccion_global);
 		exit_code = almacenamientoFinal(IP_fs, puerto_fs, solicitudAFDeserializada);
 		responderSolicitudAlmacenadoFinal(nuevoSocket, exit_code);
 		log_destroy(worker_log);

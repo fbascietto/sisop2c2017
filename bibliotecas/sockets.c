@@ -75,6 +75,7 @@ int enviarMensaje(int socketDestino, char* mensaje) {
 	int totalEnviado=0, bytesRestantes, lenEnviado;
 
 	int len = strlen(mensaje);
+	printf("tamanio mensaje a enviar %d\n", len);
 	bytesRestantes = len;
 	enviarInt(socketDestino, len);
 	while(totalEnviado < len) {
@@ -178,7 +179,6 @@ int recibirHandShake (int unSocket) {
 }
 
 int envioArchivo(int peer_socket, char * archivo){
-
 	ssize_t len;
 	struct sockaddr_in      peer_addr;
 	int fd;
@@ -201,13 +201,7 @@ int envioArchivo(int peer_socket, char * archivo){
 
 	/* fprintf(stdout, "Acepto nodo --> %s\n", inet_ntoa(peer_addr.sin_addr));*/
 
-	len = enviarInt(peer_socket, ENVIAR_ARCHIVO_TEXTO);
 	/* Envio tamaño archivo */
-
-	if (len < 0)
-	{
-		return -3;
-	}
 
 	//len = send(peer_socket, file_size, sizeof(file_size), 0);
 	len = enviarInt(peer_socket, file_stat.st_size);
@@ -219,18 +213,11 @@ int envioArchivo(int peer_socket, char * archivo){
 		return -3;
 	}
 
-	len = enviarMensaje(peer_socket, archivo);
-
-	if (len < 0)
-	{
-		return -3;
-	}
-
 	offset = 0;
 	remain_data = file_stat.st_size;
 
 	/* Sending file data */
-	while (((sent_bytes = sendfile(peer_socket, fd, &offset, TAMBUFFER)) > 0) && (remain_data > 0)){
+	while (((sent_bytes = send(peer_socket, fd, &offset, TAMBUFFER)) > 0) && (remain_data > 0)){
 		remain_data -= sent_bytes;
 	}
 
@@ -241,8 +228,7 @@ int envioArchivo(int peer_socket, char * archivo){
 
 }
 
-int recibirArchivo(int client_socket){
-
+int recibirArchivo(int client_socket, char* ruta){
 	ssize_t len;
 	char * nombre_archivo;
 	struct sockaddr_in remote_addr;
@@ -257,12 +243,11 @@ int recibirArchivo(int client_socket){
 	recibirInt(client_socket, &file_size);
 	int remain_data = file_size;
 	//recv(client_socket, nombre_archivo, TAMBUFFER, 0);
-	nombre_archivo = recibirMensaje(client_socket);
-	if(!strcmp(nombre_archivo,"-1")){
-		printf("error al recibir el nombre del archivo");
+	if(!strcmp(ruta,"-1")){
+		printf("error al recibir el nombre del archivo\n");
 		return -1;
 	}else{
-		received_file = fopen(nombre_archivo, "w");
+		received_file = fopen(ruta, "w");
 
 		if (received_file == NULL)
 		{
@@ -382,12 +367,12 @@ int recieve_and_deserialize(Package *package, int socketCliente){
 
 	aux = recv(socketCliente, buffer, sizeof(package->msgCode), 0);
 	memcpy(&(package->msgCode), buffer, buffer_size);
-	if (!aux) return 0;
+	if (aux == -1) return 0;
 	leidos+=aux;
 
 	aux = recv(socketCliente, buffer, sizeof(package->message_long), 0);
 	memcpy(&(package->message_long), buffer, buffer_size);
-	if (!aux) return 0;
+	if (aux == -1) return 0;
 	leidos+=aux;
 
 	int largoLeido = -1, size;
@@ -401,7 +386,7 @@ int recieve_and_deserialize(Package *package, int socketCliente){
 	while(1){
 		largoLeido = recv(socketCliente, package->message, size, 0);
 		leidos += aux;
-		if(largoLeido == 0){ //toda esta fumada es para cuando algun cliente se desconecta.
+		if(largoLeido == -1 || largoLeido == 0){ //toda esta fumada es para cuando algun cliente se desconecta.
 			printf("Socket dice: Cliente en socket N° %d se desconecto\n", socketCliente);
 			package->message = "-1";
 			return leidos;

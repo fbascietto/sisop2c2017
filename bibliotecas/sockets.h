@@ -45,7 +45,7 @@ void selectException(int descriptor, fd_set* bag, struct timeval* timeout);
 int recibirHandShake (int unSocket);
 int envioArchivo(int peer_socket, char* archivo);
 int esperarConexionesSocket(fd_set *master, int socketEscucha);
-int recibirArchivo(int client_socket);
+int recibirArchivo(int client_socket, char* ruta);
 
 char* fileToChar(char* fileName);
 

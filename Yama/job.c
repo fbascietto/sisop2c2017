@@ -555,7 +555,7 @@ void terminarJob(t_job* job){
 	int idJob = job->idJob;
 	restaurarValoresJob(job);
 	//todo chequear que se mueva a finalizado
-	liberarJob(job);
+	//liberarJob(job);
 
 
 	log_trace(logYama,"job %d finalizado", idJob);

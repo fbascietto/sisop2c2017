@@ -23,17 +23,19 @@ int almacenamientoFinal(char* IP_fs, int puerto_fs, solicitud_realizar_almacenam
 	//le aviso que soy el proceso Worker
 	enviarInt(socketConn,PROCESO_WORKER);
 
-	char* ruta_final = malloc(LENGTH_RUTA_ARCHIVO_TEMP);
-	strcpy(ruta_final, solicitudDeserializada->ruta_archivo_final_fs);
-	char* ruta_red_global = malloc(LENGTH_RUTA_ARCHIVO_TEMP);
-	strcpy(ruta_red_global, solicitudDeserializada->ruta_archivo_temporal_resultante_reduccion_global);
-
+	char* ruta_final = string_new();
+	string_append_with_format(&ruta_final, solicitudDeserializada->ruta_archivo_final_fs);
+	char* ruta_red_global = string_new();
+	string_append_with_format(&ruta_red_global, "/tmp/archivoRG-%s", basename(solicitudDeserializada->ruta_archivo_temporal_resultante_reduccion_global));
+	printf("La ruta del archivo final fs antes de enviar es: %s\n",ruta_final);
+	printf("La ruta del archivo temporal resultante reduccion global antes de enviar es: %s\n",ruta_red_global);
 
 	//le envio el archivo temporal de reduccion global resultante al fs
 	enviarMensaje(socketConn, ruta_final);
+	enviarMensaje(socketConn, ruta_red_global);
 
 	log_trace(worker_log, "Comienzo de envio de archivo");
-	int retorno = envioArchivo(socketConn, ruta_red_global);
+	int retorno = envioArchivo(socketConn, solicitudDeserializada->ruta_archivo_temporal_resultante_reduccion_global);
 	if(retorno!=0){
 		return retorno;
 	}

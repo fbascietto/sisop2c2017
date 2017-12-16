@@ -3112,7 +3112,7 @@ void transformacionFinalWorker(int nuevoSocket){
 
 	char* ruta_final = recibirMensaje(nuevoSocket);
 	char* archivo_tmp = recibirMensaje(nuevoSocket);
-	recibirArchivo(nuevoSocket);
+	recibirArchivo(nuevoSocket, archivo_tmp);
 
 	guardarArchivoLocalDeTextoEnFS(archivo_tmp,ruta_final,carpetas);
 
@@ -3215,6 +3215,8 @@ void procesarSolicitudYama(void* args){
 			free(bloqueDosSerializado);
 
 		}
+
+		enviarInt(nuevoSocket, ENVIO_BLOQUE_TERMINADO);
 
 		string_iterate_lines(parametros1,free);
 		free(parametros1);

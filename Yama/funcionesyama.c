@@ -13,15 +13,17 @@
 void recibirMensajeMaster(void *args){
 	t_esperar_mensaje *tEsperarMensaje = (t_esperar_mensaje*) args;
 	int nuevoSocket = tEsperarMensaje->socketCliente;
-	//free(args);
+	free(args);
 
 	while(1){
-		Package* package = createPackage();
-		int leidos = recieve_and_deserialize(package, nuevoSocket);
 
-		if(leidos == 0){
+	Package* package = createPackage();
+	int leidos = recieve_and_deserialize(package, nuevoSocket);
+		if(leidos == 0 || leidos == -1){
 			close(nuevoSocket);
-			break;
+			free(package->message);
+			free(package);
+			return;
 		}
 		log_trace(logYamaImpreso, "bytes leidos %d", leidos);
 		log_trace(logYamaImpreso, "codigo mensaje %d", package->msgCode);
@@ -56,9 +58,10 @@ void recibirMensajeMaster(void *args){
 		case ALMACENADO_FINAL_ERROR:
 			procesarResultadoAlmacenadoFinal(nuevoSocket, package, ALMACENADO_FINAL_ERROR);
 			break;
+
 		}
-		free(package->message);
-		free(package);
+	free(package->message);
+	free(package);
 	}
 }
 
