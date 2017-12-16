@@ -541,11 +541,6 @@ t_directory * cambiarAdirectorioConChequeo(char* nombre, t_directory* carpetaAct
 		carpetaNueva= list_get(carpetas,i);
 		switch(list_size(carpetas)){
 		case 0:
-			if((strchr(nombre,'.') != NULL)){
-			} else {
-				printf("Directorio inexistente.\n");
-				carpetaActual->index = -2;
-			}
 			return carpetaActual;
 			break;
 			/*case 1:
@@ -1459,6 +1454,10 @@ char* getRutaMetadata(char* ruta_archivo, t_list* folderList, int carpeta){
 
 void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList){
 
+	if(!estaEstable()){
+				return;
+	}
+
 	FILE* origen = fopen(path_archivo_origen, "rb");
 	if (origen == NULL){
 		fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
@@ -1582,6 +1581,10 @@ void guardarArchivoLocalEnFS(char* path_archivo_origen, char* directorio_yamafs,
 
 void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_yamafs, t_list* folderList){
 
+	if(!estaEstable()){
+			return;
+		}
+
 	FILE* origen = fopen(path_archivo_origen, "rb");
 	if (origen == NULL){
 		fprintf(stderr, "Fallo al abrir el archivo %s %s\n",path_archivo_origen, strerror(errno));
@@ -1669,11 +1672,7 @@ void guardarArchivoLocalDeTextoEnFS(char* path_archivo_origen, char* directorio_
 			destruir_bitmap(t_fs_bitmap);
 			destruir_bitmap(t_fs_bitmap2);
 
-			//enviarInt(socketnodo,ENVIAR_ARCHIVO_TEXTO);
-			/*int largo= 0;
-			char * aMandar = string_new();
-			string_append(&aMandar,hastaNuevaLinea);
-			largo += strlen(hastaNuevaLinea);*/
+
 			int largo= 0;
 			char * aMandar = string_new();
 			string_append(&aMandar,hastaNuevaLinea);
@@ -1728,8 +1727,8 @@ int escribirBloque(int socketnodo, int bloque, void * buffer, int largoAMandar){
 		int err = 0;
 
 		int i = largoAMandar - enviado;
-		if(i>=4096){
-			i = 4096;
+		if(i>=BUFBLOQ){
+			i = BUFBLOQ;
 		}
 
 		enviarInt(socketnodo,i);
@@ -1783,8 +1782,7 @@ int estaEstable(){
 		printf(". No se puede operar de esta manera. Verifique nodos conectados.\n");
 		return 0;
 	} else{
-		printf("Filesystem");
-		printf(ANSI_COLOR_BOLD ANSI_COLOR_GREEN " estable" ANSI_COLOR_RESET ".\n");
+
 	}
 
 	return 1;
@@ -1804,12 +1802,18 @@ int traerArchivoDeFs(char* archivoABuscar, char* directorio, t_list* folderList,
 	}
 
 	int carpeta = identificaDirectorio(archivoABuscar, folderList);
-	if(carpeta == -2){
-		printf("Error al traer el archivo.\n");
-		return 0;
-	}
+
 
 	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
+	char* chequeo = string_duplicate(ruta_metadata);
+
+	int found = buscoEnArchivosDat(chequeo);
+
+	if(!found){
+		printf("Error al traer la información del archivo.\n");
+		log_error(logFS,"Error al traer info, archivo no encontrado.");
+		return 0;
+	}
 
 	char * pathObjetivo = string_new();
 	if(directorio == "") {
@@ -1924,12 +1928,18 @@ void copiarBloqueANodo(char* archivoABuscar, int bloque, char* nodoDestino, t_li
 		}
 
 		int carpeta = identificaDirectorio(archivoABuscar, folderList);
-		if(carpeta == -2){
-			printf("Error al traer el archivo.\n");
-			return;
-		}
+
 		unsigned char* buff;
 		char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
+		char* chequeo = string_duplicate(ruta_metadata);
+
+		int found = buscoEnArchivosDat(chequeo);
+
+		if(!found){
+			printf("Error al traer la información del archivo.\n");
+			log_error(logFS,"Error al traer info, archivo no encontrado.");
+			return;
+		}
 
 		t_list * lista_bloques = obtener_lista_metadata(ruta_metadata);
 
@@ -2124,14 +2134,16 @@ int catArchivoDeFs(char* archivoABuscar, t_list* folderList){
 	}
 
 	int carpeta = identificaDirectorio(archivoABuscar, folderList);
-	if(carpeta == -2){
-		printf("Error al traer el archivo.\n");
+	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
+	char* chequeo = string_duplicate(ruta_metadata);
+
+	int found = buscoEnArchivosDat(chequeo);
+
+	if(!found){
+		printf("Error al traer la información del archivo.\n");
+		log_error(logFS,"Error al traer info, archivo no encontrado.");
 		return 0;
 	}
-
-	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
-
-
 
 	t_list * lista_bloques = obtener_lista_metadata_para_imprimir(ruta_metadata);
 
@@ -2206,12 +2218,16 @@ int catBloqueArchivoDeFs(char* archivoABuscar, int bloque, t_list* folderList){
 	}
 
 	int carpeta = identificaDirectorio(archivoABuscar, folderList);
-	if(carpeta == -2){
-		printf("Error al traer el archivo.\n");
+	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
+
+	char* chequeo = string_duplicate(ruta_metadata);
+	int found = buscoEnArchivosDat(chequeo);
+
+	if(!found){
+		printf("Error al traer la información del archivo.\n");
+		log_error(logFS,"Error al traer info, archivo no encontrado.");
 		return 0;
 	}
-
-	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
 
 	t_list * lista_bloques = obtener_lista_metadata_para_imprimir(ruta_metadata);
 
@@ -2415,6 +2431,10 @@ t_list * obtener_lista_metadata_para_imprimir(char * ruta_metadata){
 
 void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList){
 
+	if(!estaEstable()){
+				return;
+			}
+
 	if(!strcmp(parametro,"-d")){
 
 		int folderIndex = identificaDirectorio(archivoABuscar, folderList);
@@ -2457,12 +2477,18 @@ void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList){
 
 	int carpeta = identificaDirectorio(archivoABuscar, folderList);
 
-	if(carpeta == -2 || carpeta == -1){
-		// printf("Error al traer el archivo.\n");
+
+	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
+	char* chequeo = string_duplicate(ruta_metadata);
+
+	int found = buscoEnArchivosDat(chequeo);
+
+	if(!found){
+		printf("Error al traer la información del archivo.\n");
+		log_error(logFS,"Error al traer info, archivo no encontrado.");
 		return;
 	}
 
-	char* ruta_metadata = getRutaMetadata(archivoABuscar,folderList, carpeta);
 	t_list * lista_bloques = obtener_lista_metadata(ruta_metadata);
 
 	if(lista_bloques == NULL){
@@ -2514,6 +2540,10 @@ void removerArchivo(char* archivoABuscar, char* parametro, t_list* folderList){
 }
 
 void removerBloque(char* archivoABuscar, int bloque, int numeroDeCopia, t_list* folderList){
+
+	if(!estaEstable()){
+				return;
+			}
 
 	int carpeta = identificaDirectorio(archivoABuscar, folderList);
 
@@ -2580,8 +2610,13 @@ void removerBloque(char* archivoABuscar, int bloque, int numeroDeCopia, t_list* 
 }
 
 void moverArchivo(char* archivoABuscar, char* destino, t_list* folderList){
-		int folderIndex = identificaDirectorio(archivoABuscar, folderList);
-		int destinyIndex = identificaDirectorio(destino, folderList);
+
+	if(!estaEstable()){
+				return;
+			}
+
+	int folderIndex = identificaDirectorio(archivoABuscar, folderList);
+	int destinyIndex = identificaDirectorio(destino, folderList);
 
 		if(destinyIndex < 0 || folderIndex < 0){
 			printf("Error al usar la funcion. Para ayuda ingrese help.\n");
@@ -2651,6 +2686,10 @@ void moverArchivo(char* archivoABuscar, char* destino, t_list* folderList){
 }
 
 void renombrarArchivo(char* archivoABuscar, char* nombreNuevo, t_list* folderList){
+
+	if(!estaEstable()){
+				return;
+			}
 
 	//char* nombreActual = getNombreArchivo(archivoABuscar);
 	int folderIndex = identificaDirectorio(archivoABuscar, folderList);
@@ -2806,13 +2845,22 @@ void * cls(){
 
 void imprimeMetadata(char* rutaEnYamafs, t_list* folderList){
 
-	int carpeta = identificaDirectorio(rutaEnYamafs, folderList);
-	if(carpeta == -2){
-		printf("Error al traer la información del archivo.\n");
-		return;
-	}
+	if(!estaEstable()){
+				return;
+			}
 
-	char* ruta_metadata = getRutaMetadata(rutaEnYamafs,folderList, carpeta);
+	int carpeta = identificaDirectorio(rutaEnYamafs, folderList);
+
+    char* ruta_metadata = getRutaMetadata(rutaEnYamafs,folderList, carpeta);
+    char* chequeo = string_duplicate(ruta_metadata);
+
+    int found = buscoEnArchivosDat(chequeo);
+
+    if(!found){
+    	printf("Error al traer la información del archivo.\n");
+    	log_error(logFS,"Error al traer info, archivo no encontrado.");
+    	return;
+    }
 
 	FILE * metadata;
 
