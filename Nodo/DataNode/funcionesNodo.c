@@ -137,7 +137,7 @@ int esperarBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 
 	}
 		char * bloqueArchivo;
-		bloqueArchivo = malloc((size_t)4096);
+		bloqueArchivo = malloc((size_t)BUFBLOQ);
 
 		int data = open(rutaNodo,O_RDWR);
 		struct stat fileStat;
@@ -244,9 +244,9 @@ int leerBloque(int socketConn,t_nodo* nodo, char* rutaNodo){
 		//enviarInt(socketConn, LEER_BLOQUE_NODO);
 		while(bytes_totales_leidos < bytesAleer){
 			unsigned char * buffer;
-			buffer = malloc((size_t)4096);
+			buffer = malloc((size_t)BUFBLOQ);
 
-			for (;bytes_leidos<4096 && bytes_totales_leidos< bytesAleer;bytes_totales_leidos++){
+			for (;bytes_leidos<BUFBLOQ && bytes_totales_leidos< bytesAleer;bytes_totales_leidos++){
 				buffer[bytes_leidos] = map[bytes_totales_leidos];
 				bytes_leidos++;
 			}

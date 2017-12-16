@@ -23,6 +23,8 @@
 #ifndef FUNCIONESNODO_H_
 #define FUNCIONESNODO_H_
 
+#define BUFBLOQ 1024
+
 t_log* logNodo;
 
 typedef struct {
