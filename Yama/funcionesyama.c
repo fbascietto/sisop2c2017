@@ -103,8 +103,9 @@ void recibirMensajeFS(void *args){
 
 			Package* package = createPackage();
 			recieve_and_deserialize(package, nuevoSocket);
-			t_bloque* bloqueRecibido = deserializar_bloque_serializado(package);
+			t_bloque* bloqueRecibido = deserializar_bloque_serializado(package->message);
 			procesarBloqueRecibido(bloques, bloqueRecibido);
+			free(package);
 			break;
 
 		case ENVIO_BLOQUE_TERMINADO: ;	break;
@@ -164,7 +165,6 @@ void recibirMensajeFS(void *args){
 	//	free(solicitudTransformacion->items_transformacion);
 	//	free(solicitudTransfSerializado);
 	//	free(solicitudTransformacion);
-	free(package);
 }
 
 void recargarConfiguracion(int signal){

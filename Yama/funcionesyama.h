@@ -119,7 +119,7 @@ item_reduccion_local* obtenerSolicitudReduccionLocal(t_job* job, char idNodo[NOM
 solicitud_reduccion_global* obtenerSolicitudReduccionGlobal(t_job* job);
 solicitud_almacenado_final* obtenerSolicitudAlmacenadoFinal(t_job* job);
 
-t_list* procesarBloqueRecibido(t_list* bloques, t_bloque* unBloque);
+void procesarBloqueRecibido(t_list* bloques, t_bloque* unBloque);
 char* serializarSolicitudJob(char* solicitudArchivo, uint32_t masterId, uint32_t* tamanioSerializado);
 void adaptarBloques(t_bloques_enviados* bloquesRecibidos, t_list* bloques);
 bool resultadoOk(char* resultado);
