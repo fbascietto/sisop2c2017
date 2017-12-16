@@ -24,7 +24,7 @@ int valorBaseTemporal;
 
 t_list* prePlanificacion(t_list* bloques, int valorBase, t_list* listaNodos, char* tipoAlgoritmo);
 t_list* replanificacion(char* nodoFallado, t_list* bloques, int dispBase, char* tipoAlgoritmo);
-t_job* terminarJob(int idJob);
+void terminarJob(t_job* job);
 
 void estadisticas(void* unaPlanif);
 void loguear_nodos_asignados(t_list* planificacion);
@@ -53,6 +53,12 @@ bool hayUnaCopiaDeCadaBloque(t_list* listaNodos, t_list* bloques);
 void seleccionarNodoParaReduccionFinal(t_list* nodos, t_list* planificacionNodos);
 void* quitarNodo(t_list* listaNodos, int indiceNodoFallado);
 void* obtenerNodos(void* elemento);
+
+//eliminar
+void eliminarBloque(void* elemento);
+void eliminarNodo(void* elemento);
+void eliminarPlanificacion(void* nodoPlanificado);
+
 
 
 //prueba de preplanificacion

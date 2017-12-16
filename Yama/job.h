@@ -40,5 +40,10 @@ void setearNodos(t_list* nodos);
 bool estaConectado(t_nodo* unNodo);
 t_nodo* obtenerNodoConectado(t_nodo* unNodo);
 void actualizar(t_nodo* nodo, t_nodo* nodoConectado);
+t_list* replanificarJob(t_job* job);
+void liberarJob(t_job* job);
+void eliminarEstado(void* elemento);
+
+
 
 #endif /* JOB_H_ */

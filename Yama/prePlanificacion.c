@@ -378,45 +378,21 @@ t_list* prePlanificacion(t_list* bloques, int valorBase, t_list* listaNodos, cha
 	return planificacionNodos;
 }
 
-/*
- * dada la lista de preplanificacion de nodos
- * el tipo de algoritmo usado
- * la disponibilidad base usada previamente
- * bloques que va a utilizar (estan tambien en la lista de planificacion de nodos)
- * y el nodo que fallo
- *
- * replanifica en base al nodo fallado
- *
- * si no hay una copia de cada bloque
- * devuelve NULL
- */
-t_list* replanificacion(char* nodoFallado, t_list* bloques, int dispBase, char* tipoAlgoritmo){
+void eliminarBloque(void* elemento){
+	t_bloque* bloque = (t_bloque* ) elemento;
+	free(bloque);
+}
 
-//	t_nodo* nodoEliminado;
-//
-//	nodoEliminado = list_remove(listaNodos, nodoFallado);
-//
-//	printf("se ejecuta rePlanificacion porque fallo el nodo %s \n", nodoEliminado->idNodo);
-//	printf("se eliminino el nodo %s\n", nodoEliminado->idNodo);
-//	printf("nuevo tamanio de la lista: %d\n", list_size(listaNodos));
-//
-	t_list* listaNodos;
-	listaNodos = obtenerEInicializarNodosDeBloques(bloques);
+void eliminarNodo(void* elemento){
+	t_nodo* nodo = (t_nodo*) elemento;
+	list_destroy_and_destroy_elements(nodo->bloquesAsignados, eliminarBloque);
+}
 
-	t_nodo* nodoEliminado;
-	//nodoEliminado = quitarNodoFallado(nodoFallado, listaNodos);
-
-	if (hayUnaCopiaDeCadaBloque(listaNodos, bloques)){
-
-		return prePlanificacion(bloques, dispBase, listaNodos, tipoAlgoritmo);
-
-	} else{
-
-		//pendiente: definir que devolver en caso de que no haya una copia de cada bloque
-		return NULL;
-	}
-
-
+void eliminarPlanificacion(void* elemento){
+	t_planificacion* nodoPlanificado = (t_planificacion*) elemento;
+	eliminarNodo(nodoPlanificado->nodo);
+	eliminarBloque(nodoPlanificado->bloque);
+	free(nodoPlanificado);
 }
 
 bool sePuedePlanificar(t_list* bloques){

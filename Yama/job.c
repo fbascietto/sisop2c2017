@@ -368,18 +368,18 @@ t_nodo* inicializarNodo(t_bloque* bloque){
 
 bool estaElEstado(char* idNodo, t_list* estados){
 	int i;
-		int cantidadNodos = list_size(estados);
+	int cantidadNodos = list_size(estados);
 
-		t_estado* unEstado;
+	t_estado* unEstado;
 
-		for(i=0; i<cantidadNodos; i++){
-			unEstado = list_get(estados, i);
-			if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idNodo) == 0){
-				return true;
-			}
+	for(i=0; i<cantidadNodos; i++){
+		unEstado = list_get(estados, i);
+		if(strcmp(unEstado->nodoPlanificado->nodo->idNodo, idNodo) == 0){
+			return true;
 		}
-		return false;
 	}
+	return false;
+}
 
 bool estaElNodo(char* id, t_list* nodos){
 	int i;
@@ -477,6 +477,12 @@ void actualizarValores(t_estado* unaPlanificacion, t_list* nodos, int cantidad){
 	}
 }
 
+void eliminarEstado(void* elemento){
+	t_estado* estado = (void*) elemento;
+	eliminarPlanificacion(estado->nodoPlanificado);
+	free(estado);
+}
+
 /*
  * restaura en la lista de los nodos conectados
  * las cargas de trabajo y las disponibilidades
@@ -521,16 +527,18 @@ int obtenerPosicionJob(int idJob, t_list* jobs){
  * quita un job de jobsActivos
  * y lo agrega a jobsFinalizados
  */
-t_job* moverJobAFinalizados(int idJob){
+void liberarJob(t_job* job){
 
-	int posicion = obtenerPosicionJob(idJob, jobsActivos);
-	t_job* job;
+	int posicion = obtenerPosicionJob(job->idJob, jobsActivos);
 
-	job = list_remove(jobsActivos, posicion);
+	list_remove(jobsActivos, posicion);
 
-	list_add(jobsFinalizados, job);
-
-	return job;
+	list_destroy_and_destroy_elements(job->estadosTransformaciones, eliminarEstado);
+	list_destroy_and_destroy_elements(job->estadosReduccionesLocales, eliminarEstado);
+	list_destroy_and_destroy_elements(job->planificacion, eliminarPlanificacion);
+	eliminarEstado(job->reduccionGlobal);
+	free(job->estadoAlmacenado);
+	free(job);
 }
 
 
@@ -543,17 +551,35 @@ t_job* moverJobAFinalizados(int idJob){
  * de la lista de jobs activos
  * y devuelve el job fallado
  */
-t_job* terminarJob(int idJob){
-
-
-	t_job* job;
-
-	//todo chequear que se mueva a finalizado
-	job = moverJobAFinalizados(idJob);
-
+void terminarJob(t_job* job){
+	int idJob = job->idJob;
 	restaurarValoresJob(job);
+	//todo chequear que se mueva a finalizado
+	liberarJob(job);
+
 
 	log_trace(logYama,"job %d finalizado", idJob);
-	return job;
+}
+
+
+/*
+ * libera el job y devuelve todos los bloques usados
+ * es responsabilidad del esclavo codeador eliminar el
+ * nodo que fallo
+ */
+t_list* replanificarJob(t_job* job){
+	int posicion = obtenerPosicionJob(job->idJob, jobsActivos);
+
+	list_remove(jobsActivos, posicion);
+
+	list_destroy_and_destroy_elements(job->estadosTransformaciones, eliminarEstado);
+	list_destroy_and_destroy_elements(job->planificacion, eliminarPlanificacion);
+	eliminarEstado(job->reduccionGlobal);
+
+	t_list* bloques = obtenerBloques(job);
+
+	free(job->estadoAlmacenado);
+	free(job);
+	return bloques;
 }
 

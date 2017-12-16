@@ -421,14 +421,14 @@ void procesarResultadoTransformacion(int nuevoSocket, Package* package, uint32_t
 
 
 
-		/***** termino el job *****/
-		t_job* jobFallado;
-		jobFallado = terminarJob(idJob);
+		/***** termino el job y obtengo los datos*****/
+		t_job* jobFallado = obtenerJob(idJob, jobsActivos);
 		tablaDeEstados(jobFallado);
-
-		/********* JOB *************/
 		t_list* bloques;
 		bloques = obtenerBloques(jobFallado);
+		replanificarJob(jobFallado);
+
+		/********* REPLANIFICO JOB *************/
 		t_job* jobReplanificado;
 
 		desconectarNodo(idNodo);
@@ -504,7 +504,8 @@ void procesarResultadoReduccionLocal(int nuevoSocket, Package* package, uint32_t
 		}
 	}else{
 		log_trace(logYamaErrorImpreso, "fallo el job %d en la reduccion local, terminando job", idJob);
-		job = terminarJob(idJob);
+
+		terminarJob(job);
 		char* jobFinalizado = malloc(sizeof(uint32_t));
 		int offset = 0;
 		int terminoJob = ACCION_TERMINAR_JOB;
@@ -544,8 +545,8 @@ void procesarResultadoReduccionGlobal(int nuevoSocket, Package* package, uint32_
 	}else{
 
 		log_trace(logYamaErrorImpreso, "fallo el job %d en la reduccion global, terminando job", idJob);
-		job = terminarJob(idJob);
 		tablaDeEstados(job);
+		terminarJob(idJob);
 		char* jobFinalizado = malloc(sizeof(uint32_t));
 		int offset = 0;
 		int terminoJob = ACCION_TERMINAR_JOB;
@@ -576,8 +577,9 @@ void procesarResultadoAlmacenadoFinal(int nuevoSocket, Package* package, uint32_
 
 
 	//todo insertar mutex
-	t_job* job = terminarJob(idJob);
+	t_job* job = obtenerJob(idJob, jobsActivos);
 	tablaDeEstados(job);
+	terminarJob(job);
 	char* jobFinalizado = malloc(sizeof(uint32_t));
 	offset = 0;
 	int terminoJob = ACCION_TERMINAR_JOB;

@@ -4,7 +4,6 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../ejemploInicializacionNodos.c \
 ../funcionesyama.c \
 ../interface.c \
 ../interfaceMaster.c \
@@ -14,7 +13,6 @@ C_SRCS += \
 ../yama.c 
 
 OBJS += \
-./ejemploInicializacionNodos.o \
 ./funcionesyama.o \
 ./interface.o \
 ./interfaceMaster.o \
@@ -24,7 +22,6 @@ OBJS += \
 ./yama.o 
 
 C_DEPS += \
-./ejemploInicializacionNodos.d \
 ./funcionesyama.d \
 ./interface.d \
 ./interfaceMaster.d \
